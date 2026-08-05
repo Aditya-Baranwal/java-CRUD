@@ -67,6 +67,11 @@
 			<version>2.0.9</version>
 			<scope>test</scope>
 		</dependency>
+		<dependency>
+			<groupId>org.springdoc</groupId>
+			<artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
+			<version>2.1.0</version>
+		</dependency>
 	</dependencies>
 
 	<build>
@@ -99,6 +104,13 @@
 							<modelPackage>com.lms.model</modelPackage>
 							<configOptions>
 								<interfaceOnly>true</interfaceOnly>
+								<useSpringBootApplication>false</useSpringBootApplication>
+								<useLombokAnnotations>true</useLombokAnnotations>
+								<dateLibrary>java8</dateLibrary>
+								<generateApis>true</generateApis>
+								<generateModels>true</generateModels>
+								<generateModelTests>false</generateModelTests>
+								<generateApiTests>false</generateApiTests>
 							</configOptions>
 						</configuration>
 					</execution>

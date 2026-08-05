@@ -1,5 +1,5 @@
 server:
- port: 8000
+ port: 8081
 
 spring:
  datasource:
@@ -21,3 +21,10 @@ spring:
   default-encoding: UTF-8
   properties.mail.smtp.auth: true
   properties.mail.smtp.starttls.enable: true
+
+springdoc:
+  swagger-ui:
+   path: /swagger-ui.html
+   enabled: true
+  api-docs:
+   path: /v3/api-docs
