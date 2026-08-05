@@ -1,0 +1,45 @@
+├── CLAUDE.md                         <-- Critical root file for Claude's entry point, commands, and rules
+├── .claude                           <-- Dedicated configuration directory for Claude
+│   ├── system-instructions.md        <-- Global persona, system-level rules, and strict guardrails
+│   ├── memory.md                     <-- State-tracking file for project progress, tech-debt, and context
+│   ├── context/                      <-- Complete domain and technical specifications, we can keep files different as claude context window is big
+│   │   ├── api-spec.md
+│   │   ├── architecture.md
+│   │   ├── business-rule.md
+│   │   ├── coding-guidelines.md
+│   │   ├── db-schema.md
+│   │   ├── domain.md
+│   │   ├── error-handling.md
+│   │   ├── glossary.md
+│   │   ├── observability.md
+│   │   ├── performance.md
+│   │   └── security.md
+│   ├── prompts/                      <-- Reusable prompt recipes (Claude excels at executing these)
+│   │   ├── controller.prompt.md
+│   │   ├── entity.prompt.md
+│   │   ├── mapper.prompt.md
+│   │   ├── refactor.prompt.md
+│   │   ├── repository.prompt.md
+│   │   ├── review.prompt.md
+│   │   ├── service.prompt.md
+│   │   └── test.prompt.md
+│   ├── skills/                       <-- Technology-specific baseline capabilities and gotchas
+│   │   ├── microservices.md
+│   │   ├── security.md
+│   │   ├── spring-boot.md
+│   │   ├── spring-jpa.md
+│   │   ├── sql.md
+│   │   └── testing.md
+│   ├── templates/                    <-- Reference boilerplate files for uniform generation
+│   │   ├── controller.java
+│   │   ├── dto.java
+│   │   ├── entity.java
+│   │   ├── exception-handler.java
+│   │   ├── repository.java
+│   │   ├── service.java
+│   │   └── serviceInterface.java
+│   └── workflows/                    <-- Step-by-step agentic recipes for complex tasks
+│       ├── fix-bug.md
+│       ├── implement-feature.md
+│       ├── release.md
+│       └── review-code.md

@@ -1,0 +1,15 @@
+docs/
+│
+├── architecture.md
+├── requirements.md
+├── api.md
+├── database.md          ← Logical database design
+├── schema.md            ← Physical schema definition
+├── deployment.md
+├── security.md
+└── apis/
+    ├── courses.md
+    ├── modules.md
+    ├── lessons.md
+    ├── enrollments.md
+    └── progress.md

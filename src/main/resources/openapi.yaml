@@ -1,0 +1,634 @@
+openapi: 3.0.3
+info:
+  title: LMS API
+  version: 1.0.0
+
+servers:
+  - url: /api/v1
+security:
+  - bearerAuth: []
+
+paths:
+  /courses:
+    post:
+      summary: Create Course
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateCourseRequest'
+      responses:
+        '200':
+          description: Course created
+          content:
+            application/json:
+            schema:
+              $ref: '#/components/schemas/CourseResponse'
+
+
+    get:
+      summary: List Courses
+      parameters:
+        - name:
+          in: query
+          schema:
+            type: boolean
+        - name: pageNo
+          in: query
+          required: true
+          schema:
+            type: integer
+            default: 1
+        - name: pageSize
+          in: query
+          required: true
+          schema:
+            type: integer
+            default: 10
+      responses:
+        '200':
+          description: List courses
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CourseListResponse'
+
+  /courses/{courseId}:
+    get:
+      summary: Get Course
+      parameters:
+        - name: courseId
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: includeModules
+          in: query
+          schema:
+            type: boolean
+      responses:
+        '200':
+          description: Course detail
+          content:
+            application/json:
+            schema:
+              $ref: '#/components/schemas/CourseDetailResponse'
+
+    put:
+      summary: Update Course
+      parameters:
+        - name: courseId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateCourseRequest'
+      responses:
+        '200':
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CourseResponse'
+
+    delete:
+      summary: Delete Course
+      parameters:
+        - name: courseId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Deleted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericResponse'
+
+  /modules:
+    post:
+      summary: Create Module
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateModuleRequest'
+      responses:
+        '200':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ModuleResponse'
+
+    get:
+      summary: List Modules
+      parameters:
+        - name: courseId
+          in: query
+          required: true
+          schema:
+            type: integer
+        - name: pageNo
+          in: query
+          required: true
+          schema:
+            type: integer
+        - name: pageSize
+          in: query
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Modules
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ModuleListResponse'
+
+  /modules/{moduleId}:
+    get:
+      summary: Get Module
+      parameters:
+        - name: moduleId
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: includeLessons
+          in: query
+          schema:
+            type: boolean
+      responses:
+        '200':
+          description: Module detail
+          content:
+            application/json:
+            schema:
+              $ref: '#/components/schemas/ModuleDetailResponse'
+
+    put:
+      summary: Update Module
+      parameters:
+        - name: moduleId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateModuleRequest'
+      responses:
+        '200':
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ModuleResponse'
+
+    delete:
+      summary: Delete Module
+      parameters:
+        - name: moduleId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Deleted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericResponse'
+
+  /lessons:
+    post:
+      summary: Create Lesson
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateLessonRequest'
+      responses:
+        '200':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LessonResponse'
+
+    get:
+      summary: List Lessons
+      parameters:
+        - name: moduleId
+          in: query
+          required: true
+          schema:
+            type: integer
+        - name: userId
+          in: query
+          schema:
+            type: integer
+        - name: pageNo
+          in: query
+          required: true
+          schema:
+            type: integer
+        - name: pageSize
+          in: query
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Lessons
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LessonListResponse'
+
+  /lessons/{lessonId}:
+    get:
+      summary: Get Lesson
+      parameters:
+        - name: lessonId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Lesson
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LessonResponse'
+
+    put:
+      summary: Update Lesson
+      parameters:
+        - name: lessonId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateLessonRequest'
+      responses:
+        '200':
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LessonResponse'
+
+    delete:
+      summary: Delete Lesson
+      parameters:
+        - name: lessonId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Deleted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericResponse'
+
+  /enrollments:
+    post:
+      summary: Create Enrollment
+      requestBody:
+        content:
+          application/json:
+          schema:
+            $ref: '#/components/schemas/CreateEnrollmentRequest'
+      responses:
+        '200':
+          description: Enrolled
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EnrollmentResponse'
+
+    get:
+      summary: List Enrollments
+      parameters:
+        - name: userId
+          in: query
+          required: true
+          schema:
+            type: integer
+        - name: pageNo
+          in: query
+          required: true
+          schema:
+            type: integer
+        - name: pageSize
+          in: query
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Enrollments
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EnrollmentListResponse'
+
+  /progress/{progressId}:
+    put:
+      summary: Update Progress
+      parameters:
+        - name: progressId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateProgressRequest'
+      responses:
+        '200':
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProgressResponse'
+
+components:
+  securitySchemes:
+    bearerAuth:
+    type: http
+    scheme: bearer
+    bearerFormat: JWT
+  schemas:
+
+    # ENUMS
+    LessonStatus:
+      type: string
+      enum: [UNSTARTED, STARTED, COMPLETED]
+
+    CourseStatus:
+      type: string
+      enum: [INCOMPLETE, COMPLETE]
+
+    ContentType:
+      type: string
+      enum: [VIDEO, ARTICLE, QUIZ]
+
+    # GENERIC
+    GenericResponse:
+      type: object
+      properties:
+        message:
+          type: string
+        data:
+          type: object
+
+    # COURSE
+    CreateCourseRequest:
+      type: object
+      properties:
+        courseTitle: { type: string }
+        courseDescription: { type: string }
+        courseTags:
+          type: array
+          items: { type: string }
+        instructorId: { type: integer }
+
+    UpdateCourseRequest:
+      type: object
+      properties:
+        courseTitle: { type: string }
+        courseDescription: { type: string }
+        courseTags:
+          type: array
+          items: { type: string }
+        isActive: { type: boolean }
+
+    Course:
+      type: object
+      properties:
+        courseId: { type: integer }
+        courseTitle: { type: string }
+        courseDescription: { type: string }
+        courseTags:
+          type: array
+          items: { type: string }
+        instructorId: { type: integer }
+        instructorName: { type: string }
+        isActive: { type: boolean }
+        createdAt:
+          type: string
+          format: date-time
+
+    CourseResponse:
+      type: object
+      properties:
+        message: { type: string }
+        data:
+          $ref: '#/components/schemas/Course'
+
+    CourseListResponse:
+      type: object
+      properties:
+        message: { type: string }
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Course'
+        page: { type: integer }
+        size: { type: integer }
+        total: { type: integer }
+
+    CourseDetailResponse:
+      allOf:
+        - $ref: '#/components/schemas/CourseResponse'
+
+    # MODULE
+    CreateModuleRequest:
+      type: object
+      properties:
+        courseId: { type: integer }
+        moduleTitle: { type: string }
+        moduleDescription: { type: string }
+        sequence: { type: integer }
+
+    UpdateModuleRequest:
+      type: object
+      properties:
+        moduleTitle: { type: string }
+        moduleDescription: { type: string }
+        sequence: { type: integer }
+        isActive: { type: boolean }
+
+    Module:
+      type: object
+      properties:
+        moduleId: { type: integer }
+        courseId: { type: integer }
+        moduleTitle: { type: string }
+        moduleDescription: { type: string }
+        sequence: { type: integer }
+        isActive: { type: boolean }
+        createdAt:
+          type: string
+          format: date-time
+
+    ModuleResponse:
+      type: object
+      properties:
+        message: { type: string }
+        data:
+          $ref: '#/components/schemas/Module'
+
+    ModuleListResponse:
+      type: object
+      properties:
+        message: { type: string }
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Module'
+        page: { type: integer }
+        size: { type: integer }
+        total: { type: integer }
+
+    ModuleDetailResponse:
+      allOf:
+        - $ref: '#/components/schemas/ModuleResponse'
+
+    # LESSON
+    CreateLessonRequest:
+      type: object
+      properties:
+        moduleId: { type: integer }
+        contentType:
+          $ref: '#/components/schemas/ContentType'
+        contentLink: { type: string }
+        sequence: { type: integer }
+
+    UpdateLessonRequest:
+      type: object
+      properties:
+        moduleId: { type: integer }
+        contentType:
+          $ref: '#/components/schemas/ContentType'
+        contentLink: { type: string }
+        sequence: { type: integer }
+        isActive: { type: boolean }
+
+    Lesson:
+      type: object
+      properties:
+        lessonId: { type: integer }
+        moduleId: { type: integer }
+        contentType:
+          $ref: '#/components/schemas/ContentType'
+        contentLink: { type: string }
+        sequence: { type: integer }
+        lessonStatus:
+          $ref: '#/components/schemas/LessonStatus'
+        isActive: { type: boolean }
+        createdAt:
+          type: string
+          format: date-time
+
+    LessonResponse:
+      type: object
+      properties:
+        message: { type: string }
+        data:
+          $ref: '#/components/schemas/Lesson'
+
+    LessonListResponse:
+      type: object
+      properties:
+        message: { type: string }
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Lesson'
+        page: { type: integer }
+        size: { type: integer }
+        total: { type: integer }
+
+    # ENROLLMENT
+    CreateEnrollmentRequest:
+      type: object
+      properties:
+        userId: { type: integer }
+        courseId: { type: integer }
+
+    Enrollment:
+      type: object
+      properties:
+        id: { type: integer }
+        courseId: { type: integer }
+        userId: { type: integer }
+        courseStatus:
+          $ref: '#/components/schemas/CourseStatus'
+        enrolledAt:
+          type: string
+          format: date-time
+
+    EnrollmentResponse:
+      type: object
+      properties:
+        message: { type: string }
+        data:
+          $ref: '#/components/schemas/Enrollment'
+
+    EnrollmentListResponse:
+      type: object
+      properties:
+        message: { type: string }
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Enrollment'
+        page: { type: integer }
+        size: { type: integer }
+        total: { type: integer }
+
+    # PROGRESS
+    UpdateProgressRequest:
+      type: object
+      properties:
+        lessonId: { type: integer }
+        userId: { type: integer }
+        lessonStatus:
+          $ref: '#/components/schemas/LessonStatus'
+
+    ProgressResponse:
+      type: object
+      properties:
+        message: { type: string }
+        data:
+          type: object
+          properties:
+            lessonId: { type: integer }
+            userId: { type: integer }
+            lessonStatus:
+              $ref: '#/components/schemas/LessonStatus'

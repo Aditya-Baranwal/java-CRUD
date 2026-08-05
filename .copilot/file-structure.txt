@@ -1,0 +1,42 @@
+├── .github
+│   └── copilot-instructions.md       <-- Root file Copilot automatically reads
+└── .copilot
+    ├── context
+    │   ├── architectural-spec.md     <-- Merged: architecture, db-schema, api-spec
+    │   ├── business-domain.md        <-- Merged: domain, business-rule, glossary
+    │   └── coding-standards.md       <-- Merged: coding, error, security, obs, perf
+    ├── memory.md                     <-- Captures ongoing project state and decisions
+    ├── prompts
+    │   ├── controller.prompt.md
+    │   ├── entity.prompt.md
+    │   ├── mapper.prompt.md
+    │   ├── refactor.prompt.md
+    │   ├── repository.prompt.md
+    │   ├── review.prompt.md
+    │   ├── service.prompt.md
+    │   └── test.prompt.md
+    ├── rules.md                      <-- Global "always/never" constraints
+    ├── skills
+    │   ├── microservices.md
+    │   ├── security.md
+    │   ├── spring-boot.md
+    │   ├── spring-jpa.md
+    │   ├── sql.md
+    │   └── testing.md
+    ├── templates
+    │   ├── controller.java
+    │   ├── dto.java
+    │   ├── entity.java
+    │   ├── exception-handler.java
+    │   ├── repository.java
+    │   ├── service.java
+    │   └── serviceInterface.java
+    └── workflows
+        ├── fix-bug.md
+        ├── implement-feature.md
+        ├── release.md
+        └── review-code.md
+├── src
+    └── java
+    |   └── com.aditya.lms
+    └── resources
