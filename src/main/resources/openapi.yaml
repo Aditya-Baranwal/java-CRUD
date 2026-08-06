@@ -1,17 +1,411 @@
-openapi: 3.0.3
+openapi: 3.1.0
 info:
-  title: LMS API
+  title: Learning Management System API
+  description: LMS API for managing courses, modules, lessons, enrollments and progress tracking
   version: 1.0.0
+  contact:
+    name: LMS Team
+  license:
+    name: MIT
+    identifier: MIT
 
 servers:
+  - url: http://localhost:8081/api/v1
+    description: Development
   - url: /api/v1
+    description: Production
+
+tags:
+  - name: Courses
+    description: Course management operations
+  - name: Modules
+    description: Module management operations
+  - name: Lessons
+    description: Lesson management operations
+  - name: Enrollments
+    description: Enrollment management operations
+  - name: Progress
+    description: Progress tracking operations
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    CreateCourseRequest:
+      type: object
+      required:
+        - courseTitle
+        - courseDescription
+        - instructorId
+      properties:
+        courseTitle:
+          type: string
+          maxLength: 100
+          minLength: 1
+          example: Java Spring Boot
+        courseDescription:
+          type: string
+          maxLength: 200
+          minLength: 1
+          example: Complete Spring Boot course
+        courseTags:
+          type: array
+          items:
+            type: string
+          example:
+            - java
+            - spring
+            - backend
+        instructorId:
+          type: integer
+          format: int64
+          example: 101
+
+    UpdateCourseRequest:
+      type: object
+      properties:
+        courseTitle:
+          type: string
+          maxLength: 100
+          minLength: 1
+        courseDescription:
+          type: string
+          maxLength: 200
+          minLength: 1
+        courseTags:
+          type: array
+          items:
+            type: string
+        isActive:
+          type: boolean
+
+    CourseResponse:
+      type: object
+      properties:
+        courseId:
+          type: integer
+          format: int64
+        courseTitle:
+          type: string
+        courseDescription:
+          type: string
+        courseTags:
+          type: array
+          items:
+            type: string
+        instructorId:
+          type: integer
+          format: int64
+        instructorName:
+          type: string
+        modules:
+          type: array
+          items:
+            $ref: '#/components/schemas/ModuleResponse'
+        isActive:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+
+    CreateModuleRequest:
+      type: object
+      required:
+        - courseId
+        - moduleTitle
+        - sequence
+      properties:
+        courseId:
+          type: integer
+          format: int64
+          example: 1
+        moduleTitle:
+          type: string
+          maxLength: 50
+          minLength: 1
+          example: Spring Core
+        moduleDescription:
+          type: string
+          maxLength: 100
+        sequence:
+          type: integer
+          minimum: 1
+          example: 1
+
+    UpdateModuleRequest:
+      type: object
+      properties:
+        moduleTitle:
+          type: string
+          maxLength: 50
+          minLength: 1
+        moduleDescription:
+          type: string
+          maxLength: 100
+        sequence:
+          type: integer
+          minimum: 1
+        isActive:
+          type: boolean
+
+    ModuleResponse:
+      type: object
+      properties:
+        moduleId:
+          type: integer
+          format: int64
+        courseId:
+          type: integer
+          format: int64
+        moduleTitle:
+          type: string
+        moduleDescription:
+          type: string
+        sequence:
+          type: integer
+        lessons:
+          type: array
+          items:
+            $ref: '#/components/schemas/LessonResponse'
+        isActive:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+
+    CreateLessonRequest:
+      type: object
+      required:
+        - moduleId
+        - contentType
+        - contentLink
+        - sequence
+      properties:
+        moduleId:
+          type: integer
+          format: int64
+          example: 10
+        contentType:
+          type: string
+          enum:
+            - MP3
+            - MP4
+            - PDF
+            - TEXT
+          example: MP4
+        contentLink:
+          type: string
+          format: uri
+          example: https://cdn.example.com/videos/introduction.mp4
+        sequence:
+          type: integer
+          minimum: 1
+          example: 1
+
+    UpdateLessonRequest:
+      type: object
+      properties:
+        contentType:
+          type: string
+          enum:
+            - MP3
+            - MP4
+            - PDF
+            - TEXT
+        contentLink:
+          type: string
+          format: uri
+        sequence:
+          type: integer
+          minimum: 1
+        isActive:
+          type: boolean
+
+    LessonResponse:
+      type: object
+      properties:
+        lessonId:
+          type: integer
+          format: int64
+        moduleId:
+          type: integer
+          format: int64
+        contentType:
+          type: string
+          enum:
+            - MP3
+            - MP4
+            - PDF
+            - TEXT
+        contentLink:
+          type: string
+          format: uri
+        sequence:
+          type: integer
+        userId:
+          type: integer
+          format: int64
+          nullable: true
+        lessonStatus:
+          type: string
+          enum:
+            - UNSTARTED
+            - STARTED
+            - FINISHED
+          nullable: true
+        isActive:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+
+    CreateEnrollmentRequest:
+      type: object
+      required:
+        - userId
+        - courseId
+      properties:
+        userId:
+          type: integer
+          format: int64
+          example: 25
+        courseId:
+          type: integer
+          format: int64
+          example: 10
+
+    EnrollmentResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        userId:
+          type: integer
+          format: int64
+        courseId:
+          type: integer
+          format: int64
+        courseTitle:
+          type: string
+        courseStatus:
+          type: string
+          enum:
+            - INCOMPLETE
+            - COMPLETE
+        enrolledAt:
+          type: string
+          format: date-time
+
+    UpdateProgressRequest:
+      type: object
+      required:
+        - lessonStatus
+      properties:
+        lessonStatus:
+          type: string
+          enum:
+            - STARTED
+            - FINISHED
+          example: STARTED
+
+    ProgressResponse:
+      type: object
+      properties:
+        progressId:
+          type: integer
+          format: int64
+        lessonId:
+          type: integer
+          format: int64
+        lessonTitle:
+          type: string
+        userId:
+          type: integer
+          format: int64
+        moduleId:
+          type: integer
+          format: int64
+        courseId:
+          type: integer
+          format: int64
+        lessonStatus:
+          type: string
+          enum:
+            - UNSTARTED
+            - STARTED
+            - FINISHED
+        startedAt:
+          type: string
+          format: date-time
+          nullable: true
+        completedAt:
+          type: string
+          format: date-time
+          nullable: true
+
+    ApiResponse:
+      type: object
+      properties:
+        message:
+          type: string
+        data:
+          type: object
+        timestamp:
+          type: string
+          format: date-time
+
+    ApiListResponse:
+      type: object
+      properties:
+        message:
+          type: string
+        data:
+          type: array
+        page:
+          type: integer
+        size:
+          type: integer
+        total:
+          type: integer
+        timestamp:
+          type: string
+          format: date-time
+
+    ErrorResponse:
+      type: object
+      properties:
+        message:
+          type: string
+        errorCode:
+          type: string
+        errors:
+          type: array
+          items:
+            type: object
+            properties:
+              field:
+                type: string
+              message:
+                type: string
+        timestamp:
+          type: string
+          format: date-time
+
 security:
   - bearerAuth: []
 
 paths:
   /courses:
     post:
-      summary: Create Course
+      tags:
+        - Courses
+      summary: Create a new course
+      operationId: createCourse
       requestBody:
         required: true
         content:
@@ -19,21 +413,44 @@ paths:
             schema:
               $ref: '#/components/schemas/CreateCourseRequest'
       responses:
-        '200':
-          description: Course created
+        '201':
+          description: Course created successfully
           content:
             application/json:
-            schema:
-              $ref: '#/components/schemas/CourseResponse'
-
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  data:
+                    $ref: '#/components/schemas/CourseResponse'
+                  timestamp:
+                    type: string
+                    format: date-time
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '404':
+          description: Not found
 
     get:
-      summary: List Courses
+      tags:
+        - Courses
+      summary: List courses
+      operationId: listCourses
       parameters:
-        - name:
+        - name: active
           in: query
           schema:
             type: boolean
+            default: true
         - name: pageNo
           in: query
           required: true
@@ -46,589 +463,919 @@ paths:
           schema:
             type: integer
             default: 10
+        - name: sortBy
+          in: query
+          schema:
+            type: string
+            default: createdAt
+        - name: sortOrder
+          in: query
+          schema:
+            type: string
+            enum:
+              - asc
+              - desc
+            default: desc
       responses:
         '200':
-          description: List courses
+          description: Courses fetched successfully
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/CourseListResponse'
+                type: object
+                properties:
+                  message:
+                    type: string
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/CourseResponse'
+                  page:
+                    type: integer
+                  size:
+                    type: integer
+                  total:
+                    type: integer
+                  timestamp:
+                    type: string
+                    format: date-time
+        '400':
+          description: Bad request
+        '401':
+          description: Unauthorized
 
   /courses/{courseId}:
     get:
-      summary: Get Course
+      tags:
+        - Courses
+      summary: Get course by ID
+      operationId: getCourse
       parameters:
         - name: courseId
           in: path
           required: true
           schema:
             type: integer
+            format: int64
         - name: includeModules
           in: query
           schema:
             type: boolean
+            default: false
       responses:
         '200':
-          description: Course detail
+          description: Course fetched successfully
           content:
             application/json:
-            schema:
-              $ref: '#/components/schemas/CourseDetailResponse'
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  data:
+                    $ref: '#/components/schemas/CourseResponse'
+                  timestamp:
+                    type: string
+                    format: date-time
+        '404':
+          description: Not found
 
     put:
-      summary: Update Course
+      tags:
+        - Courses
+      summary: Update course
+      operationId: updateCourse
       parameters:
         - name: courseId
           in: path
           required: true
           schema:
             type: integer
+            format: int64
       requestBody:
+        required: true
         content:
           application/json:
             schema:
               $ref: '#/components/schemas/UpdateCourseRequest'
       responses:
         '200':
-          description: Updated
+          description: Course updated successfully
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/CourseResponse'
+                type: object
+                properties:
+                  message:
+                    type: string
+                  data:
+                    $ref: '#/components/schemas/CourseResponse'
+                  timestamp:
+                    type: string
+                    format: date-time
+        '400':
+          description: Bad request
+        '403':
+          description: Forbidden
+        '404':
+          description: Not found
 
     delete:
-      summary: Delete Course
+      tags:
+        - Courses
+      summary: Delete course
+      operationId: deleteCourse
       parameters:
         - name: courseId
           in: path
           required: true
           schema:
             type: integer
+            format: int64
       responses:
         '200':
-          description: Deleted
+          description: Course deleted successfully
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/GenericResponse'
+                type: object
+                properties:
+                  message:
+                    type: string
+                  data:
+                    type: object
+                  timestamp:
+                    type: string
+                    format: date-time
+        '403':
+          description: Forbidden
+        '404':
+          description: Not found
+        '409':
+          description: Conflict
 
   /modules:
     post:
-      summary: Create Module
+      tags:
+        - Modules
+      summary: Create a new module
+      operationId: createModule
       requestBody:
+        required: true
         content:
           application/json:
             schema:
               $ref: '#/components/schemas/CreateModuleRequest'
       responses:
-        '200':
-          description: Created
+        '201':
+          description: Module created successfully
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ModuleResponse'
+                type: object
+                properties:
+                  message:
+                    type: string
+                  data:
+                    $ref: '#/components/schemas/ModuleResponse'
+                  timestamp:
+                    type: string
+                    format: date-time
+        '400':
+          description: Bad request
+        '403':
+          description: Forbidden
+        '404':
+          description: Not found
+        '409':
+          description: Conflict
 
     get:
-      summary: List Modules
+      tags:
+        - Modules
+      summary: List modules
+      operationId: listModules
       parameters:
         - name: courseId
           in: query
           required: true
           schema:
             type: integer
+            format: int64
+        - name: active
+          in: query
+          schema:
+            type: boolean
+            default: true
         - name: pageNo
           in: query
           required: true
           schema:
             type: integer
+            default: 1
         - name: pageSize
           in: query
           required: true
           schema:
             type: integer
+            default: 10
+        - name: sortBy
+          in: query
+          schema:
+            type: string
+            default: sequence
+        - name: sortOrder
+          in: query
+          schema:
+            type: string
+            enum:
+              - asc
+              - desc
+            default: asc
       responses:
         '200':
-          description: Modules
+          description: Modules fetched successfully
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ModuleListResponse'
+                type: object
+                properties:
+                  message:
+                    type: string
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ModuleResponse'
+                  page:
+                    type: integer
+                  size:
+                    type: integer
+                  total:
+                    type: integer
+                  timestamp:
+                    type: string
+                    format: date-time
+        '400':
+          description: Bad request
+        '401':
+          description: Unauthorized
 
   /modules/{moduleId}:
     get:
-      summary: Get Module
+      tags:
+        - Modules
+      summary: Get module by ID
+      operationId: getModule
       parameters:
         - name: moduleId
           in: path
           required: true
           schema:
             type: integer
+            format: int64
         - name: includeLessons
           in: query
           schema:
             type: boolean
+            default: false
       responses:
         '200':
-          description: Module detail
+          description: Module fetched successfully
           content:
             application/json:
-            schema:
-              $ref: '#/components/schemas/ModuleDetailResponse'
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  data:
+                    $ref: '#/components/schemas/ModuleResponse'
+                  timestamp:
+                    type: string
+                    format: date-time
+        '404':
+          description: Not found
 
     put:
-      summary: Update Module
+      tags:
+        - Modules
+      summary: Update module
+      operationId: updateModule
       parameters:
         - name: moduleId
           in: path
           required: true
           schema:
             type: integer
+            format: int64
       requestBody:
+        required: true
         content:
           application/json:
             schema:
               $ref: '#/components/schemas/UpdateModuleRequest'
       responses:
         '200':
-          description: Updated
+          description: Module updated successfully
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ModuleResponse'
+                type: object
+                properties:
+                  message:
+                    type: string
+                  data:
+                    $ref: '#/components/schemas/ModuleResponse'
+                  timestamp:
+                    type: string
+                    format: date-time
+        '400':
+          description: Bad request
+        '403':
+          description: Forbidden
+        '404':
+          description: Not found
+        '409':
+          description: Conflict
 
     delete:
-      summary: Delete Module
+      tags:
+        - Modules
+      summary: Delete module
+      operationId: deleteModule
       parameters:
         - name: moduleId
           in: path
           required: true
           schema:
             type: integer
+            format: int64
       responses:
         '200':
-          description: Deleted
+          description: Module deleted successfully
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/GenericResponse'
+                type: object
+                properties:
+                  message:
+                    type: string
+                  data:
+                    type: object
+                  timestamp:
+                    type: string
+                    format: date-time
+        '403':
+          description: Forbidden
+        '404':
+          description: Not found
+        '409':
+          description: Conflict
 
   /lessons:
     post:
-      summary: Create Lesson
+      tags:
+        - Lessons
+      summary: Create a new lesson
+      operationId: createLesson
       requestBody:
+        required: true
         content:
           application/json:
             schema:
               $ref: '#/components/schemas/CreateLessonRequest'
       responses:
-        '200':
-          description: Created
+        '201':
+          description: Lesson created successfully
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/LessonResponse'
+                type: object
+                properties:
+                  message:
+                    type: string
+                  data:
+                    $ref: '#/components/schemas/LessonResponse'
+                  timestamp:
+                    type: string
+                    format: date-time
+        '400':
+          description: Bad request
+        '403':
+          description: Forbidden
+        '404':
+          description: Not found
+        '409':
+          description: Conflict
 
     get:
-      summary: List Lessons
+      tags:
+        - Lessons
+      summary: List lessons
+      operationId: listLessons
       parameters:
         - name: moduleId
           in: query
           required: true
           schema:
             type: integer
+            format: int64
         - name: userId
           in: query
           schema:
             type: integer
+            format: int64
+        - name: active
+          in: query
+          schema:
+            type: boolean
+            default: true
         - name: pageNo
           in: query
           required: true
           schema:
             type: integer
+            default: 1
         - name: pageSize
           in: query
           required: true
           schema:
             type: integer
+            default: 10
+        - name: sortBy
+          in: query
+          schema:
+            type: string
+            default: sequence
+        - name: sortOrder
+          in: query
+          schema:
+            type: string
+            enum:
+              - asc
+              - desc
+            default: asc
       responses:
         '200':
-          description: Lessons
+          description: Lessons fetched successfully
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/LessonListResponse'
+                type: object
+                properties:
+                  message:
+                    type: string
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/LessonResponse'
+                  page:
+                    type: integer
+                  size:
+                    type: integer
+                  total:
+                    type: integer
+                  timestamp:
+                    type: string
+                    format: date-time
+        '400':
+          description: Bad request
+        '401':
+          description: Unauthorized
 
   /lessons/{lessonId}:
     get:
-      summary: Get Lesson
+      tags:
+        - Lessons
+      summary: Get lesson by ID
+      operationId: getLesson
       parameters:
         - name: lessonId
           in: path
           required: true
           schema:
             type: integer
+            format: int64
       responses:
         '200':
-          description: Lesson
+          description: Lesson fetched successfully
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/LessonResponse'
+                type: object
+                properties:
+                  message:
+                    type: string
+                  data:
+                    $ref: '#/components/schemas/LessonResponse'
+                  timestamp:
+                    type: string
+                    format: date-time
+        '404':
+          description: Not found
 
     put:
-      summary: Update Lesson
+      tags:
+        - Lessons
+      summary: Update lesson
+      operationId: updateLesson
       parameters:
         - name: lessonId
           in: path
           required: true
           schema:
             type: integer
+            format: int64
       requestBody:
+        required: true
         content:
           application/json:
             schema:
               $ref: '#/components/schemas/UpdateLessonRequest'
       responses:
         '200':
-          description: Updated
+          description: Lesson updated successfully
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/LessonResponse'
+                type: object
+                properties:
+                  message:
+                    type: string
+                  data:
+                    $ref: '#/components/schemas/LessonResponse'
+                  timestamp:
+                    type: string
+                    format: date-time
+        '400':
+          description: Bad request
+        '403':
+          description: Forbidden
+        '404':
+          description: Not found
+        '409':
+          description: Conflict
 
     delete:
-      summary: Delete Lesson
+      tags:
+        - Lessons
+      summary: Delete lesson
+      operationId: deleteLesson
       parameters:
         - name: lessonId
           in: path
           required: true
           schema:
             type: integer
+            format: int64
       responses:
         '200':
-          description: Deleted
+          description: Lesson deleted successfully
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/GenericResponse'
+                type: object
+                properties:
+                  message:
+                    type: string
+                  data:
+                    type: object
+                  timestamp:
+                    type: string
+                    format: date-time
+        '403':
+          description: Forbidden
+        '404':
+          description: Not found
+        '409':
+          description: Conflict
 
   /enrollments:
     post:
-      summary: Create Enrollment
+      tags:
+        - Enrollments
+      summary: Create enrollment
+      operationId: createEnrollment
       requestBody:
+        required: true
         content:
           application/json:
-          schema:
-            $ref: '#/components/schemas/CreateEnrollmentRequest'
+            schema:
+              $ref: '#/components/schemas/CreateEnrollmentRequest'
       responses:
-        '200':
-          description: Enrolled
+        '201':
+          description: Enrollment created successfully
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/EnrollmentResponse'
+                type: object
+                properties:
+                  message:
+                    type: string
+                  data:
+                    $ref: '#/components/schemas/EnrollmentResponse'
+                  timestamp:
+                    type: string
+                    format: date-time
+        '400':
+          description: Bad request
+        '403':
+          description: Forbidden
+        '404':
+          description: Not found
+        '409':
+          description: Conflict
 
     get:
-      summary: List Enrollments
+      tags:
+        - Enrollments
+      summary: List enrollments
+      operationId: listEnrollments
       parameters:
         - name: userId
           in: query
           required: true
           schema:
             type: integer
+            format: int64
+        - name: courseStatus
+          in: query
+          schema:
+            type: string
+            enum:
+              - COMPLETE
+              - INCOMPLETE
         - name: pageNo
           in: query
           required: true
           schema:
             type: integer
+            default: 1
         - name: pageSize
           in: query
           required: true
           schema:
             type: integer
+            default: 10
+        - name: sortBy
+          in: query
+          schema:
+            type: string
+            default: enrolledAt
+        - name: sortOrder
+          in: query
+          schema:
+            type: string
+            enum:
+              - asc
+              - desc
+            default: desc
       responses:
         '200':
-          description: Enrollments
+          description: Enrollments fetched successfully
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/EnrollmentListResponse'
+                type: object
+                properties:
+                  message:
+                    type: string
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/EnrollmentResponse'
+                  page:
+                    type: integer
+                  size:
+                    type: integer
+                  total:
+                    type: integer
+                  timestamp:
+                    type: string
+                    format: date-time
+        '400':
+          description: Bad request
+        '401':
+          description: Unauthorized
+
+  /enrollments/{enrollmentId}:
+    get:
+      tags:
+        - Enrollments
+      summary: Get enrollment by ID
+      operationId: getEnrollment
+      parameters:
+        - name: enrollmentId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: Enrollment fetched successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  data:
+                    $ref: '#/components/schemas/EnrollmentResponse'
+                  timestamp:
+                    type: string
+                    format: date-time
+        '403':
+          description: Forbidden
+        '404':
+          description: Not found
+
+    delete:
+      tags:
+        - Enrollments
+      summary: Cancel enrollment
+      operationId: cancelEnrollment
+      parameters:
+        - name: enrollmentId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: Enrollment cancelled successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  data:
+                    type: object
+                  timestamp:
+                    type: string
+                    format: date-time
+        '403':
+          description: Forbidden
+        '404':
+          description: Not found
+
+  /progress:
+    get:
+      tags:
+        - Progress
+      summary: List progress records
+      operationId: listProgress
+      parameters:
+        - name: userId
+          in: query
+          required: true
+          schema:
+            type: integer
+            format: int64
+        - name: courseId
+          in: query
+          schema:
+            type: integer
+            format: int64
+        - name: moduleId
+          in: query
+          schema:
+            type: integer
+            format: int64
+        - name: lessonStatus
+          in: query
+          schema:
+            type: string
+            enum:
+              - UNSTARTED
+              - STARTED
+              - FINISHED
+        - name: pageNo
+          in: query
+          required: true
+          schema:
+            type: integer
+            default: 1
+        - name: pageSize
+          in: query
+          required: true
+          schema:
+            type: integer
+            default: 10
+        - name: sortBy
+          in: query
+          schema:
+            type: string
+            default: lessonId
+        - name: sortOrder
+          in: query
+          schema:
+            type: string
+            enum:
+              - asc
+              - desc
+            default: asc
+      responses:
+        '200':
+          description: Progress records fetched successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ProgressResponse'
+                  page:
+                    type: integer
+                  size:
+                    type: integer
+                  total:
+                    type: integer
+                  timestamp:
+                    type: string
+                    format: date-time
+        '400':
+          description: Bad request
+        '401':
+          description: Unauthorized
 
   /progress/{progressId}:
-    put:
-      summary: Update Progress
+    get:
+      tags:
+        - Progress
+      summary: Get progress by ID
+      operationId: getProgress
       parameters:
         - name: progressId
           in: path
           required: true
           schema:
             type: integer
+            format: int64
+      responses:
+        '200':
+          description: Progress fetched successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  data:
+                    $ref: '#/components/schemas/ProgressResponse'
+                  timestamp:
+                    type: string
+                    format: date-time
+        '404':
+          description: Not found
+
+    put:
+      tags:
+        - Progress
+      summary: Update progress
+      operationId: updateProgress
+      parameters:
+        - name: progressId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
       requestBody:
+        required: true
         content:
           application/json:
             schema:
               $ref: '#/components/schemas/UpdateProgressRequest'
       responses:
         '200':
-          description: Updated
+          description: Progress updated successfully
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ProgressResponse'
-
-components:
-  securitySchemes:
-    bearerAuth:
-    type: http
-    scheme: bearer
-    bearerFormat: JWT
-  schemas:
-
-    # ENUMS
-    LessonStatus:
-      type: string
-      enum: [UNSTARTED, STARTED, COMPLETED]
-
-    CourseStatus:
-      type: string
-      enum: [INCOMPLETE, COMPLETE]
-
-    ContentType:
-      type: string
-      enum: [VIDEO, ARTICLE, QUIZ]
-
-    # GENERIC
-    GenericResponse:
-      type: object
-      properties:
-        message:
-          type: string
-        data:
-          type: object
-
-    # COURSE
-    CreateCourseRequest:
-      type: object
-      properties:
-        courseTitle: { type: string }
-        courseDescription: { type: string }
-        courseTags:
-          type: array
-          items: { type: string }
-        instructorId: { type: integer }
-
-    UpdateCourseRequest:
-      type: object
-      properties:
-        courseTitle: { type: string }
-        courseDescription: { type: string }
-        courseTags:
-          type: array
-          items: { type: string }
-        isActive: { type: boolean }
-
-    Course:
-      type: object
-      properties:
-        courseId: { type: integer }
-        courseTitle: { type: string }
-        courseDescription: { type: string }
-        courseTags:
-          type: array
-          items: { type: string }
-        instructorId: { type: integer }
-        instructorName: { type: string }
-        isActive: { type: boolean }
-        createdAt:
-          type: string
-          format: date-time
-
-    CourseResponse:
-      type: object
-      properties:
-        message: { type: string }
-        data:
-          $ref: '#/components/schemas/Course'
-
-    CourseListResponse:
-      type: object
-      properties:
-        message: { type: string }
-        data:
-          type: array
-          items:
-            $ref: '#/components/schemas/Course'
-        page: { type: integer }
-        size: { type: integer }
-        total: { type: integer }
-
-    CourseDetailResponse:
-      allOf:
-        - $ref: '#/components/schemas/CourseResponse'
-
-    # MODULE
-    CreateModuleRequest:
-      type: object
-      properties:
-        courseId: { type: integer }
-        moduleTitle: { type: string }
-        moduleDescription: { type: string }
-        sequence: { type: integer }
-
-    UpdateModuleRequest:
-      type: object
-      properties:
-        moduleTitle: { type: string }
-        moduleDescription: { type: string }
-        sequence: { type: integer }
-        isActive: { type: boolean }
-
-    Module:
-      type: object
-      properties:
-        moduleId: { type: integer }
-        courseId: { type: integer }
-        moduleTitle: { type: string }
-        moduleDescription: { type: string }
-        sequence: { type: integer }
-        isActive: { type: boolean }
-        createdAt:
-          type: string
-          format: date-time
-
-    ModuleResponse:
-      type: object
-      properties:
-        message: { type: string }
-        data:
-          $ref: '#/components/schemas/Module'
-
-    ModuleListResponse:
-      type: object
-      properties:
-        message: { type: string }
-        data:
-          type: array
-          items:
-            $ref: '#/components/schemas/Module'
-        page: { type: integer }
-        size: { type: integer }
-        total: { type: integer }
-
-    ModuleDetailResponse:
-      allOf:
-        - $ref: '#/components/schemas/ModuleResponse'
-
-    # LESSON
-    CreateLessonRequest:
-      type: object
-      properties:
-        moduleId: { type: integer }
-        contentType:
-          $ref: '#/components/schemas/ContentType'
-        contentLink: { type: string }
-        sequence: { type: integer }
-
-    UpdateLessonRequest:
-      type: object
-      properties:
-        moduleId: { type: integer }
-        contentType:
-          $ref: '#/components/schemas/ContentType'
-        contentLink: { type: string }
-        sequence: { type: integer }
-        isActive: { type: boolean }
-
-    Lesson:
-      type: object
-      properties:
-        lessonId: { type: integer }
-        moduleId: { type: integer }
-        contentType:
-          $ref: '#/components/schemas/ContentType'
-        contentLink: { type: string }
-        sequence: { type: integer }
-        lessonStatus:
-          $ref: '#/components/schemas/LessonStatus'
-        isActive: { type: boolean }
-        createdAt:
-          type: string
-          format: date-time
-
-    LessonResponse:
-      type: object
-      properties:
-        message: { type: string }
-        data:
-          $ref: '#/components/schemas/Lesson'
-
-    LessonListResponse:
-      type: object
-      properties:
-        message: { type: string }
-        data:
-          type: array
-          items:
-            $ref: '#/components/schemas/Lesson'
-        page: { type: integer }
-        size: { type: integer }
-        total: { type: integer }
-
-    # ENROLLMENT
-    CreateEnrollmentRequest:
-      type: object
-      properties:
-        userId: { type: integer }
-        courseId: { type: integer }
-
-    Enrollment:
-      type: object
-      properties:
-        id: { type: integer }
-        courseId: { type: integer }
-        userId: { type: integer }
-        courseStatus:
-          $ref: '#/components/schemas/CourseStatus'
-        enrolledAt:
-          type: string
-          format: date-time
-
-    EnrollmentResponse:
-      type: object
-      properties:
-        message: { type: string }
-        data:
-          $ref: '#/components/schemas/Enrollment'
-
-    EnrollmentListResponse:
-      type: object
-      properties:
-        message: { type: string }
-        data:
-          type: array
-          items:
-            $ref: '#/components/schemas/Enrollment'
-        page: { type: integer }
-        size: { type: integer }
-        total: { type: integer }
-
-    # PROGRESS
-    UpdateProgressRequest:
-      type: object
-      properties:
-        lessonId: { type: integer }
-        userId: { type: integer }
-        lessonStatus:
-          $ref: '#/components/schemas/LessonStatus'
-
-    ProgressResponse:
-      type: object
-      properties:
-        message: { type: string }
-        data:
-          type: object
-          properties:
-            lessonId: { type: integer }
-            userId: { type: integer }
-            lessonStatus:
-              $ref: '#/components/schemas/LessonStatus'
+                type: object
+                properties:
+                  message:
+                    type: string
+                  data:
+                    $ref: '#/components/schemas/ProgressResponse'
+                  timestamp:
+                    type: string
+                    format: date-time
+        '400':
+          description: Bad request
+        '403':
+          description: Forbidden
+        '404':
+          description: Not found
+        '409':
+          description: Conflict

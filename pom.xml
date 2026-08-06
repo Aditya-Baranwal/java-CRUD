@@ -17,61 +17,100 @@
 		<java.version>17</java.version>
 	</properties>
 	<dependencies>
+		<!-- Spring Boot Data JPA - ORM and database access -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-data-jpa</artifactId>
-			<version>3.1.1</version>
 		</dependency>
+
+		<!-- Spring Boot Web - REST API and embedded Tomcat -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-web</artifactId>
 		</dependency>
+
+		<!-- PostgreSQL Driver - Database driver for PostgreSQL -->
 		<dependency>
-			<groupId>mysql</groupId>
-			<artifactId>mysql-connector-java</artifactId>
-			<version>8.0.33</version>
+			<groupId>org.postgresql</groupId>
+			<artifactId>postgresql</artifactId>
+			<scope>runtime</scope>
 		</dependency>
+
+		<!-- Lombok - Reduces boilerplate code with annotations -->
 		<dependency>
 			<groupId>org.projectlombok</groupId>
 			<artifactId>lombok</artifactId>
 			<optional>true</optional>
 		</dependency>
+
+		<!-- Spring Boot Mail - Email sending functionality -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-mail</artifactId>
-			<version>2.5.6</version>
 		</dependency>
+
+		<!-- Jakarta Mail - Jakarta EE mail API v2.0.0 -->
 		<dependency>
 			<groupId>com.sun.mail</groupId>
 			<artifactId>jakarta.mail</artifactId>
 			<version>2.0.0</version>
 		</dependency>
+
+		<!-- Awaitility - Async testing utility v4.2.0 (test scope) -->
 		<dependency>
 			<groupId>org.awaitility</groupId>
 			<artifactId>awaitility</artifactId>
 			<version>4.2.0</version>
 			<scope>test</scope>
 		</dependency>
-		<!--		<dependency>-->
-		<!--			<groupId>org.springframework.boot</groupId>-->
-		<!--			<artifactId>spring-boot-starter-security</artifactId>-->
-		<!--		</dependency>-->
+
+		<!-- Spring Boot Test - Unit and integration testing (test scope) -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-test</artifactId>
 			<scope>test</scope>
 		</dependency>
+
+		<!-- PowerMock Mockito2 - Advanced mocking library v2.0.9 (test scope) -->
 		<dependency>
 			<groupId>org.powermock</groupId>
 			<artifactId>powermock-api-mockito2</artifactId>
 			<version>2.0.9</version>
 			<scope>test</scope>
 		</dependency>
+
+		<!-- Spring Boot Validation - Bean Validation support -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-validation</artifactId>
+		</dependency>
+
+		<!-- Jakarta Bean Validation API - Jakarta EE validation spec -->
+		<dependency>
+			<groupId>jakarta.validation</groupId>
+			<artifactId>jakarta.validation-api</artifactId>
+		</dependency>
+
+		<!-- Hibernate Validator - Jakarta Bean Validation implementation -->
+		<dependency>
+			<groupId>org.hibernate.validator</groupId>
+			<artifactId>hibernate-validator</artifactId>
+		</dependency>
+
+		<!-- Jackson Databind Nullable - Handles nullable types in OpenAPI generated code v0.2.6 -->
+		<dependency>
+			<groupId>org.openapitools</groupId>
+			<artifactId>jackson-databind-nullable</artifactId>
+			<version>0.2.6</version>
+		</dependency>
+
+		<!-- SpringDoc OpenAPI UI - Interactive Swagger UI for API documentation v2.1.0 -->
 		<dependency>
 			<groupId>org.springdoc</groupId>
 			<artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
 			<version>2.1.0</version>
 		</dependency>
+
 	</dependencies>
 
 	<build>
@@ -111,7 +150,34 @@
 								<generateModels>true</generateModels>
 								<generateModelTests>false</generateModelTests>
 								<generateApiTests>false</generateApiTests>
+								<useJakarta>true</useJakarta>
 							</configOptions>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-antrun-plugin</artifactId>
+				<version>3.1.0</version>
+				<executions>
+					<execution>
+						<phase>process-sources</phase>
+						<goals>
+							<goal>run</goal>
+						</goals>
+						<configuration>
+							<target>
+								<replace dir="${project.basedir}/target/generated-sources/openapi/src/main/java" token="javax.validation" value="jakarta.validation">
+									<include name="**/*.java"/>
+								</replace>
+								<replace dir="${project.basedir}/target/generated-sources/openapi/src/main/java" token="javax.annotation" value="jakarta.annotation">
+									<include name="**/*.java"/>
+								</replace>
+								<replace dir="${project.basedir}/target/generated-sources/openapi/src/main/java" token="javax.servlet" value="jakarta.servlet">
+									<include name="**/*.java"/>
+								</replace>
+							</target>
 						</configuration>
 					</execution>
 				</executions>

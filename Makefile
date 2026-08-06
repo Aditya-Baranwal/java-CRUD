@@ -10,7 +10,7 @@ help:
 	@echo "  make install         - Install dependencies"
 	@echo "  make all             - Clean, install, generate, and build"
 
-generate-api:
+openapi-spec-generate-api:
 	@echo "Generating DTOs and controller interfaces from OpenAPI spec..."
 	./mvnw clean generate-sources
 
