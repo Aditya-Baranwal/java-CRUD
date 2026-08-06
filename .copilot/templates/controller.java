@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/v1/${resource}")
 @RequiredArgsConstructor
 @Validated
-public class ${Entity}Controller {
+public class ${Entity}Controller implements ${Entity}Api{
 
     private final ${Entity}Service ${entity}Service;
 
