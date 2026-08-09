@@ -64,6 +64,7 @@ controller/
 service/
 repository/
 entity/
+enums/
 dto/
 mapper/
 config/

@@ -32,38 +32,19 @@ Before generating any entity, read the following documents.
 Required
 
 ```
-context/db-schema.md
-context/domain.md
-context/business-rules.md
-context/coding-guidelines.md
+context/architectural-spec.md
+context/business-domain.md
+context/coding-standards.md
 
-docs/database.md
 ```
 
-If any required document is missing,
-stop and explain what is required.
+If any required document is missing, stop and explain what is required.
 
 ---
 
 # Objective
 
-Generate a JPA Entity representing the requested database table.
-
-Examples
-
-```
-Course
-
-User
-
-Enrollment
-
-Booking
-
-Hotel
-
-Order
-```
+Generate JPA Entities representing the requested database design.
 
 ---
 
@@ -96,7 +77,7 @@ entity/
 Example
 
 ```
-com.project.course.entity
+com.{ project-package }.entity
 ```
 
 ---
@@ -106,25 +87,19 @@ com.project.course.entity
 Class
 
 ```
-Course
-Booking
-Hotel
+upper camel case
 ```
 
 Table
 
 ```
-course
-hotel
-booking
+snake case
 ```
 
 Columns
 
 ```
-created_at
-updated_at
-course_title
+snake case
 ```
 
 ---
@@ -144,228 +119,6 @@ Always use
 ```
 
 Prefer Lombok if used throughout the project.
-
----
-
-# Primary Key
-
-Use
-
-```
-@Id
-@GeneratedValue(...)
-```
-
-Strategy should follow project convention.
-
-Examples
-
-```
-IDENTITY
-
-SEQUENCE
-
-UUID
-```
-
-Do not invent a different strategy.
-
----
-
-# Column Mapping
-
-Explicitly map every column.
-
-Example
-
-```java
-@Column(name = "course_title", nullable = false, length = 200)
-private String courseTitle;
-```
-
-Avoid relying on default mappings.
-
----
-
-# Relationships
-
-Generate relationships according to database design.
-
-Supported
-
-```
-@OneToOne
-
-@OneToMany
-
-@ManyToOne
-
-@ManyToMany
-```
-
-Always determine
-
-- owning side
-- inverse side
-- fetch strategy
-- cascade behavior
-
-based on the schema.
-
----
-
-# Fetch Strategy
-
-Default
-
-```
-LAZY
-```
-
-Never use
-
-```
-EAGER
-```
-
-unless explicitly required.
-
----
-
-# Cascade Rules
-
-Only use cascade when ownership exists.
-
-Typical
-
-```
-CascadeType.PERSIST
-
-CascadeType.MERGE
-```
-
-Avoid
-
-```
-CascadeType.ALL
-```
-
-unless justified.
-
----
-
-# Orphan Removal
-
-Enable only for true parent-child relationships.
-
-Never enable blindly.
-
----
-
-# Audit Fields
-
-If project supports auditing, include
-
-```
-createdAt
-updatedAt
-createdBy
-updatedBy
-```
-
-Use appropriate annotations
-
-```
-@CreationTimestamp
-
-@UpdateTimestamp
-```
-
-or project-specific auditing.
-
----
-
-# Optimistic Locking
-
-If project uses optimistic locking,
-
-include
-
-```java
-@Version
-private Long version;
-```
-
----
-
-# Enumerations
-
-Always map enums explicitly.
-
-Preferred
-
-```java
-@Enumerated(EnumType.STRING)
-```
-
-Never use ordinal mapping.
-
----
-
-# JSON Columns
-
-If schema specifies JSON,
-
-generate appropriate mapping.
-
-Example
-
-```java
-@Column(columnDefinition = "jsonb")
-private String metadata;
-```
-
-or use project-specific converters.
-
----
-
-# LOB Columns
-
-Large text
-
-```
-@Lob
-```
-
-Large binary files should not be stored in entities unless explicitly required.
-
----
-
-# Equals & HashCode
-
-Prefer
-
-Primary Key only.
-
-Avoid including relationships.
-
-Never generate recursive equality.
-
----
-
-# ToString
-
-Exclude
-
-```
-@OneToMany
-
-@ManyToMany
-```
-
-relationships.
-
-Avoid recursive object graphs.
 
 ---
 
@@ -409,42 +162,7 @@ Entities should remain persistence models.
 
 ---
 
-# Performance
-
-Avoid unnecessary relationships.
-
-Prefer IDs over object graphs when relationship is not required.
-
-Always use
-
-```
-LAZY
-```
-
-loading.
-
----
-
-# Imports
-
-Use only required imports.
-
-Avoid wildcard imports.
-
----
-
-# Code Quality Rules
-
-Entity should
-
-- Represent one table
-- Have one responsibility
-- Follow naming conventions
-- Match schema exactly
-
----
-
-# AI Self Validation
+# Definition of Done
 
 Before returning generated code verify
 
@@ -484,30 +202,3 @@ Do not generate
 - SQL migration
 
 unless explicitly requested.
-
----
-
-# Example Invocation
-
-**Input**
-
-```
-Generate Course entity
-```
-
-**Expected Output**
-
-Generate
-
-```
-Course.java
-```
-
-that
-
-- matches the database schema
-- follows JPA best practices
-- follows project coding guidelines
-- contains proper relationship mappings
-- is production-ready
-```

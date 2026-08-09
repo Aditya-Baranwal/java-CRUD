@@ -53,6 +53,7 @@ Use
 - Constructor Injection, using @RequiredArgsConstructor for services and controllers
 - use `final` for fields where possible
 - use Lombok for boilerplate reduction
+- use only required imports, avoid wildcard imports
 
 Avoid
 
@@ -89,6 +90,7 @@ controller/
 service/
 repository/
 entity/
+enums/
 dto/
 mapper/
 config/
@@ -164,9 +166,10 @@ Use Native SQL only when necessary.
 
 Entities
 
-- represent database tables
+- represent one database tables
 - use JPA annotations
 - default relationships to LAZY loading
+- match schema exactly
 
 Entities must not
 

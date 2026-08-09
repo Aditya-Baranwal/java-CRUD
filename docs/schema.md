@@ -143,16 +143,18 @@ completed_at
 
 Stores all users of the platform.
 
-| Column | Type | Default | Nullable | Constraint |
-|---------|------|----------|----------|------------|
-| id | BIGINT | AUTO_INCREMENT | No | PK |
-| name | VARCHAR(100) | - | No | |
-| dob | DATE | - | No | |
-| mobile_no | VARCHAR(10) | - | No | UK |
-| email_id | VARCHAR(100) | - | No | UK |
-| password_hash | VARCHAR(255) | - | No | |
-| role | USER_ROLE | - | No | |
-| created_at | TIMESTAMP | CURRENT_TIMESTAMP | No | |
+| Column        | Type         | Default           | Nullable | Constraint |
+|---------------|--------------|-------------------|----------|------------|
+| id            | BIGINT       | AUTO_INCREMENT    | No       | PK         |
+| name          | VARCHAR(100) | -                 | No       |            |
+| dob           | DATE         | -                 | No       |            |
+| mobile_no     | VARCHAR(10)  | -                 | No       | UK         |
+| email_id      | VARCHAR(100) | -                 | No       | UK         |
+| password_hash | VARCHAR(255) | -                 | No       |            |
+| role          | USER_ROLE    | -                 | No       |            |
+| created_at    | TIMESTAMP    | CURRENT_TIMESTAMP | No       |            |
+| updated_at    | TIMESTAMP    | CURRENT_TIMESTAMP | No       |            |
+| updated_by    | BIGINT       | NULL              | No       |            |
 
 ---
 
@@ -162,15 +164,18 @@ Stores all users of the platform.
 
 Stores all courses available in the system.
 
-| Column | Type | Default | Nullable | Constraint |
-|---------|------|----------|----------|------------|
-| id | BIGINT | AUTO_INCREMENT | No | PK |
-| title | VARCHAR(100) | - | No | |
-| description | VARCHAR(200) | - | No | |
-| instructor_id | BIGINT | - | No | FK |
-| tags | JSONB | '[]' | No | |
-| is_active | BOOLEAN | TRUE | No | |
-| created_at | TIMESTAMP | CURRENT_TIMESTAMP | No | |
+| Column        | Type         | Default           | Nullable | Constraint |
+|---------------|--------------|-------------------|----------|------------|
+| id            | BIGINT       | AUTO_INCREMENT    | No       | PK         |
+| title         | VARCHAR(100) | -                 | No       |            |
+| description   | VARCHAR(200) | -                 | No       |            |
+| instructor_id | BIGINT       | -                 | No       | FK         |
+| tags          | JSONB        | '[]'              | No       |            |
+| is_active     | BOOLEAN      | TRUE              | No       |            |
+| created_at    | TIMESTAMP    | CURRENT_TIMESTAMP | No       |            |
+| created_by    | BIGINT       | NULL              | No       |            |
+| updated_at    | TIMESTAMP    | CURRENT_TIMESTAMP | No       |            |
+| updated_by    | BIGINT       | NULL              | No       |            |
 
 ---
 
@@ -180,15 +185,18 @@ Stores all courses available in the system.
 
 Represents logical sections inside a course.
 
-| Column | Type | Default | Nullable | Constraint |
-|---------|------|----------|----------|------------|
-| id | BIGINT | AUTO_INCREMENT | No | PK |
-| course_id | BIGINT | - | No | FK |
-| title | VARCHAR(50) | - | No | |
-| description | VARCHAR(100) | - | Yes | |
-| sequence | INT | - | No | |
-| is_active | BOOLEAN | TRUE | No | |
-| created_at | TIMESTAMP | CURRENT_TIMESTAMP | No | |
+| Column      | Type         | Default           | Nullable | Constraint |
+|-------------|--------------|-------------------|----------|------------|
+| id          | BIGINT       | AUTO_INCREMENT    | No       | PK         |
+| course_id   | BIGINT       | -                 | No       | FK         |
+| title       | VARCHAR(50)  | -                 | No       |            |
+| description | VARCHAR(100) | -                 | Yes      |            |
+| sequence    | INT          | -                 | No       |            |
+| is_active   | BOOLEAN      | TRUE              | No       |            |
+| created_at  | TIMESTAMP    | CURRENT_TIMESTAMP | No       |            |
+| created_by  | BIGINT       | NULL              | No       |            |
+| updated_at  | TIMESTAMP    | CURRENT_TIMESTAMP | No       |            |
+| updated_by  | BIGINT       | NULL              | No       |            |
 
 ---
 
@@ -198,15 +206,18 @@ Represents logical sections inside a course.
 
 Represents learning material inside a module.
 
-| Column | Type | Default | Nullable | Constraint |
-|---------|------|----------|----------|------------|
-| id | BIGINT | AUTO_INCREMENT | No | PK |
-| module_id | BIGINT | - | No | FK |
-| content_type | CONTENT_TYPE | - | No | |
-| content_link | VARCHAR(255) | - | No | |
-| sequence | INT | - | No | |
-| is_active | BOOLEAN | TRUE | No | |
-| created_at | TIMESTAMP | CURRENT_TIMESTAMP | No | |
+| Column       | Type         | Default           | Nullable | Constraint |
+|--------------|--------------|-------------------|----------|------------|
+| id           | BIGINT       | AUTO_INCREMENT    | No       | PK         |
+| module_id    | BIGINT       | -                 | No       | FK         |
+| content_type | CONTENT_TYPE | -                 | No       |            |
+| content_link | VARCHAR(255) | -                 | No       |            |
+| sequence     | INT          | -                 | No       |            |
+| is_active    | BOOLEAN      | TRUE              | No       |            |
+| created_at   | TIMESTAMP    | CURRENT_TIMESTAMP | No       |            |
+| created_by   | BIGINT       | NULL              | No       |            |
+| updated_at   | TIMESTAMP    | CURRENT_TIMESTAMP | No       |            |
+| updated_by   | BIGINT       | NULL              | No       |            |
 
 ---
 
@@ -216,13 +227,13 @@ Represents learning material inside a module.
 
 Represents a user's enrollment into a course.
 
-| Column | Type | Default | Nullable | Constraint |
-|---------|------|----------|----------|------------|
-| id | BIGINT | AUTO_INCREMENT | No | PK |
-| user_id | BIGINT | - | No | FK |
-| course_id | BIGINT | - | No | FK |
-| course_status | COURSE_STATUS | INCOMPLETE | No | |
-| enrolled_at | TIMESTAMP | CURRENT_TIMESTAMP | No | |
+| Column        | Type          | Default           | Nullable | Constraint |
+|---------------|---------------|-------------------|----------|------------|
+| id            | BIGINT        | AUTO_INCREMENT    | No       | PK         |
+| user_id       | BIGINT        | -                 | No       | FK         |
+| course_id     | BIGINT        | -                 | No       | FK         |
+| course_status | COURSE_STATUS | INCOMPLETE        | No       |            |
+| enrolled_at   | TIMESTAMP     | CURRENT_TIMESTAMP | No       |            |
 
 ---
 
@@ -232,55 +243,55 @@ Represents a user's enrollment into a course.
 
 Tracks lesson completion for every enrolled user.
 
-| Column | Type | Default | Nullable | Constraint |
-|---------|------|----------|----------|------------|
-| id | BIGINT | AUTO_INCREMENT | No | PK |
-| user_id | BIGINT | - | No | FK |
-| lesson_id | BIGINT | - | No | FK |
-| lesson_status | LESSON_STATUS | UNSTARTED | No | |
-| started_at | TIMESTAMP | NULL | Yes | |
-| completed_at | TIMESTAMP | NULL | Yes | |
+| Column        | Type          | Default        | Nullable | Constraint |
+|---------------|---------------|----------------|----------|------------|
+| id            | BIGINT        | AUTO_INCREMENT | No       | PK         |
+| user_id       | BIGINT        | -              | No       | FK         |
+| lesson_id     | BIGINT        | -              | No       | FK         |
+| lesson_status | LESSON_STATUS | UNSTARTED      | No       |            |
+| started_at    | TIMESTAMP     | NULL           | Yes      |            |
+| completed_at  | TIMESTAMP     | NULL           | Yes      |            |
 
 ---
 
 # Relationships
 
-| Parent | Child | Cardinality |
-|---------|-------|-------------|
-| User | Course | One-To-Many |
-| User | Enrollment | One-To-Many |
-| User | Progress | One-To-Many |
-| Course | Module | One-To-Many |
+| Parent | Child      | Cardinality |
+|--------|------------|-------------|
+| User   | Course     | One-To-Many |
+| User   | Enrollment | One-To-Many |
+| User   | Progress   | One-To-Many |
+| Course | Module     | One-To-Many |
 | Course | Enrollment | One-To-Many |
-| Module | Lesson | One-To-Many |
-| Lesson | Progress | One-To-Many |
+| Module | Lesson     | One-To-Many |
+| Lesson | Progress   | One-To-Many |
 
 ---
 
 # Primary Keys
 
-| Table | Primary Key |
-|---------|-------------|
-| User | id |
-| Course | id |
-| Module | id |
-| Lesson | id |
-| Enrollment | id |
-| Progress | id |
+| Table      | Primary Key |
+|------------|-------------|
+| User       | id          |
+| Course     | id          |
+| Module     | id          |
+| Lesson     | id          |
+| Enrollment | id          |
+| Progress   | id          |
 
 ---
 
 # Foreign Keys
 
-| Table | Column | References |
-|---------|---------|------------|
-| course | instructor_id | user(id) |
-| module | course_id | course(id) |
-| lesson | module_id | module(id) |
-| enrollment | user_id | user(id) |
-| enrollment | course_id | course(id) |
-| progress | user_id | user(id) |
-| progress | lesson_id | lesson(id) |
+| Table      | Column        | References |
+|------------|---------------|------------|
+| course     | instructor_id | user(id)   |
+| module     | course_id     | course(id) |
+| lesson     | module_id     | module(id) |
+| enrollment | user_id       | user(id)   |
+| enrollment | course_id     | course(id) |
+| progress   | user_id       | user(id)   |
+| progress   | lesson_id     | lesson(id) |
 
 ---
 
@@ -422,55 +433,55 @@ ON progress(lesson_status);
 
 ## USER_ROLE
 
-| Value | Description |
-|--------|-------------|
-| ADMIN | Platform administrator |
-| INSTRUCTOR | Course instructor |
-| USER | Student |
+| Value      | Description            |
+|------------|------------------------|
+| ADMIN      | Platform administrator |
+| INSTRUCTOR | Course instructor      |
+| USER       | Student                |
 
 ---
 
 ## COURSE_STATUS
 
-| Value | Description |
-|--------|-------------|
+| Value      | Description           |
+|------------|-----------------------|
 | INCOMPLETE | Course is in progress |
-| COMPLETE | Course completed |
+| COMPLETE   | Course completed      |
 
 ---
 
 ## LESSON_STATUS
 
-| Value | Description |
-|--------|-------------|
+| Value     | Description        |
+|-----------|--------------------|
 | UNSTARTED | Lesson not started |
-| STARTED | Lesson started |
-| FINISHED | Lesson completed |
+| STARTED   | Lesson started     |
+| FINISHED  | Lesson completed   |
 
 ---
 
 ## CONTENT_TYPE
 
-| Value | Description |
-|--------|-------------|
-| MP3 | Audio content |
-| MP4 | Video content |
-| PDF | PDF document |
-| TEXT | Text content |
+| Value | Description   |
+|-------|---------------|
+| MP3   | Audio content |
+| MP4   | Video content |
+| PDF   | PDF document  |
+| TEXT  | Text content  |
 
 ---
 
 # Default Values
 
-| Column | Default |
-|---------|----------|
-| course.is_active | TRUE |
-| module.is_active | TRUE |
-| lesson.is_active | TRUE |
-| course.tags | [] |
-| enrollment.course_status | INCOMPLETE |
-| progress.lesson_status | UNSTARTED |
-| created_at | CURRENT_TIMESTAMP |
+| Column                   | Default           |
+|--------------------------|-------------------|
+| course.is_active         | TRUE              |
+| module.is_active         | TRUE              |
+| lesson.is_active         | TRUE              |
+| course.tags              | []                |
+| enrollment.course_status | INCOMPLETE        |
+| progress.lesson_status   | UNSTARTED         |
+| created_at               | CURRENT_TIMESTAMP |
 
 ---
 

@@ -23,24 +23,6 @@ The persistence layer should abstract database access while preserving business 
 
 ---
 
-# Technology Stack
-
-Default assumptions
-
-```
-Java 21
-Spring Boot 3.x
-Spring Data JPA
-Hibernate 6.x
-PostgreSQL
-Flyway
-```
-
-If the project already uses another JPA provider or database,
-follow existing conventions.
-
----
-
 # JPA Philosophy
 
 Always follow
@@ -105,7 +87,7 @@ Every entity should
 
 Required
 
-```java
+```
 @Entity
 @Table
 ```
@@ -122,14 +104,21 @@ annotations for all fields.
 
 # Primary Keys
 
-Preferred
+Use
 
 ```
-BIGINT
+@Id
+@GeneratedValue(...)
+```
+
+Strategy should follow project convention.
+
+Preferred strategies, do not invent new ones
+
+```
 IDENTITY
+SEQUENCE
 ```
-
-or project standard.
 
 Distributed systems may use
 
@@ -141,7 +130,24 @@ Primary keys must never change.
 
 ---
 
+# Column Mapping
+
+Explicitly map every column.
+
+Example
+
+```java
+@Column(name = "course_title", nullable = false, length = 200)
+private String courseTitle;
+```
+
+Avoid relying on default mappings.
+
+---
+
 # Relationships
+
+Generate relationships according to database design.
 
 Supported
 
@@ -155,14 +161,16 @@ Supported
 @ManyToMany
 ```
 
-Always identify
+Always determine based on the schema, if it is unclear, ask for clarification.
 
 - Owning side
 - Inverse side
-- Cascade
+- Cascade behavior
 - Fetch strategy
 
-Never create unnecessary bidirectional relationships.
+Never 
+
+- create unnecessary bidirectional relationships.
 
 ---
 
@@ -170,13 +178,13 @@ Never create unnecessary bidirectional relationships.
 
 Default
 
-```java
+```
 FetchType.LAZY
 ```
 
 Never use
 
-```java
+```
 FetchType.EAGER
 ```
 
@@ -220,7 +228,13 @@ Use
 orphanRemoval = true
 ```
 
-only for true parent-child ownership.
+condition to add
+
+- when there is a parent-child relationship 
+- when child cannot exist without the parent.
+- when it is mentioned in design
+
+If it is unclear, then ask to confirm
 
 ---
 
@@ -243,7 +257,6 @@ Exclude
 
 ```
 @OneToMany
-
 @ManyToMany
 ```
 
@@ -255,15 +268,12 @@ Avoid recursive object graphs.
 
 # Audit Fields
 
-Include when supported
+If project supports auditing, include
 
 ```
 createdAt
-
 updatedAt
-
 createdBy
-
 updatedBy
 ```
 
@@ -271,11 +281,10 @@ Use
 
 ```
 @CreationTimestamp
-
 @UpdateTimestamp
 ```
 
-or Spring Data Auditing.
+or spring data auditing, project specific auditing.
 
 ---
 
@@ -291,6 +300,49 @@ private Long version;
 for concurrent updates.
 
 Prefer optimistic locking over pessimistic locking.
+
+---
+
+# Enumerations
+
+Always map enums explicitly.
+
+Preferred
+
+```
+@Enumerated(EnumType.STRING)
+```
+
+Never use ordinal mapping.
+
+---
+
+# JSON Columns
+
+If schema specifies JSON,
+
+generate appropriate mapping.
+
+Example
+
+```java
+@Column(columnDefinition = "jsonb")
+private String metadata;
+```
+
+or use project-specific converters.
+
+---
+
+# LOB Columns
+
+Large text
+
+```
+@Lob
+```
+
+Large binary files should not be stored in entities unless explicitly required.
 
 ---
 
@@ -313,13 +365,10 @@ Prefer derived query methods.
 
 Examples
 
-```java
+```
 findByEmail()
-
 existsByEmail()
-
 countByStatus()
-
 findByStatusOrderByCreatedAtDesc()
 ```
 
@@ -381,7 +430,7 @@ Document why native SQL is required.
 
 Always use
 
-```java
+```
 Pageable
 ```
 
@@ -417,7 +466,7 @@ Never sort manually after fetching.
 
 Use
 
-```java
+```
 @EntityGraph(attributePaths = {
     "modules",
     "lessons"
@@ -449,13 +498,13 @@ Service layer owns transactions.
 
 Read
 
-```java
+```
 @Transactional(readOnly = true)
 ```
 
 Write
 
-```java
+```
 @Transactional
 ```
 
@@ -488,7 +537,7 @@ Let JPA dirty checking persist updates.
 
 Prefer
 
-```java
+```
 entity.update(...);
 ```
 
@@ -512,9 +561,7 @@ Supported
 
 ```
 Optimistic
-
 Pessimistic Read
-
 Pessimistic Write
 ```
 
@@ -528,7 +575,6 @@ Prefer
 
 ```
 saveAll()
-
 deleteAllInBatch()
 ```
 
@@ -659,7 +705,7 @@ Use Testcontainers when supported.
 
 Every schema change must include
 
-- Flyway migration
+- Flyway or liquibase migration, ask which one to use if it is not mentioned
 - Backward compatibility
 - Roll-forward strategy
 
@@ -725,77 +771,3 @@ Never generate
 - save() inside loops
 - Transactions in Controller
 - Returning entities directly from APIs
-
----
-
-# Definition of Done
-
-Persistence implementation is complete only when
-
-- Entity mapping correct
-- Relationships validated
-- Repository implemented
-- Pagination supported
-- Transactions correctly placed
-- Queries optimized
-- N+1 avoided
-- Index usage considered
-- Tests written
-- Flyway migration prepared
-- Ready for production
-
----
-
-# Example Invocations
-
-### Generate Persistence Layer
-
-```
-Implement Course persistence layer
-```
-
-The AI should generate
-
-- Entity
-- Repository
-- Specifications
-- Projections (if needed)
-- Flyway migration
-- Repository tests
-
-following Spring Data JPA best practices.
-
----
-
-### Review Repository
-
-```
-Review BookingRepository.java
-```
-
-The AI should verify
-
-- Query correctness
-- Performance
-- Index usage
-- Fetch strategy
-- Pagination
-- Transactions
-- Hibernate best practices
-
----
-
-### Optimize JPA
-
-```
-Optimize EnrollmentService persistence
-```
-
-The AI should
-
-- Remove N+1 queries
-- Introduce EntityGraph if needed
-- Improve repository methods
-- Reduce database round trips
-- Preserve business behavior
-- Follow Spring Data JPA best practices
