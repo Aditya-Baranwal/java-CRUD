@@ -7,7 +7,7 @@
 - Database: PostgreSQL
 - ID: Sequence-based (`BIGINT` via `@SequenceGenerator`)
 - Auth: JWT (Bearer token)
-- Logging: SLF4J
+- Logging: SLF4J + Logback
 - Pagination: Required for all list endpoints
 
 ## Architecture
@@ -15,13 +15,25 @@
 - Soft deletes using `is_active` flag
 - Stateless application instances
 - Container: Docker
+- Default config lives in `src/main/resources/application.yaml` for all profiles
+
+## Logging
+- Default logging is configured in `application.yaml`
+- Uses structured JSON console output
+- Includes MDC fields: `requestId`, `userId`, `method`, `path`
+- File logging enabled with rolling policy under `logs/lms-core.log`
 
 ## Controller Layer
 - `CourseController` added at `src/main/java/com/aditya/lms/controller/CourseController.java`
-- Controller implements OpenAPI-generated `com.lms.api.CoursesApi`
+- Controllers implement OpenAPI-generated APIs:
+  - `CourseController` → `com.lms.api.CoursesApi`
+  - `ModuleController` → `com.lms.api.ModulesApi`
+  - `LessonController` → `com.lms.api.LessonsApi`
+  - `EnrollmentController` → `com.lms.api.EnrollmentsApi`
+  - `ProgressController` → `com.lms.api.ProgressApi`
 - Base mapping uses `@RequestMapping("/api/v1")` to align with server prefix in `openapi.yaml`
-- Methods are currently stubbed (no service logic yet), as requested
-- Use explicit imports only (no wildcard imports like `com.lms.model.*`)
+- All controller methods are currently stubbed with empty implementations (`return null;`) and no service logic
+- Use explicit imports only (no wildcard imports like `com.lms.model.*`) across controllers
 
 ## Entity Layer
 
