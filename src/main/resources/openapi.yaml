@@ -419,6 +419,7 @@ paths:
             application/json:
               schema:
                 type: object
+                title: CreateCourseResponse
                 properties:
                   message:
                     type: string
@@ -483,6 +484,7 @@ paths:
             application/json:
               schema:
                 type: object
+                title: ListCourseResponse
                 properties:
                   message:
                     type: string
@@ -529,6 +531,7 @@ paths:
             application/json:
               schema:
                 type: object
+                title: GetCourseResponse
                 properties:
                   message:
                     type: string
@@ -565,6 +568,7 @@ paths:
             application/json:
               schema:
                 type: object
+                title: UpdateCourseResponse
                 properties:
                   message:
                     type: string
@@ -599,6 +603,7 @@ paths:
             application/json:
               schema:
                 type: object
+                title: DeleteCourseResponse
                 properties:
                   message:
                     type: string
@@ -633,6 +638,7 @@ paths:
             application/json:
               schema:
                 type: object
+                title: CreateModuleResponse
                 properties:
                   message:
                     type: string
@@ -699,6 +705,7 @@ paths:
             application/json:
               schema:
                 type: object
+                title: ListModuleResponse
                 properties:
                   message:
                     type: string
@@ -745,6 +752,7 @@ paths:
             application/json:
               schema:
                 type: object
+                title: GetModuleResponse
                 properties:
                   message:
                     type: string
@@ -781,6 +789,7 @@ paths:
             application/json:
               schema:
                 type: object
+                title: UpdateModuleResponse
                 properties:
                   message:
                     type: string
@@ -817,6 +826,7 @@ paths:
             application/json:
               schema:
                 type: object
+                title: DeleteModuleResponse
                 properties:
                   message:
                     type: string
@@ -851,6 +861,7 @@ paths:
             application/json:
               schema:
                 type: object
+                title: CreateLessonResponse
                 properties:
                   message:
                     type: string
@@ -922,6 +933,7 @@ paths:
             application/json:
               schema:
                 type: object
+                title: ListLessonResponse
                 properties:
                   message:
                     type: string
@@ -963,6 +975,7 @@ paths:
             application/json:
               schema:
                 type: object
+                title: GetLessonResponse
                 properties:
                   message:
                     type: string
@@ -999,6 +1012,7 @@ paths:
             application/json:
               schema:
                 type: object
+                title: UpdateLessonResponse
                 properties:
                   message:
                     type: string
@@ -1035,6 +1049,7 @@ paths:
             application/json:
               schema:
                 type: object
+                title: DeleteLessonResponse
                 properties:
                   message:
                     type: string
@@ -1069,6 +1084,7 @@ paths:
             application/json:
               schema:
                 type: object
+                title: CreateEnrollmentResponse
                 properties:
                   message:
                     type: string
@@ -1137,6 +1153,7 @@ paths:
             application/json:
               schema:
                 type: object
+                title: ListEnrollmentResponse
                 properties:
                   message:
                     type: string
@@ -1178,6 +1195,7 @@ paths:
             application/json:
               schema:
                 type: object
+                title: GetEnrollmentResponse
                 properties:
                   message:
                     type: string
@@ -1210,6 +1228,7 @@ paths:
             application/json:
               schema:
                 type: object
+                title: DeleteEnrollmentResponse
                 properties:
                   message:
                     type: string
@@ -1286,6 +1305,7 @@ paths:
             application/json:
               schema:
                 type: object
+                title: ListProgressResponse
                 properties:
                   message:
                     type: string
@@ -1327,6 +1347,7 @@ paths:
             application/json:
               schema:
                 type: object
+                title: GetProgressResponse
                 properties:
                   message:
                     type: string
@@ -1363,6 +1384,7 @@ paths:
             application/json:
               schema:
                 type: object
+                title: UpdateProgressResponse
                 properties:
                   message:
                     type: string

@@ -141,9 +141,14 @@
 							<generatorName>spring</generatorName>
 							<apiPackage>com.lms.api</apiPackage>
 							<modelPackage>com.lms.model</modelPackage>
+							<!-- Appends 'DTO' to model classes -->
+							<modelNameSuffix>DTO</modelNameSuffix>
+
 							<configOptions>
 								<interfaceOnly>true</interfaceOnly>
 								<useSpringBootApplication>false</useSpringBootApplication>
+								<!-- 4. Skip code generation for the boilerplate delegate implementation class -->
+								<skipDefaultInterface>true</skipDefaultInterface>
 								<useLombokAnnotations>true</useLombokAnnotations>
 								<dateLibrary>java8</dateLibrary>
 								<generateApis>true</generateApis>

@@ -32,15 +32,12 @@ Before generating a controller, read the following documents.
 Required
 
 ```
-context/api-spec.md
-context/coding-guidelines.md
-context/error-handling.md
-context/security.md
-context/domain.md
-context/business-rules.md
+context/architectural-spec.md
+context/business-domain.md
+context/coding-standards.md
+context/technology-stack.md
 
-docs/api.md
-docs/database.md
+docs/**
 ```
 
 If any required document is missing,
@@ -50,7 +47,7 @@ stop and explain what is required.
 
 # Objective
 
-Generate a REST controller for the requested resource.
+Generate a REST controller for the requested resource, use ApiInterface if open-api is enabled.
 
 Example
 
@@ -99,22 +96,12 @@ Generate under
 controller/
 ```
 
-Example
-
-```
-com.project.course.controller
-```
-
 ---
 
 # Class Naming
 
 ```
-CourseController
-
-LessonController
-
-EnrollmentController
+Upper Camel Case
 ```
 
 ---
@@ -151,7 +138,7 @@ field injection.
 
 # Endpoint Rules
 
-Follow
+Follow this if open-api is not enabled.
 
 REST conventions.
 
@@ -185,33 +172,20 @@ Never generate
 
 Always accept Request DTOs.
 
-Example
+Never 
 
-```
-CreateCourseRequest
-
-UpdateCourseRequest
-```
-
-Never accept
-
-Entity
-
-inside controller.
-
+- accept entity inside controller.
+- create Request Dto, check if it already exists or open-api can generate it.
 ---
 
 # Response DTO
 
 Always return Response DTOs.
 
-Never expose Entity objects.
+Never 
 
-Example
-
-```
-CourseResponse
-```
+- expose entity objects.
+- create Response Dto, check if it already exists or open-api can generate it.
 
 ---
 

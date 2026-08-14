@@ -16,6 +16,13 @@
 - Stateless application instances
 - Container: Docker
 
+## Controller Layer
+- `CourseController` added at `src/main/java/com/aditya/lms/controller/CourseController.java`
+- Controller implements OpenAPI-generated `com.lms.api.CoursesApi`
+- Base mapping uses `@RequestMapping("/api/v1")` to align with server prefix in `openapi.yaml`
+- Methods are currently stubbed (no service logic yet), as requested
+- Use explicit imports only (no wildcard imports like `com.lms.model.*`)
+
 ## Entity Layer
 
 ### Table Naming

@@ -1,3 +1,4 @@
+```
 package ${basePackage}.exception;
 
 import jakarta.validation.ConstraintViolationException;
@@ -156,3 +157,4 @@ public class GlobalExceptionHandler {
     }
 
 }
+```

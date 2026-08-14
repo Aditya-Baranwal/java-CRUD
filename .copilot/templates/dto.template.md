@@ -1,3 +1,4 @@
+```
 package ${basePackage}.dto.${type};
 
 import jakarta.validation.constraints.*;
@@ -82,3 +83,4 @@ private LocalDateTime updatedAt;
  */
 private Long version;
         }
+```

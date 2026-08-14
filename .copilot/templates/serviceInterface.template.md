@@ -1,3 +1,4 @@
+```
 package ${basePackage}.service;
 
 import ${basePackage}.dto.request.${Entity}CreateRequest;
@@ -65,3 +66,4 @@ public interface ${Entity}Service {
     );
 
 }
+```

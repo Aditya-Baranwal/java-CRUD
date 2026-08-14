@@ -1,3 +1,4 @@
+````
 package ${basePackage}.entity;
 
 import jakarta.persistence.*;
@@ -98,3 +99,4 @@ public void preUpdate() {
         updatedAt = LocalDateTime.now();
         }
         }
+```

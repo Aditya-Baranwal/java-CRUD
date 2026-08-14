@@ -1,3 +1,4 @@
+```
 package ${basePackage}.repository;
 
 import ${basePackage}.entity.${Entity};
@@ -98,3 +99,4 @@ public interface ${Entity}Repository
         );
 
 }
+```

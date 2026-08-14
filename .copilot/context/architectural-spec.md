@@ -42,21 +42,6 @@ Containers are independently deployable.
 
 ---
 
-# Technology Stack
-
-| Concern | Technology |
-|----------|------------|
-| Language | Java |
-| Framework | Spring Boot |
-| Database | PostgreSQL |
-| Cache | Redis |
-| ORM | Spring Data JPA |
-| Security | JWT |
-| API | REST |
-| Container | Docker |
-
----
-
 # Package Structure
 
 ```

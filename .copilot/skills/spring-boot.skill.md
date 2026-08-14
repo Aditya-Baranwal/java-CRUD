@@ -23,27 +23,6 @@ Follow Spring Boot best practices instead of simply making code compile.
 
 ---
 
-# Technology Stack
-
-Default assumptions
-
-```
-Java 21
-Spring Boot 3.x
-Spring Framework 6.x
-Spring MVC
-Spring Validation
-Spring Data JPA
-Spring Security
-Spring Actuator
-SLF4J
-Maven
-```
-
-Respect the project's existing stack if different.
-
----
-
 # Spring Boot Philosophy
 
 Always follow
@@ -283,20 +262,6 @@ Never expose entities directly.
 
 Entities represent persistence state.
 
-Use
-
-```
-@Entity
-
-@Table
-```
-
-Prefer
-
-```
-FetchType.LAZY
-```
-
 Avoid business logic inside entities.
 
 ---
@@ -329,13 +294,13 @@ Service owns transactions.
 
 Write
 
-```java
+```
 @Transactional
 ```
 
 Read
 
-```java
+```
 @Transactional(readOnly = true)
 ```
 
@@ -427,7 +392,7 @@ Never disable security for convenience.
 
 Prefer
 
-```java
+```
 @ConfigurationProperties(prefix = "mail")
 ```
 
@@ -463,20 +428,6 @@ Keep scheduled methods
 
 ---
 
-# Events
-
-Prefer Spring Events for intra-service communication.
-
-Example
-
-```
-ApplicationEventPublisher
-```
-
-Publish events only after successful business operations.
-
----
-
 # Async Processing
 
 Use
@@ -495,7 +446,7 @@ Never rely on default thread pools in production.
 
 # Caching
 
-Use Spring Cache abstraction.
+Use Spring Cache abstraction or Redisson as mentioned in context files
 
 Examples
 
@@ -707,6 +658,38 @@ Never generate
 
 ---
 
+# Component Scanning
+
+Spring Boot automatically discovers Spring beans using **component scanning**.
+
+Common annotations:
+
+* `@Component`
+* `@Service`
+* `@Repository`
+* `@Controller`
+* `@RestController`
+
+`@SpringBootApplication` includes `@ComponentScan` and scans the package containing the application class and its subpackages.
+
+```java
+@SpringBootApplication
+public class Application {
+}
+```
+
+Example:
+
+```java
+@Service
+public class UserService {
+}
+```
+
+`UserService` is automatically registered as a Spring bean if it is within the component-scan scope.
+
+**Tip:** Keep the main application class in the root package so Spring can discover all application components.
+
 # AI Review Checklist
 
 Before returning code verify
@@ -755,30 +738,6 @@ A Spring Boot feature is complete only when
 
 ---
 
-# Example Invocations
-
-### Generate a Spring Boot REST API
-
-```
-Implement Course Management API
-```
-
-The AI should generate
-
-- Controller
-- Service
-- Repository
-- Entity
-- DTOs
-- Mapper
-- Validation
-- Exception handling
-- Tests
-
-following Spring Boot best practices.
-
----
-
 ### Review Spring Boot Code
 
 ```
@@ -795,19 +754,3 @@ The AI should verify
 - Dependency Injection
 - Performance
 - Production readiness
-
----
-
-### Improve Spring Configuration
-
-```
-Refactor MailConfiguration
-```
-
-The AI should
-
-- Use ConfigurationProperties
-- Remove hardcoded values
-- Improve bean lifecycle
-- Follow Spring Boot conventions
-- Preserve existing behavior
