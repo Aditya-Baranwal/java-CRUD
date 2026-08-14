@@ -22,6 +22,7 @@
 - Uses structured JSON console output
 - Includes MDC fields: `requestId`, `userId`, `method`, `path`
 - File logging enabled with rolling policy under `logs/lms-core.log`
+- Application name is configured via `spring.application.name` (`lms-core`) and used in startup log messages
 
 ## Controller Layer
 - `CourseController` added at `src/main/java/com/aditya/lms/controller/CourseController.java`
