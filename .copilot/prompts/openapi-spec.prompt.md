@@ -16,10 +16,10 @@ The generated specification must be production-ready and compatible with **OpenA
 * Reuse existing schemas and common components whenever possible.
 * Do not introduce duplicate models if an equivalent schema already exists.
 * Generate well-documented endpoints with:
-
     * operationId
     * summary
     * description
+    * title
     * tags
     * request examples
     * response examples

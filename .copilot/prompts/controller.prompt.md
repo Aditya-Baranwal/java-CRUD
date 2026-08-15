@@ -98,7 +98,7 @@ controller/
 
 ---
 
-# Class Naming
+# Naming Convention
 
 ```
 Upper Camel Case
@@ -172,20 +172,32 @@ Never generate
 
 Always accept Request DTOs.
 
+Always
+
+- use open-api generated Request DTOs if available.
+
+if not available, stop and ask to add in open-api spec files.
+
 Never 
 
 - accept entity inside controller.
-- create Request Dto, check if it already exists or open-api can generate it.
+- create Request DTO.
 ---
 
 # Response DTO
 
 Always return Response DTOs.
 
+Always
+
+- use open-api generated Response DTOs if available.
+
+if not available, stop and ask to add in open-api spec files.
+
 Never 
 
 - expose entity objects.
-- create Response Dto, check if it already exists or open-api can generate it.
+- create Response DTO.
 
 ---
 

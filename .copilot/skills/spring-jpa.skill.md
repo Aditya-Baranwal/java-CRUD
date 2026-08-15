@@ -182,19 +182,53 @@ Default
 FetchType.LAZY
 ```
 
+Avoid unnecessary joins.
+
+Only fetch related entities when required.
+
 Never use
 
 ```
 FetchType.EAGER
 ```
 
-unless explicitly justified.
+to solve N+1 issues, unless explicitly justified.
 
 Solve loading problems using
 
-- EntityGraph
 - Fetch Join
+- EntityGraph
 - DTO Projection
+
+---
+
+# EntityGraph
+
+Use
+
+```
+@EntityGraph(attributePaths = {
+    "modules",
+    "lessons"
+})
+```
+
+to eliminate N+1 queries when required.
+
+Do not over-fetch data.
+
+---
+
+# DTO Projection
+
+Prefer projections for
+
+- Reports
+- Dashboards
+- Search APIs
+- Read-only endpoints
+
+Avoid loading complete entities unnecessarily.
 
 ---
 
@@ -376,9 +410,11 @@ Avoid unnecessarily long derived method names.
 
 ---
 
-# Specifications
+# Filtering
 
-Use
+When multiple dynamic filters exist,
+
+prefer
 
 ```
 JpaSpecificationExecutor
@@ -386,7 +422,15 @@ JpaSpecificationExecutor
 
 for dynamic filtering.
 
-Avoid multiple overloaded query methods.
+or QueryDSL if the project already uses it.
+
+Avoid large derived method names.
+
+Bad
+
+```
+findByStatusAndTypeAndCategoryAndInstructor...
+```
 
 ---
 
@@ -430,8 +474,8 @@ Document why native SQL is required.
 
 Always use
 
-```
-Pageable
+```java
+Page<Course> findByIsActiveTrue(Pageable pageable);
 ```
 
 Never fetch unlimited records.
@@ -453,42 +497,16 @@ when applicable.
 Use
 
 ```
-Sort
-
 Pageable
 ```
 
-Never sort manually after fetching.
-
----
-
-# EntityGraph
-
-Use
+or
 
 ```
-@EntityGraph(attributePaths = {
-    "modules",
-    "lessons"
-})
+Sort
 ```
 
-to eliminate N+1 queries when required.
-
-Do not over-fetch data.
-
----
-
-# DTO Projection
-
-Prefer projections for
-
-- Reports
-- Dashboards
-- Search APIs
-- Read-only endpoints
-
-Avoid loading complete entities unnecessarily.
+instead of manually sorting results.
 
 ---
 
@@ -563,6 +581,18 @@ Supported
 Optimistic
 Pessimistic Read
 Pessimistic Write
+```
+
+Examples
+
+```
+@Lock(LockModeType.PESSIMISTIC_WRITE)
+```
+
+or
+
+```
+@Lock(LockModeType.OPTIMISTIC)
 ```
 
 Always justify locking strategy.

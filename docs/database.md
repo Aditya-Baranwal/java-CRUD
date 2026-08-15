@@ -92,15 +92,15 @@ The database design follows these principles:
 
 # Relationships
 
-| Parent | Child | Cardinality |
-|---------|--------|-------------|
-| User | Enrollment | One-To-Many |
-| User | Course (Instructor) | One-To-Many |
-| Course | Module | One-To-Many |
-| Module | Lesson | One-To-Many |
-| User | Progress | One-To-Many |
-| Lesson | Progress | One-To-Many |
-| Course | Enrollment | One-To-Many |
+| Parent | Child               | Cardinality |
+|--------|---------------------|-------------|
+| User   | Enrollment          | One-To-Many |
+| User   | Course (Instructor) | One-To-Many |
+| Course | Module              | One-To-Many |
+| Module | Lesson              | One-To-Many |
+| User   | Progress            | One-To-Many |
+| Lesson | Progress            | One-To-Many |
+| Course | Enrollment          | One-To-Many |
 
 ---
 
@@ -108,15 +108,15 @@ The database design follows these principles:
 
 Foreign Keys enforce consistency between parent and child entities.
 
-| Parent | Child |
-|---------|-------|
-| User | Course |
-| User | Enrollment |
-| User | Progress |
-| Course | Module |
+| Parent | Child      |
+|--------|------------|
+| User   | Course     |
+| User   | Enrollment |
+| User   | Progress   |
+| Course | Module     |
 | Course | Enrollment |
-| Module | Lesson |
-| Lesson | Progress |
+| Module | Lesson     |
+| Lesson | Progress   |
 
 ---
 
