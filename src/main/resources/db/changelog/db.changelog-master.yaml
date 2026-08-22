@@ -5,3 +5,15 @@ databaseChangeLog:
   - include:
       file: 001-create-course-table.yaml
       relativeToChangelogFile: true
+  - include:
+      file: 002-create-module-table.yaml
+      relativeToChangelogFile: true
+  - include:
+      file: 003-create-lesson-table.yaml
+      relativeToChangelogFile: true
+  - include:
+      file: 004-create-enrollment-table.yaml
+      relativeToChangelogFile: true
+  - include:
+      file: 005-create-progress-table.yaml
+      relativeToChangelogFile: true

@@ -189,7 +189,7 @@ Enrollment and Progress are never soft deleted.
 # Enumerations
 
 - UserRole
-- CourseStatus
+- CourseCompletionStatus
 - LessonStatus
 - ContentType
 

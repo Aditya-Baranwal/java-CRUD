@@ -332,8 +332,8 @@ components:
           format: int64
         courseTitle:
           type: string
-        courseStatus:
-          $ref: './openapi/common.yaml#/components/schemas/CourseStatus'
+        courseCompletionStatus:
+          $ref: './openapi/common.yaml#/components/schemas/CourseCompletionStatus'
         enrolledAt:
           type: string
           format: date-time
@@ -1083,7 +1083,7 @@ paths:
           schema:
             type: integer
             format: int64
-        - name: courseStatus
+        - name: courseCompletionStatus
           in: query
           schema:
             type: string

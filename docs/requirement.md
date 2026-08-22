@@ -45,11 +45,11 @@ The system should provide:
 
 # Stakeholders
 
-| Stakeholder | Responsibility |
-|-------------|----------------|
-| Administrator | Manage platform and users |
-| Instructor | Create and manage courses |
-| Learner | Enroll and consume courses |
+| Stakeholder          | Responsibility                      |
+|----------------------|-------------------------------------|
+| Administrator        | Manage platform and users           |
+| Instructor           | Create and manage courses           |
+| Learner              | Enroll and consume courses          |
 | System Administrator | Deploy and maintain the application |
 
 ---
@@ -181,13 +181,13 @@ The system shall enforce role-based access control.
 
 Authorization rules
 
-| Resource | Admin | Instructor | Learner |
-|----------|:-----:|:----------:|:-------:|
-| Courses | CRUD | CRUD (Own) | Read |
-| Modules | CRUD | CRUD (Own) | Read |
-| Lessons | CRUD | CRUD (Own) | Read |
-| Enrollments | Read | Read | Create / Read Own |
-| Progress | Read | Read | Update Own |
+| Resource    | Admin | Instructor |      Learner      |
+|-------------|:-----:|:----------:|:-----------------:|
+| Courses     | CRUD  | CRUD (Own) |       Read        |
+| Modules     | CRUD  | CRUD (Own) |       Read        |
+| Lessons     | CRUD  | CRUD (Own) |       Read        |
+| Enrollments | Read  |    Read    | Create / Read Own |
+| Progress    | Read  |    Read    |    Update Own     |
 
 ---
 
@@ -377,12 +377,12 @@ Potential future improvements include
 
 # Related Documents
 
-| Document | Description |
-|----------|-------------|
-| architecture.md | System architecture and component design |
-| api.md | API standards and conventions |
-| database.md | Logical database design |
-| schema.md | Physical database schema |
-| security.md | Authentication and authorization design |
-| deployment.md | Deployment architecture |
-| openapi/openapi.yaml | OpenAPI specification |
+| Document             | Description                              |
+|----------------------|------------------------------------------|
+| architecture.md      | System architecture and component design |
+| api.md               | API standards and conventions            |
+| database.md          | Logical database design                  |
+| schema.md            | Physical database schema                 |
+| security.md          | Authentication and authorization design  |
+| deployment.md        | Deployment architecture                  |
+| openapi/openapi.yaml | OpenAPI specification                    |

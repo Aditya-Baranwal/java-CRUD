@@ -106,7 +106,7 @@
 | id            | BIGINT        | -        | No        | PK          |
 | user_id       | BIGINT        | -        | No        | FK          |
 | course_id     | BIGINT        | -        | No        | FK          |
-| course_status | ENUM          | -        | No        | -           |
+| course_completion_status | ENUM          | -        | No        | -           |
 | enrolled_at   | TIMESTAMP     | -        | No        | -           |
 
 </details>
@@ -792,7 +792,7 @@
     "id": 1,
     "courseId": 1,
     "userId": 1,
-    "courseStatus": "INCOMPLETE",
+    "courseCompletionStatus": "INCOMPLETE",
     "enrolledAt": ""
   }
 }
@@ -829,7 +829,7 @@
       "courseId": 1,
       "userId": 1,
       "courseTitle": "",
-      "courseStatus": "COMPLETE",
+      "courseCompletionStatus": "COMPLETE",
       "enrolledAt": ""
     }
   ],

@@ -66,10 +66,19 @@
 - Master changelog currently includes:
   - `000-create-user-table.yaml`
   - `001-create-course-table.yaml`
+  - `002-create-module-table.yaml`
+  - `003-create-lesson-table.yaml`
+  - `004-create-enrollment-table.yaml`
+  - `005-create-progress-table.yaml`
 - Changelog includes are set with `relativeToChangelogFile: true` in master file to avoid include-path parsing issues.
 - `000-create-user-table.yaml` defines PostgreSQL enum `user_role` (`ADMIN`, `INSTRUCTOR`, `USER`) and uses it as the `user.role` column type (not `VARCHAR`).
-- `user_id_seq` and `course_id_seq` are the sequence names used for user and course primary keys.
+- `001-create-course-table.yaml` defines `course_id_seq` and uses PostgreSQL `text[]` for `course.tags` with default `'{}'::text[]`.
+- `002-create-module-table.yaml` defines `module_id_seq`, FK to `course`, and unique `(course_id, sequence)` constraint.
+- `003-create-lesson-table.yaml` defines `lesson_id_seq`, PostgreSQL enum `content_type`, and unique `(module_id, sequence)` constraint.
+- `004-create-enrollment-table.yaml` defines `enrollment_id_seq`, PostgreSQL enum `course_completion_status`, unique `(user_id, course_id)`, and `version` column.
+- `005-create-progress-table.yaml` defines `progress_id_seq`, PostgreSQL enum `lesson_status`, unique `(user_id, lesson_id)`, and `version` column.
 - `Course.tags` is modeled as `List<String>` in Java and persisted as PostgreSQL `text[]` with default `[]`.
+- `Enrollment.courseCompletionStatus` uses the `CourseCompletionStatus` enum and maps to the PostgreSQL column `course_completion_status`.
 
 ## OpenAPI Design Conventions
 - Reusable shared schemas live in `src/main/resources/openapi/common.yaml`; main spec references them via relative paths such as `./openapi/common.yaml#/components/schemas/ModuleSummary`.
@@ -77,7 +86,7 @@
 - List endpoints use dedicated list response schemas (`CourseListResponse`, `ModuleListResponse`, `LessonListResponse`, `EnrollmentListResponse`, `ProgressListResponse`) and do not include nested child collections in the list payloads.
 - Nested child collections remain only in detail responses (`CourseResponse.modules`, `ModuleResponse.lessons`), not in list responses.
 - Array response fields define `default: []` to reflect empty-array semantics in the API contract and match PostgreSQL array defaults.
-- Common enums and summary schemas such as `ContentType`, `LessonStatus`, `CourseStatus`, `ModuleSummary`, `LessonSummary`, `ErrorResponse`, and list wrappers should be shared rather than redefined inline.
+- Common enums and summary schemas such as `ContentType`, `LessonStatus`, `CourseCompletionStatus`, `ModuleSummary`, `LessonSummary`, `ErrorResponse`, and list wrappers should be shared rather than redefined inline.
 
 ## Entity Layer
 
@@ -85,20 +94,22 @@
 - Singular snake_case table names: `course`, `module`, `lesson`, `enrollment`, `progress`
 
 ### Audit Fields
-- All business entities (`course`, `module`, `lesson`) include: `createdAt`, `createdBy`, `updatedAt`, `updatedBy`
-- `createdAt` uses `@CreationTimestamp`, `updatedAt` uses `@UpdateTimestamp`
-- `createdBy` / `updatedBy` are `Long` (user IDs), manually set by service layer
+- All business entities (`course`, `module`, `lesson`, `enrollment`, `progress`) include the project-standard audit/version behavior relevant to each table
+- `createdAt` uses `@CreationTimestamp`, `updatedAt` uses `@UpdateTimestamp` where applicable
+- `createdBy` / `updatedBy` are `Long` (user IDs), manually set by the service layer for course/module/lesson tables
+- `Enrollment` and `Progress` follow the schema-specific columns and carry the `version` field for optimistic locking
 
 ### Key Entity Changes (Aug 2026)
 - `Course`: fields renamed to `title`, `description`, `tags`; table = `course`; has `@Version`
 - `Module`: fields renamed to `title`, `description`; table = `module`; title max 50, description max 100; has `@Version`
 - `Lesson`: removed `userId`, `lessonStatus`; fixed `@JoinColumn` on `module`; table = `lesson`; has `@Version`
+- `Enrollment`: renamed enum usage to `CourseCompletionStatus`; column is `course_completion_status`; has `@Version`
+- `Progress`: enum remains `LessonStatus`; retains `@Version`
 - `LessonStatus` enum no longer used in `Lesson` entity — moved to `Progress`
-- `Progress`: removed `moduleId`, `courseId`, `isActive` (not in schema); retains `@Version`
 
 ### Optimistic Locking
-- `@Version private Long version` is present on `Course`, `Module`, `Lesson`
-- `version` is a Hibernate-managed column — **not documented in schema.md** (it's a JPA concern, not a business schema column)
+- `@Version private Long version` is present on `Course`, `Module`, `Lesson`, `Enrollment`, and `Progress`
+- `version` is a Hibernate-managed column and is part of the migration schema for these tables
 - Spring Data Envers considered but **not yet implemented** — no `@Audited` annotations applied
 
 

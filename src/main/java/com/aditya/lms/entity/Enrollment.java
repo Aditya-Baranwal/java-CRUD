@@ -22,7 +22,7 @@ import lombok.Builder;
 
 import org.hibernate.annotations.CreationTimestamp;
 
-import com.aditya.lms.enums.CourseStatus;
+import com.aditya.lms.enums.CourseCompletionStatus;
 
 import java.time.OffsetDateTime;
 
@@ -51,9 +51,9 @@ public class Enrollment {
     @JoinColumn(name = "course_id", nullable = false)
     private Course course;
 
-    @Column(name = "course_status", length = 20)
+    @Column(name = "course_completion_status", length = 20)
     @Enumerated(EnumType.STRING)
-    private CourseStatus courseStatus;
+    private CourseCompletionStatus courseCompletionStatus;
 
     @CreationTimestamp
     @Column(name = "enrolled_at", nullable = false, updatable = false)

@@ -441,7 +441,7 @@ UserRole
 
 LessonStatus
 
-CourseStatus
+CourseCompletionStatus
 ```
 
 ---

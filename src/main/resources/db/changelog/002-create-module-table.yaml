@@ -1,0 +1,89 @@
+databaseChangeLog:
+  - changeSet:
+      id: 002-create-module-table
+      author: copilot
+      changes:
+        - createSequence:
+            sequenceName: module_id_seq
+            startValue: 1
+            incrementBy: 1
+        - createTable:
+            tableName: module
+            columns:
+              - column:
+                  name: id
+                  type: BIGINT
+                  constraints:
+                    primaryKey: true
+                    primaryKeyName: pk_module
+                    nullable: false
+              - column:
+                  name: course_id
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+              - column:
+                  name: title
+                  type: VARCHAR(50)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: description
+                  type: VARCHAR(100)
+              - column:
+                  name: sequence
+                  type: INT
+                  constraints:
+                    nullable: false
+              - column:
+                  name: is_active
+                  type: BOOLEAN
+                  defaultValueBoolean: true
+                  constraints:
+                    nullable: false
+              - column:
+                  name: created_at
+                  type: TIMESTAMP
+                  defaultValueComputed: CURRENT_TIMESTAMP
+                  constraints:
+                    nullable: false
+              - column:
+                  name: created_by
+                  type: BIGINT
+              - column:
+                  name: updated_at
+                  type: TIMESTAMP
+                  defaultValueComputed: CURRENT_TIMESTAMP
+                  constraints:
+                    nullable: false
+              - column:
+                  name: updated_by
+                  type: BIGINT
+              - column:
+                  name: version
+                  type: BIGINT
+                  defaultValueNumeric: 0
+                  constraints:
+                    nullable: false
+        - addForeignKeyConstraint:
+            baseTableName: module
+            baseColumnNames: course_id
+            referencedTableName: course
+            referencedColumnNames: id
+            constraintName: fk_module_course
+        - addUniqueConstraint:
+            tableName: module
+            columnNames: course_id, sequence
+            constraintName: uk_module_sequence
+        - createIndex:
+            indexName: idx_module_course
+            tableName: module
+            columns:
+              - column:
+                  name: course_id
+        - createIndex:
+            indexName: idx_module_active
+            tableName: module
+            columns:
+              - column:
+                  name: is_active

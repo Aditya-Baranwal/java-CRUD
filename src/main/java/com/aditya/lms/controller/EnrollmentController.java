@@ -30,7 +30,7 @@ public class EnrollmentController implements EnrollmentsApi {
     }
 
     @Override
-    public ResponseEntity<EnrollmentListResponseDTO> listEnrollments(Long userId, Integer pageNo, Integer pageSize, String courseStatus, String sortBy, String sortOrder) {
+    public ResponseEntity<EnrollmentListResponseDTO> listEnrollments(Long userId, Integer pageNo, Integer pageSize, String courseCompletionStatus, String sortBy, String sortOrder) {
         return null;
     }
 

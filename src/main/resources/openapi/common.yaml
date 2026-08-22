@@ -21,12 +21,12 @@ components:
         - TEXT
       description: Lesson content type.
 
-    CourseStatus:
+    CourseCompletionStatus:
       type: string
       enum:
         - INCOMPLETE
         - COMPLETE
-      description: Enrollment course status.
+      description: Enrollment course completion status.
 
     LessonStatus:
       type: string

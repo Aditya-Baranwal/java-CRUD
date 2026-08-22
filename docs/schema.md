@@ -232,7 +232,7 @@ Represents a user's enrollment into a course.
 | id            | BIGINT        | AUTO_INCREMENT    | No       | PK         |
 | user_id       | BIGINT        | -                 | No       | FK         |
 | course_id     | BIGINT        | -                 | No       | FK         |
-| course_status | COURSE_STATUS | INCOMPLETE        | No       |            |
+| course_completion_status | COURSE_COMPLETION_STATUS | INCOMPLETE        | No       |            |
 | enrolled_at   | TIMESTAMP     | CURRENT_TIMESTAMP | No       |            |
 
 ---
@@ -406,7 +406,7 @@ CREATE INDEX idx_enrollment_course
 ON enrollment(course_id);
 
 CREATE INDEX idx_enrollment_status
-ON enrollment(course_status);
+ON enrollment(course_completion_status);
 ```
 
 ---
@@ -441,7 +441,7 @@ ON progress(lesson_status);
 
 ---
 
-## COURSE_STATUS
+## COURSE_COMPLETION_STATUS
 
 | Value      | Description           |
 |------------|-----------------------|
@@ -479,7 +479,7 @@ ON progress(lesson_status);
 | module.is_active         | TRUE              |
 | lesson.is_active         | TRUE              |
 | course.tags              | []                |
-| enrollment.course_status | INCOMPLETE        |
+| enrollment.course_completion_status | INCOMPLETE        |
 | progress.lesson_status   | UNSTARTED         |
 | created_at               | CURRENT_TIMESTAMP |
 

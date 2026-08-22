@@ -1,6 +1,6 @@
 package com.aditya.lms.enums;
 
-public enum CourseStatus {
+public enum CourseCompletionStatus {
     INCOMPLETE,
     COMPLETE
 }

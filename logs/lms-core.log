@@ -1443,3 +1443,83 @@ Caused by: com.fasterxml.jackson.core.JsonParseException: Unexpected character (
 2026-08-22T16:11:44.223+05:30  INFO 1360774 --- [SpringApplicationShutdownHook] j.LocalContainerEntityManagerFactoryBean : Closing JPA EntityManagerFactory for persistence unit 'default'
 2026-08-22T16:11:44.226+05:30  INFO 1360774 --- [SpringApplicationShutdownHook] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Shutdown initiated...
 2026-08-22T16:11:44.229+05:30  INFO 1360774 --- [SpringApplicationShutdownHook] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Shutdown completed.
+2026-08-22T17:50:23.499+05:30  INFO 1539017 --- [main] com.aditya.lms.LMSApplication            : Starting LMSApplication using Java 17.0.15 with PID 1539017 (/home/aditya/Desktop/projects/java/java-crud/target/classes started by root in /home/aditya/Desktop/projects/java/java-crud)
+2026-08-22T17:50:23.500+05:30  INFO 1539017 --- [main] com.aditya.lms.LMSApplication            : The following 1 profile is active: "local"
+2026-08-22T17:50:23.941+05:30  INFO 1539017 --- [main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-08-22T17:50:23.977+05:30  INFO 1539017 --- [main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 29 ms. Found 1 JPA repository interfaces.
+2026-08-22T17:50:24.249+05:30  INFO 1539017 --- [main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port(s): 8081 (http)
+2026-08-22T17:50:24.255+05:30  INFO 1539017 --- [main] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2026-08-22T17:50:24.256+05:30  INFO 1539017 --- [main] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/10.1.13]
+2026-08-22T17:50:24.315+05:30  INFO 1539017 --- [main] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring embedded WebApplicationContext
+2026-08-22T17:50:24.315+05:30  INFO 1539017 --- [main] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 780 ms
+2026-08-22T17:50:24.382+05:30  INFO 1539017 --- [main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
+2026-08-22T17:50:24.468+05:30  INFO 1539017 --- [main] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Added connection org.postgresql.jdbc.PgConnection@5df7e31b
+2026-08-22T17:50:24.469+05:30  INFO 1539017 --- [main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Start completed.
+2026-08-22T17:50:24.553+05:30  INFO 1539017 --- [main] liquibase.database                       : Set default schema name to public
+2026-08-22T17:50:24.682+05:30  INFO 1539017 --- [main] liquibase.changelog                      : Reading from public.databasechangelog
+2026-08-22T17:50:24.688+05:30  INFO 1539017 --- [main] liquibase.executor                       : Changelog query completed.
+2026-08-22T17:50:24.791+05:30  INFO 1539017 --- [main] liquibase.executor                       : Changelog query completed.
+2026-08-22T17:50:24.793+05:30  INFO 1539017 --- [main] liquibase.executor                       : Changelog query completed.
+2026-08-22T17:50:24.796+05:30  INFO 1539017 --- [main] liquibase.executor                       : Changelog query completed.
+2026-08-22T17:50:24.797+05:30  INFO 1539017 --- [main] liquibase.lockservice                    : Successfully acquired change log lock
+2026-08-22T17:50:24.823+05:30  INFO 1539017 --- [main] liquibase.executor                       : Changelog query completed.
+2026-08-22T17:50:24.824+05:30  INFO 1539017 --- [main] liquibase.changelog                      : Reading from public.databasechangelog
+2026-08-22T17:50:24.825+05:30  INFO 1539017 --- [main] liquibase.executor                       : Changelog query completed.
+2026-08-22T17:50:24.826+05:30  INFO 1539017 --- [main] liquibase.executor                       : Changelog query completed.
+2026-08-22T17:50:24.855+05:30  INFO 1539017 --- [main] liquibase.changelog                      : Sequence module_id_seq created
+2026-08-22T17:50:24.860+05:30  INFO 1539017 --- [main] liquibase.changelog                      : Table module created
+2026-08-22T17:50:24.863+05:30  INFO 1539017 --- [main] liquibase.changelog                      : Foreign key constraint added to module (course_id)
+2026-08-22T17:50:24.867+05:30  INFO 1539017 --- [main] liquibase.changelog                      : Unique constraint added to module(course_id, sequence)
+2026-08-22T17:50:24.870+05:30  INFO 1539017 --- [main] liquibase.changelog                      : Index idx_module_course created
+2026-08-22T17:50:24.874+05:30  INFO 1539017 --- [main] liquibase.changelog                      : Index idx_module_active created
+2026-08-22T17:50:24.876+05:30  INFO 1539017 --- [main] liquibase.changelog                      : ChangeSet db/changelog/002-create-module-table.yaml::002-create-module-table::copilot ran successfully in 24ms
+2026-08-22T17:50:24.878+05:30  INFO 1539017 --- [main] liquibase.executor                       : Changelog query completed.
+2026-08-22T17:50:24.879+05:30  INFO 1539017 --- [main] liquibase.executor                       : Changelog query completed.
+2026-08-22T17:50:24.883+05:30  INFO 1539017 --- [main] liquibase.changelog                      : Sequence lesson_id_seq created
+2026-08-22T17:50:24.887+05:30  INFO 1539017 --- [main] liquibase.changelog                      : Custom SQL executed
+2026-08-22T17:50:24.892+05:30  INFO 1539017 --- [main] liquibase.changelog                      : Table lesson created
+2026-08-22T17:50:24.895+05:30  INFO 1539017 --- [main] liquibase.changelog                      : Foreign key constraint added to lesson (module_id)
+2026-08-22T17:50:24.899+05:30  INFO 1539017 --- [main] liquibase.changelog                      : Unique constraint added to lesson(module_id, sequence)
+2026-08-22T17:50:24.902+05:30  INFO 1539017 --- [main] liquibase.changelog                      : Index idx_lesson_module created
+2026-08-22T17:50:24.904+05:30  INFO 1539017 --- [main] liquibase.changelog                      : ChangeSet db/changelog/003-create-lesson-table.yaml::003-create-lesson-table::copilot ran successfully in 23ms
+2026-08-22T17:50:24.905+05:30  INFO 1539017 --- [main] liquibase.executor                       : Changelog query completed.
+2026-08-22T17:50:24.908+05:30  INFO 1539017 --- [main] liquibase.changelog                      : Sequence enrollment_id_seq created
+2026-08-22T17:50:24.909+05:30  INFO 1539017 --- [main] liquibase.changelog                      : Custom SQL executed
+2026-08-22T17:50:24.914+05:30  INFO 1539017 --- [main] liquibase.changelog                      : Table enrollment created
+2026-08-22T17:50:24.916+05:30  INFO 1539017 --- [main] liquibase.changelog                      : Foreign key constraint added to enrollment (user_id)
+2026-08-22T17:50:24.919+05:30  INFO 1539017 --- [main] liquibase.changelog                      : Foreign key constraint added to enrollment (course_id)
+2026-08-22T17:50:24.922+05:30  INFO 1539017 --- [main] liquibase.changelog                      : Unique constraint added to enrollment(user_id, course_id)
+2026-08-22T17:50:24.925+05:30  INFO 1539017 --- [main] liquibase.changelog                      : Index idx_enrollment_user created
+2026-08-22T17:50:24.928+05:30  INFO 1539017 --- [main] liquibase.changelog                      : Index idx_enrollment_course created
+2026-08-22T17:50:24.931+05:30  INFO 1539017 --- [main] liquibase.changelog                      : Index idx_enrollment_status created
+2026-08-22T17:50:24.933+05:30  INFO 1539017 --- [main] liquibase.changelog                      : ChangeSet db/changelog/004-create-enrollment-table.yaml::004-create-enrollment-table::copilot ran successfully in 25ms
+2026-08-22T17:50:24.934+05:30  INFO 1539017 --- [main] liquibase.executor                       : Changelog query completed.
+2026-08-22T17:50:24.937+05:30  INFO 1539017 --- [main] liquibase.changelog                      : Sequence progress_id_seq created
+2026-08-22T17:50:24.938+05:30  INFO 1539017 --- [main] liquibase.changelog                      : Custom SQL executed
+2026-08-22T17:50:24.942+05:30  INFO 1539017 --- [main] liquibase.changelog                      : Table progress created
+2026-08-22T17:50:24.943+05:30  INFO 1539017 --- [main] liquibase.changelog                      : Foreign key constraint added to progress (user_id)
+2026-08-22T17:50:24.945+05:30  INFO 1539017 --- [main] liquibase.changelog                      : Foreign key constraint added to progress (lesson_id)
+2026-08-22T17:50:24.948+05:30  INFO 1539017 --- [main] liquibase.changelog                      : Unique constraint added to progress(user_id, lesson_id)
+2026-08-22T17:50:24.951+05:30  INFO 1539017 --- [main] liquibase.changelog                      : Index idx_progress_user created
+2026-08-22T17:50:24.955+05:30  INFO 1539017 --- [main] liquibase.changelog                      : Index idx_progress_lesson created
+2026-08-22T17:50:24.958+05:30  INFO 1539017 --- [main] liquibase.changelog                      : Index idx_progress_status created
+2026-08-22T17:50:24.960+05:30  INFO 1539017 --- [main] liquibase.changelog                      : ChangeSet db/changelog/005-create-progress-table.yaml::005-create-progress-table::copilot ran successfully in 23ms
+2026-08-22T17:50:24.961+05:30  INFO 1539017 --- [main] liquibase.executor                       : Changelog query completed.
+2026-08-22T17:50:24.963+05:30  INFO 1539017 --- [main] liquibase                                : Update command completed successfully.
+2026-08-22T17:50:24.964+05:30  INFO 1539017 --- [main] liquibase.executor                       : Changelog query completed.
+2026-08-22T17:50:24.965+05:30  INFO 1539017 --- [main] liquibase.lockservice                    : Successfully released change log lock
+2026-08-22T17:50:25.003+05:30  INFO 1539017 --- [main] o.hibernate.jpa.internal.util.LogHelper  : HHH000204: Processing PersistenceUnitInfo [name: default]
+2026-08-22T17:50:25.027+05:30  INFO 1539017 --- [main] org.hibernate.Version                    : HHH000412: Hibernate ORM core version 6.2.9.Final
+2026-08-22T17:50:25.029+05:30  INFO 1539017 --- [main] org.hibernate.cfg.Environment            : HHH000406: Using bytecode reflection optimizer
+2026-08-22T17:50:25.090+05:30  INFO 1539017 --- [main] o.h.b.i.BytecodeProviderInitiator        : HHH000021: Bytecode provider name : bytebuddy
+2026-08-22T17:50:25.148+05:30  INFO 1539017 --- [main] o.s.o.j.p.SpringPersistenceUnitInfo      : No LoadTimeWeaver setup: ignoring JPA class transformer
+2026-08-22T17:50:25.292+05:30  INFO 1539017 --- [main] o.h.b.i.BytecodeProviderInitiator        : HHH000021: Bytecode provider name : bytebuddy
+2026-08-22T17:50:25.683+05:30  INFO 1539017 --- [main] o.h.e.t.j.p.i.JtaPlatformInitiator       : HHH000490: Using JtaPlatform implementation: [org.hibernate.engine.transaction.jta.platform.internal.NoJtaPlatform]
+2026-08-22T17:50:25.685+05:30  INFO 1539017 --- [main] j.LocalContainerEntityManagerFactoryBean : Initialized JPA EntityManagerFactory for persistence unit 'default'
+2026-08-22T17:50:25.966+05:30  WARN 1539017 --- [main] JpaBaseConfiguration$JpaWebConfiguration : spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
+2026-08-22T17:50:26.187+05:30  INFO 1539017 --- [main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat started on port(s): 8081 (http) with context path ''
+2026-08-22T17:50:26.194+05:30  INFO 1539017 --- [main] com.aditya.lms.LMSApplication            : Started LMSApplication in 2.956 seconds (process running for 3.139)
+2026-08-22T17:50:26.196+05:30  INFO 1539017 --- [main] com.aditya.lms.LMSApplication            : lms-core started successfully
+2026-08-22T17:50:37.001+05:30  INFO 1539017 --- [SpringApplicationShutdownHook] j.LocalContainerEntityManagerFactoryBean : Closing JPA EntityManagerFactory for persistence unit 'default'
+2026-08-22T17:50:37.003+05:30  INFO 1539017 --- [SpringApplicationShutdownHook] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Shutdown initiated...
+2026-08-22T17:50:37.007+05:30  INFO 1539017 --- [SpringApplicationShutdownHook] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Shutdown completed.

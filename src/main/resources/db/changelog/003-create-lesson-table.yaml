@@ -1,0 +1,88 @@
+databaseChangeLog:
+  - changeSet:
+      id: 003-create-lesson-table
+      author: copilot
+      changes:
+        - createSequence:
+            sequenceName: lesson_id_seq
+            startValue: 1
+            incrementBy: 1
+        - sql:
+            dbms: postgresql
+            sql: CREATE TYPE content_type AS ENUM ('MP3', 'MP4', 'PDF', 'TEXT');
+        - createTable:
+            tableName: lesson
+            columns:
+              - column:
+                  name: id
+                  type: BIGINT
+                  constraints:
+                    primaryKey: true
+                    primaryKeyName: pk_lesson
+                    nullable: false
+              - column:
+                  name: module_id
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+              - column:
+                  name: content_type
+                  type: content_type
+                  constraints:
+                    nullable: false
+              - column:
+                  name: content_link
+                  type: VARCHAR(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: sequence
+                  type: INT
+                  constraints:
+                    nullable: false
+              - column:
+                  name: is_active
+                  type: BOOLEAN
+                  defaultValueBoolean: true
+                  constraints:
+                    nullable: false
+              - column:
+                  name: created_at
+                  type: TIMESTAMP
+                  defaultValueComputed: CURRENT_TIMESTAMP
+                  constraints:
+                    nullable: false
+              - column:
+                  name: created_by
+                  type: BIGINT
+              - column:
+                  name: updated_at
+                  type: TIMESTAMP
+                  defaultValueComputed: CURRENT_TIMESTAMP
+                  constraints:
+                    nullable: false
+              - column:
+                  name: updated_by
+                  type: BIGINT
+              - column:
+                  name: version
+                  type: BIGINT
+                  defaultValueNumeric: 0
+                  constraints:
+                    nullable: false
+        - addForeignKeyConstraint:
+            baseTableName: lesson
+            baseColumnNames: module_id
+            referencedTableName: module
+            referencedColumnNames: id
+            constraintName: fk_lesson_module
+        - addUniqueConstraint:
+            tableName: lesson
+            columnNames: module_id, sequence
+            constraintName: uk_lesson_sequence
+        - createIndex:
+            indexName: idx_lesson_module
+            tableName: lesson
+            columns:
+              - column:
+                  name: module_id
