@@ -1,6 +1,7 @@
 package com.aditya.lms.mapper;
 
 import com.aditya.lms.entity.Course;
+import com.aditya.lms.enums.CourseStatus;
 import com.lms.model.CourseCreateRequestDTO;
 import com.lms.model.CourseCreateResponseDTO;
 import com.lms.model.CourseDeleteResponseDTO;
@@ -29,6 +30,7 @@ public class CourseMapper {
         course.setTags(request.getCourseTags() == null ? List.of() : request.getCourseTags());
         course.setInstructorId(request.getInstructorId());
         course.setIsActive(Boolean.TRUE);
+        course.setCourseStatus(request.getCourseStatus() == null ? CourseStatus.UNPUBLISHED : toDomainStatus(request.getCourseStatus()));
         return course;
     }
 
@@ -41,6 +43,9 @@ public class CourseMapper {
         }
         if (request.getCourseTags() != null) {
             course.setTags(request.getCourseTags());
+        }
+        if (request.getCourseStatus() != null) {
+            course.setCourseStatus(toDomainStatus(request.getCourseStatus()));
         }
         if (request.getIsActive() != null) {
             course.setIsActive(request.getIsActive());
@@ -91,6 +96,7 @@ public class CourseMapper {
                 .courseTitle(course.getTitle())
                 .courseDescription(course.getDescription())
                 .courseTags(course.getTags() == null ? List.of() : course.getTags())
+                .courseStatus(course.getCourseStatus() == null ? null : toApiStatus(course.getCourseStatus()))
                 .instructorId(course.getInstructorId())
                 .isActive(course.getIsActive())
                 .createdAt(course.getCreatedAt());
@@ -107,8 +113,37 @@ public class CourseMapper {
                 .courseTitle(course.getTitle())
                 .courseDescription(course.getDescription())
                 .courseTags(course.getTags() == null ? List.of() : course.getTags())
+                .courseStatus(course.getCourseStatus() == null ? null : toListApiStatus(course.getCourseStatus()))
                 .instructorId(course.getInstructorId())
                 .isActive(course.getIsActive())
                 .createdAt(course.getCreatedAt());
+    }
+
+    private CourseStatus toDomainStatus(CourseCreateRequestDTO.CourseStatusEnum status) {
+        if (status == null) {
+            return CourseStatus.UNPUBLISHED;
+        }
+        return CourseStatus.valueOf(status.name());
+    }
+
+    private CourseStatus toDomainStatus(CourseUpdateRequestDTO.CourseStatusEnum status) {
+        if (status == null) {
+            return CourseStatus.UNPUBLISHED;
+        }
+        return CourseStatus.valueOf(status.name());
+    }
+
+    private CourseResponseDTO.CourseStatusEnum toApiStatus(CourseStatus status) {
+        if (status == null) {
+            return null;
+        }
+        return CourseResponseDTO.CourseStatusEnum.valueOf(status.name());
+    }
+
+    private CourseListResponseDataInnerDTO.CourseStatusEnum toListApiStatus(CourseStatus status) {
+        if (status == null) {
+            return null;
+        }
+        return CourseListResponseDataInnerDTO.CourseStatusEnum.valueOf(status.name());
     }
 }

@@ -7,7 +7,10 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Column;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.Version;
+import com.aditya.lms.enums.CourseStatus;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.NoArgsConstructor;
@@ -63,6 +66,10 @@ public class Course {
 
     @Column(name = "is_active", nullable = false, columnDefinition = "boolean default true")
     private Boolean isActive;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "course_status", nullable = false)
+    private CourseStatus courseStatus;
 
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)

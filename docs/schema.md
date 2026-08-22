@@ -164,18 +164,19 @@ Stores all users of the platform.
 
 Stores all courses available in the system.
 
-| Column        | Type         | Default           | Nullable | Constraint |
-|---------------|--------------|-------------------|----------|------------|
-| id            | BIGINT       | AUTO_INCREMENT    | No       | PK         |
-| title         | VARCHAR(100) | -                 | No       |            |
-| description   | VARCHAR(200) | -                 | No       |            |
-| instructor_id | BIGINT       | -                 | No       | FK         |
-| tags          | ARRAY        | '[]'              | No       |            |
-| is_active     | BOOLEAN      | TRUE              | No       |            |
-| created_at    | TIMESTAMP    | CURRENT_TIMESTAMP | No       |            |
-| created_by    | BIGINT       | NULL              | No       |            |
-| updated_at    | TIMESTAMP    | CURRENT_TIMESTAMP | No       |            |
-| updated_by    | BIGINT       | NULL              | No       |            |
+| Column        | Type          | Default           | Nullable | Constraint |
+|---------------|---------------|-------------------|----------|------------|
+| id            | BIGINT        | AUTO_INCREMENT    | No       | PK         |
+| title         | VARCHAR(100)  | -                 | No       |            |
+| description   | VARCHAR(200)  | -                 | No       |            |
+| instructor_id | BIGINT        | -                 | No       | FK         |
+| tags          | ARRAY         | '[]'              | No       |            |
+| is_active     | BOOLEAN       | TRUE              | No       |            |
+| course_status | COURSE_STATUS | UNPUBLISHED       | No       |            |
+| created_at    | TIMESTAMP     | CURRENT_TIMESTAMP | No       |            |
+| created_by    | BIGINT        | NULL              | No       |            |
+| updated_at    | TIMESTAMP     | CURRENT_TIMESTAMP | No       |            |
+| updated_by    | BIGINT        | NULL              | No       |            |
 
 ---
 
@@ -227,13 +228,13 @@ Represents learning material inside a module.
 
 Represents a user's enrollment into a course.
 
-| Column        | Type          | Default           | Nullable | Constraint |
-|---------------|---------------|-------------------|----------|------------|
-| id            | BIGINT        | AUTO_INCREMENT    | No       | PK         |
-| user_id       | BIGINT        | -                 | No       | FK         |
-| course_id     | BIGINT        | -                 | No       | FK         |
+| Column                   | Type                     | Default           | Nullable | Constraint |
+|--------------------------|--------------------------|-------------------|----------|------------|
+| id                       | BIGINT                   | AUTO_INCREMENT    | No       | PK         |
+| user_id                  | BIGINT                   | -                 | No       | FK         |
+| course_id                | BIGINT                   | -                 | No       | FK         |
 | course_completion_status | COURSE_COMPLETION_STATUS | INCOMPLETE        | No       |            |
-| enrolled_at   | TIMESTAMP     | CURRENT_TIMESTAMP | No       |            |
+| enrolled_at              | TIMESTAMP                | CURRENT_TIMESTAMP | No       |            |
 
 ---
 
@@ -438,6 +439,19 @@ ON progress(lesson_status);
 | ADMIN      | Platform administrator |
 | INSTRUCTOR | Course instructor      |
 | USER       | Student                |
+
+---
+
+## COURSE_STATUS
+
+| Value              | Description                    |
+|--------------------|--------------------------------|
+| DRAFT              | Course is not published        |
+| READY_TO_PUBLISH   | Course is ready to publish     |
+| PUBLISHED          | Course is published            |
+| READY_TO_UNPUBLISH | Course is ready to unpublish   |
+| UNPUBLISHED        | Course is unpublished          |
+| MANUAL_UNPUBLISHED | Course is manually unpublished |
 
 ---
 

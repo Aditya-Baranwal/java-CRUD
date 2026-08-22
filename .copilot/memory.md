@@ -57,9 +57,12 @@
 - Added `GlobalExceptionHandler` (`@RestControllerAdvice`) returning `ErrorResponseDTO`
 
 ## OpenAPI Updates
-- `CreateCourseRequest` now requires only:
-  - `courseTitle`
-  - `instructorId`
+- Course lifecycle status is modeled through a dedicated `courseStatus` field and shared enum `CourseStatus`.
+- `CourseCreateRequest` and `CourseUpdateRequest` include the `courseStatus` field with default `UNPUBLISHED` where appropriate.
+- `CourseResponse` and `CourseSummary` include `courseStatus` to reflect lifecycle state in create/get/list payloads.
+- The shared enum values follow the schema contract: `DRAFT`, `READY_TO_PUBLISH`, `PUBLISHED`, `READY_TO_UNPUBLISH`, `UNPUBLISHED`, `MANUAL_UNPUBLISHED`.
+- `Course.tags` is represented as `courseTags` array with default `[]` in all API schema variants.
+- Generated OpenAPI DTOs use enum wrappers like `CourseResponse.CourseStatusEnum` and `CourseListResponseDataInnerDTO.CourseStatusEnum`; mapper code must convert domain enum values to these generated enum types.
 
 ## Database Migration
 - Liquibase changelog is configured at `classpath:db/changelog/db.changelog-master.yaml`
@@ -78,6 +81,7 @@
 - `004-create-enrollment-table.yaml` defines `enrollment_id_seq`, PostgreSQL enum `course_completion_status`, unique `(user_id, course_id)`, and `version` column.
 - `005-create-progress-table.yaml` defines `progress_id_seq`, PostgreSQL enum `lesson_status`, unique `(user_id, lesson_id)`, and `version` column.
 - `Course.tags` is modeled as `List<String>` in Java and persisted as PostgreSQL `text[]` with default `[]`.
+- `Course.courseStatus` uses the `CourseStatus` enum and maps to PostgreSQL column `course_status` with default `UNPUBLISHED`.
 - `Enrollment.courseCompletionStatus` uses the `CourseCompletionStatus` enum and maps to the PostgreSQL column `course_completion_status`.
 
 ## OpenAPI Design Conventions
@@ -100,12 +104,13 @@
 - `Enrollment` and `Progress` follow the schema-specific columns and carry the `version` field for optimistic locking
 
 ### Key Entity Changes (Aug 2026)
-- `Course`: fields renamed to `title`, `description`, `tags`; table = `course`; has `@Version`
+- `Course`: fields renamed to `title`, `description`, `tags`; adds `courseStatus` enum field mapped to PostgreSQL `course_status`; table = `course`; has `@Version`
 - `Module`: fields renamed to `title`, `description`; table = `module`; title max 50, description max 100; has `@Version`
 - `Lesson`: removed `userId`, `lessonStatus`; fixed `@JoinColumn` on `module`; table = `lesson`; has `@Version`
 - `Enrollment`: renamed enum usage to `CourseCompletionStatus`; column is `course_completion_status`; has `@Version`
 - `Progress`: enum remains `LessonStatus`; retains `@Version`
 - `LessonStatus` enum no longer used in `Lesson` entity — moved to `Progress`
+- `CourseStatus` enum is a domain enum separate from `CourseCompletionStatus`; it is used only for course lifecycle and stored in the `course_status` column.
 
 ### Optimistic Locking
 - `@Version private Long version` is present on `Course`, `Module`, `Lesson`, `Enrollment`, and `Progress`

@@ -1,6 +1,7 @@
 package com.aditya.lms.service;
 
 import com.aditya.lms.entity.Course;
+import com.aditya.lms.enums.CourseStatus;
 import com.aditya.lms.exception.CourseConflictException;
 import com.aditya.lms.exception.CourseNotFoundException;
 import com.aditya.lms.exception.CourseValidationException;
@@ -35,6 +36,10 @@ public class CourseServiceImpl implements CourseService {
 
         if (course.getIsActive() == null) {
             course.setIsActive(Boolean.TRUE);
+        }
+
+        if (course.getCourseStatus() == null) {
+            course.setCourseStatus(CourseStatus.UNPUBLISHED);
         }
 
         boolean duplicateExists = courseRepository.existsByTitleIgnoreCaseAndInstructorIdAndIsActiveTrue(
@@ -98,6 +103,9 @@ public class CourseServiceImpl implements CourseService {
         }
         if (course.getIsActive() != null) {
             existingCourse.setIsActive(course.getIsActive());
+        }
+        if (course.getCourseStatus() != null) {
+            existingCourse.setCourseStatus(course.getCourseStatus());
         }
         if (course.getUpdatedBy() != null) {
             existingCourse.setUpdatedBy(course.getUpdatedBy());

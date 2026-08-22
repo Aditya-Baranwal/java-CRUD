@@ -21,6 +21,17 @@ components:
         - TEXT
       description: Lesson content type.
 
+    CourseStatus:
+      type: string
+      enum:
+        - DRAFT
+        - READY_TO_PUBLISH
+        - PUBLISHED
+        - READY_TO_UNPUBLISH
+        - UNPUBLISHED
+        - MANUAL_UNPUBLISHED
+      description: Course lifecycle status.
+
     CourseCompletionStatus:
       type: string
       enum:
@@ -51,6 +62,8 @@ components:
           items:
             type: string
           default: []
+        courseStatus:
+          $ref: './common.yaml#/components/schemas/CourseStatus'
         instructorId:
           type: integer
           format: int64

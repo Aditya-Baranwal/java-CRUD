@@ -60,6 +60,9 @@ components:
             - java
             - spring
             - backend
+        courseStatus:
+          $ref: './openapi/common.yaml#/components/schemas/CourseStatus'
+          default: UNPUBLISHED
         instructorId:
           type: integer
           format: int64
@@ -81,6 +84,8 @@ components:
           items:
             type: string
           default: []
+        courseStatus:
+          $ref: './openapi/common.yaml#/components/schemas/CourseStatus'
         isActive:
           type: boolean
 
@@ -99,6 +104,8 @@ components:
           items:
             type: string
           default: []
+        courseStatus:
+          $ref: './openapi/common.yaml#/components/schemas/CourseStatus'
         instructorId:
           type: integer
           format: int64

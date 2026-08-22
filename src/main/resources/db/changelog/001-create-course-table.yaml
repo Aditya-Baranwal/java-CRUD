@@ -7,6 +7,9 @@ databaseChangeLog:
             sequenceName: course_id_seq
             startValue: 1
             incrementBy: 1
+        - sql:
+            dbms: postgresql
+            sql: CREATE TYPE course_status AS ENUM ('DRAFT', 'READY_TO_PUBLISH', 'PUBLISHED', 'READY_TO_UNPUBLISH', 'UNPUBLISHED', 'MANUAL_UNPUBLISHED');
         - createTable:
             tableName: course
             columns:
@@ -42,6 +45,12 @@ databaseChangeLog:
                   name: is_active
                   type: BOOLEAN
                   defaultValueBoolean: true
+                  constraints:
+                    nullable: false
+              - column:
+                  name: course_status
+                  type: course_status
+                  defaultValue: UNPUBLISHED
                   constraints:
                     nullable: false
               - column:

@@ -85,6 +85,7 @@ Content-Type: application/json
             "spring",
             "backend"
         ],
+        "courseStatus": "DRAFT",
         "instructorId": 101,
         "instructorName": "John Doe",
         "isActive": true,
@@ -139,6 +140,7 @@ PUT /courses/{courseId}
         "spring",
         "java"
     ],
+    "courseStatus": "DRAFT",
     "isActive": true
 }
 ```
@@ -162,6 +164,7 @@ PUT /courses/{courseId}
             "spring",
             "java"
         ],
+        "courseStatus": "DRAFT",
         "instructorId": 101,
         "instructorName": "John Doe",
         "isActive": true,
@@ -221,6 +224,7 @@ GET /courses/{courseId}
             "java",
             "spring"
         ],
+        "courseStatus": "DRAFT",
         "instructorId": 101,
         "instructorName": "John Doe",
         "modules": [],
@@ -250,13 +254,14 @@ GET /courses
 
 ## Query Parameters
 
-| Parameter | Type    | Required | Default   | Description                    |
-|-----------|---------|----------|-----------|--------------------------------|
-| active    | Boolean | No       | true      | Return active/inactive courses |
-| pageNo    | Integer | Yes      | 1         | Page number                    |
-| pageSize  | Integer | Yes      | 10        | Page size                      |
-| sortBy    | String  | No       | createdAt | Sort field                     |
-| sortOrder | String  | No       | desc      | asc / desc                     |
+| Parameter    | Type    | Required | Default   | Description                             |
+|--------------|---------|----------|-----------|-----------------------------------------|
+| active       | Boolean | No       | true      | Return active/inactive courses          |
+| courseStatus | String  | No       | published | useful to filter course based on status |
+| pageNo       | Integer | Yes      | 1         | Page number                             |
+| pageSize     | Integer | Yes      | 10        | Page size                               |
+| sortBy       | String  | No       | createdAt | Sort field                              |
+| sortOrder    | String  | No       | desc      | asc / desc                              |
 
 ## Example
 
@@ -283,6 +288,7 @@ GET /courses?active=true&pageNo=1&pageSize=10&sortBy=createdAt&sortOrder=desc
             "courseTags": [
                 "java"
             ],
+            "courseStatus": "DRAFT",
             "instructorId": 101,
             "instructorName": "John Doe",
             "isActive": true,
@@ -361,7 +367,8 @@ DELETE /courses/{courseId}
 # Design Decisions
 
 - Resource-oriented REST APIs.
-- Soft delete is implemented using the `is_active` flag.
+- Soft delete is implemented using the `is_active` flag. is_active = true indicates that the courses cannot be enrolled anymore.
+- had added a `courseStatus` field to manage course lifecycle, only in_active courses can be unpublished.
 - Pagination is supported for all list operations.
 - Sorting is supported using `sortBy` and `sortOrder`.
 - Filtering is implemented using query parameters.
