@@ -170,7 +170,7 @@ Stores all courses available in the system.
 | title         | VARCHAR(100) | -                 | No       |            |
 | description   | VARCHAR(200) | -                 | No       |            |
 | instructor_id | BIGINT       | -                 | No       | FK         |
-| tags          | JSONB        | '[]'              | No       |            |
+| tags          | ARRAY        | '[]'              | No       |            |
 | is_active     | BOOLEAN      | TRUE              | No       |            |
 | created_at    | TIMESTAMP    | CURRENT_TIMESTAMP | No       |            |
 | created_by    | BIGINT       | NULL              | No       |            |

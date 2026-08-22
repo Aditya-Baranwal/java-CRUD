@@ -6,9 +6,10 @@
 ## Tech Stack
 - Database: PostgreSQL
 - ID: Sequence-based (`BIGINT` via `@SequenceGenerator`)
-- Auth: JWT (Bearer token)
+- Auth: JWT (******
 - Logging: SLF4J + Logback
 - Pagination: Required for all list endpoints
+- Course tags are mapped as `List<String>` and stored in PostgreSQL `text[]`.
 
 ## Architecture
 - Layered monolithic (Controller → Service → Repository → DB)
@@ -16,6 +17,7 @@
 - Stateless application instances
 - Container: Docker
 - Default config lives in `src/main/resources/application.yaml` for all profiles
+- Liquibase is enabled by default in `application.yaml` via `spring.liquibase.enabled: true`
 
 ## Logging
 - Default logging is configured in `application.yaml`
@@ -33,8 +35,49 @@
   - `EnrollmentController` → `com.lms.api.EnrollmentsApi`
   - `ProgressController` → `com.lms.api.ProgressApi`
 - Base mapping uses `@RequestMapping("/api/v1")` to align with server prefix in `openapi.yaml`
-- All controller methods are currently stubbed with empty implementations (`return null;`) and no service logic
+- `CourseController` is wired to `CourseService` and does DTO↔Entity mapping via `CourseMapper`
+- Other controllers are still stubbed with empty implementations (`return null;`)
 - Use explicit imports only (no wildcard imports like `com.lms.model.*`) across controllers
+
+## Service Layer
+- `CourseService` and `CourseServiceImpl` are implemented
+- Service contract is entity-based (`Course` as input/output), not DTO-based
+- Business rules enforced:
+  - duplicate active course title per instructor is not allowed
+  - course instructor cannot be changed during update
+  - soft delete sets `isActive=false`
+  - create requires mandatory fields: `title` and `instructorId`
+
+## Exception Handling
+- Added base domain exception: `BaseException` with `errorCode` and `HttpStatus`
+- Added course exceptions:
+  - `CourseNotFoundException` (`COURSE_404`)
+  - `CourseConflictException` (`COURSE_409`)
+  - `CourseValidationException` (`COURSE_400`)
+- Added `GlobalExceptionHandler` (`@RestControllerAdvice`) returning `ErrorResponseDTO`
+
+## OpenAPI Updates
+- `CreateCourseRequest` now requires only:
+  - `courseTitle`
+  - `instructorId`
+
+## Database Migration
+- Liquibase changelog is configured at `classpath:db/changelog/db.changelog-master.yaml`
+- Master changelog currently includes:
+  - `000-create-user-table.yaml`
+  - `001-create-course-table.yaml`
+- Changelog includes are set with `relativeToChangelogFile: true` in master file to avoid include-path parsing issues.
+- `000-create-user-table.yaml` defines PostgreSQL enum `user_role` (`ADMIN`, `INSTRUCTOR`, `USER`) and uses it as the `user.role` column type (not `VARCHAR`).
+- `user_id_seq` and `course_id_seq` are the sequence names used for user and course primary keys.
+- `Course.tags` is modeled as `List<String>` in Java and persisted as PostgreSQL `text[]` with default `[]`.
+
+## OpenAPI Design Conventions
+- Reusable shared schemas live in `src/main/resources/openapi/common.yaml`; main spec references them via relative paths such as `./openapi/common.yaml#/components/schemas/ModuleSummary`.
+- Schema names are entity-first and consistent, e.g. `CourseCreateRequest`, `CourseUpdateRequest`, `CourseGetResponse`, `CourseListResponse`, `ModuleCreateRequest`, `ModuleUpdateRequest`, `LessonCreateRequest`, `LessonUpdateRequest`, `EnrollmentCreateRequest`, `ProgressUpdateRequest`.
+- List endpoints use dedicated list response schemas (`CourseListResponse`, `ModuleListResponse`, `LessonListResponse`, `EnrollmentListResponse`, `ProgressListResponse`) and do not include nested child collections in the list payloads.
+- Nested child collections remain only in detail responses (`CourseResponse.modules`, `ModuleResponse.lessons`), not in list responses.
+- Array response fields define `default: []` to reflect empty-array semantics in the API contract and match PostgreSQL array defaults.
+- Common enums and summary schemas such as `ContentType`, `LessonStatus`, `CourseStatus`, `ModuleSummary`, `LessonSummary`, `ErrorResponse`, and list wrappers should be shared rather than redefined inline.
 
 ## Entity Layer
 

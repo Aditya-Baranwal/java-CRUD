@@ -1,0 +1,157 @@
+openapi: 3.1.0
+info:
+  title: LMS Common Components
+  version: 1.0.0
+components:
+  schemas:
+    UserRole:
+      type: string
+      enum:
+        - ADMIN
+        - INSTRUCTOR
+        - USER
+      description: User role in the platform.
+
+    ContentType:
+      type: string
+      enum:
+        - MP3
+        - MP4
+        - PDF
+        - TEXT
+      description: Lesson content type.
+
+    CourseStatus:
+      type: string
+      enum:
+        - INCOMPLETE
+        - COMPLETE
+      description: Enrollment course status.
+
+    LessonStatus:
+      type: string
+      enum:
+        - UNSTARTED
+        - STARTED
+        - FINISHED
+      description: Lesson progression status.
+
+    CourseSummary:
+      type: object
+      properties:
+        courseId:
+          type: integer
+          format: int64
+        courseTitle:
+          type: string
+        courseDescription:
+          type: string
+        courseTags:
+          type: array
+          items:
+            type: string
+          default: []
+        instructorId:
+          type: integer
+          format: int64
+        isActive:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+
+    ModuleSummary:
+      type: object
+      properties:
+        moduleId:
+          type: integer
+          format: int64
+        courseId:
+          type: integer
+          format: int64
+        moduleTitle:
+          type: string
+        moduleDescription:
+          type: string
+        sequence:
+          type: integer
+        isActive:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+
+    LessonSummary:
+      type: object
+      properties:
+        lessonId:
+          type: integer
+          format: int64
+        moduleId:
+          type: integer
+          format: int64
+        contentType:
+          $ref: './common.yaml#/components/schemas/ContentType'
+        contentLink:
+          type: string
+          format: uri
+        sequence:
+          type: integer
+        isActive:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+
+    ErrorDetail:
+      type: object
+      properties:
+        field:
+          type: string
+        message:
+          type: string
+
+    ErrorResponse:
+      type: object
+      properties:
+        message:
+          type: string
+        errorCode:
+          type: string
+        errors:
+          type: array
+          items:
+            $ref: './common.yaml#/components/schemas/ErrorDetail'
+          default: []
+        timestamp:
+          type: string
+          format: date-time
+
+    ApiResponse:
+      type: object
+      properties:
+        message:
+          type: string
+        data:
+          type: object
+        timestamp:
+          type: string
+          format: date-time
+
+    ApiListResponse:
+      type: object
+      properties:
+        message:
+          type: string
+        data:
+          type: array
+          default: []
+        page:
+          type: integer
+        size:
+          type: integer
+        total:
+          type: integer
+        timestamp:
+          type: string
+          format: date-time

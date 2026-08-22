@@ -32,12 +32,9 @@ Before generating a controller, read the following documents.
 Required
 
 ```
-context/architectural-spec.md
-context/business-domain.md
-context/coding-standards.md
-context/technology-stack.md
+context/**.md
 
-docs/**
+docs/**.md
 ```
 
 If any required document is missing,
@@ -53,9 +50,7 @@ Example
 
 ```
 CourseController
-
 UserController
-
 EnrollmentController
 ```
 
@@ -112,11 +107,8 @@ Use
 
 ```
 @RestController
-
 @RequestMapping
-
 @RequiredArgsConstructor
-
 @Validated
 ```
 
@@ -146,13 +138,9 @@ Example
 
 ```
 POST /courses
-
 GET /courses/{id}
-
 PUT /courses/{id}
-
 DELETE /courses/{id}
-
 GET /courses
 ```
 
@@ -160,9 +148,7 @@ Never generate
 
 ```
 /createCourse
-
 /updateCourse
-
 /deleteCourse
 ```
 
@@ -209,13 +195,9 @@ Example
 
 ```
 @Valid
-
 @NotBlank
-
 @NotNull
-
 @Positive
-
 @Size
 ```
 
@@ -251,11 +233,8 @@ Support
 
 ```
 page
-
 size
-
 sort
-
 filter
 ```
 
@@ -392,9 +371,7 @@ For list APIs support
 
 ```
 page
-
 size
-
 sort
 ```
 
@@ -488,7 +465,7 @@ Generate
 4. Method signatures
 5. Validation annotations
 6. ResponseEntity responses
-7. JavaDoc (if project uses it)
+7. Javadoc (if project uses it)
 
 Do not generate
 

@@ -81,12 +81,12 @@ Accept: application/json
 
 # HTTP Methods
 
-| Method | Usage |
-|---------|------|
-| GET | Retrieve resource(s) |
-| POST | Create resource |
-| PUT | Update existing resource |
-| DELETE | Soft delete resource |
+| Method | Usage                    |
+|--------|--------------------------|
+| GET    | Retrieve resource(s)     |
+| POST   | Create resource          |
+| PUT    | Update existing resource |
+| DELETE | Soft delete resource     |
 
 ---
 
@@ -227,8 +227,8 @@ All list APIs support pagination.
 
 | Parameter | Required | Default |
 |-----------|----------|---------|
-| pageNo | Yes | 1 |
-| pageSize | Yes | 10 |
+| pageNo    | Yes      | 1       |
+| pageSize  | Yes      | 10      |
 
 ---
 
@@ -236,10 +236,10 @@ All list APIs support pagination.
 
 All list APIs support sorting.
 
-| Parameter | Default |
-|-----------|---------|
-| sortBy | createdAt |
-| sortOrder | asc |
+| Parameter | Default   |
+|-----------|-----------|
+| sortBy    | createdAt |
+| sortOrder | asc       |
 
 Example
 
@@ -269,29 +269,29 @@ GET /progress?courseId=2&lessonStatus=FINISHED
 
 # HTTP Status Codes
 
-| Code | Meaning |
-|------|---------|
-| 200 | Success |
-| 201 | Created |
-| 204 | No Content |
-| 400 | Bad Request |
-| 401 | Unauthorized |
-| 403 | Forbidden |
-| 404 | Not Found |
-| 409 | Conflict |
-| 500 | Internal Server Error |
+| Code | Meaning               |
+|------|-----------------------|
+| 200  | Success               |
+| 201  | Created               |
+| 204  | No Content            |
+| 400  | Bad Request           |
+| 401  | Unauthorized          |
+| 403  | Forbidden             |
+| 404  | Not Found             |
+| 409  | Conflict              |
+| 500  | Internal Server Error |
 
 ---
 
 # Authorization Model
 
-| Resource | ADMIN | INSTRUCTOR | USER |
-|-----------|:-----:|:----------:|:----:|
-| Courses | CRUD | CRUD (Own) | Read |
-| Modules | CRUD | CRUD (Own) | Read |
-| Lessons | CRUD | CRUD (Own) | Read |
-| Enrollments | Read | Read | Create, Read Own |
-| Progress | Read | Read | Update Own |
+| Resource    | ADMIN | INSTRUCTOR |       USER       |
+|-------------|:-----:|:----------:|:----------------:|
+| Courses     | CRUD  | CRUD (Own) |       Read       |
+| Modules     | CRUD  | CRUD (Own) |       Read       |
+| Lessons     | CRUD  | CRUD (Own) |       Read       |
+| Enrollments | Read  |    Read    | Create, Read Own |
+| Progress    | Read  |    Read    |    Update Own    |
 
 ---
 
@@ -299,13 +299,13 @@ GET /progress?courseId=2&lessonStatus=FINISHED
 
 Detailed API documentation is available in the following files.
 
-| Resource | Specification |
-|-----------|---------------|
-| Courses | `apis/courses.md` |
-| Modules | `apis/modules.md` |
-| Lessons | `apis/lessons.md` |
+| Resource    | Specification         |
+|-------------|-----------------------|
+| Courses     | `apis/courses.md`     |
+| Modules     | `apis/modules.md`     |
+| Lessons     | `apis/lessons.md`     |
 | Enrollments | `apis/enrollments.md` |
-| Progress | `apis/progress.md` |
+| Progress    | `apis/progress.md`    |
 
 ---
 

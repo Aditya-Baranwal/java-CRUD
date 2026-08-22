@@ -14,13 +14,13 @@ This document defines all Course-related APIs exposed by the Learning Management
 
 # Authorization
 
-| Operation | ADMIN | INSTRUCTOR | USER |
-|-----------|:-----:|:----------:|:----:|
-| Create Course | ✅ | ✅ | ❌ |
-| Update Course | ✅ | ✅ (Own Course) | ❌ |
-| Get Course | ✅ | ✅ | ✅ |
-| List Courses | ✅ | ✅ | ✅ |
-| Delete Course | ✅ | ❌ | ❌ |
+| Operation     | ADMIN |   INSTRUCTOR    | USER |
+|---------------|:-----:|:---------------:|:----:|
+| Create Course |  ✅   |       ✅        |  ❌  |
+| Update Course |  ✅   | ✅ (Own Course) |  ❌  |
+| Get Course    |  ✅   |       ✅        |  ✅  |
+| List Courses  |  ✅   |       ✅        |  ✅  |
+| Delete Course |  ✅   |       ❌        |  ❌  |
 
 ---
 
@@ -43,12 +43,12 @@ Content-Type: application/json
 
 ## Validation
 
-| Field | Validation |
-|--------|------------|
-| courseTitle | Required, Maximum 100 characters |
-| courseDescription | Required, Maximum 200 characters |
-| instructorId | Required, Instructor must exist |
-| courseTags | Optional |
+| Field             | Validation                       |
+|-------------------|----------------------------------|
+| courseTitle       | Required, Maximum 100 characters |
+| courseDescription | Optional, Maximum 200 characters |
+| instructorId      | Required, Instructor must exist  |
+| courseTags        | Optional                         |
 
 ## Request Body
 
@@ -95,12 +95,12 @@ Content-Type: application/json
 
 ## Possible Errors
 
-| Status | Error Code | Description |
-|---------|------------|-------------|
-| 400 | COURSE_001 | Invalid request payload |
-| 400 | COURSE_002 | Course title is mandatory |
-| 404 | USER_001 | Instructor not found |
-| 403 | AUTH_001 | Unauthorized |
+| Status | Error Code | Description               |
+|--------|------------|---------------------------|
+| 400    | COURSE_001 | Invalid request payload   |
+| 400    | COURSE_002 | Course title is mandatory |
+| 404    | USER_001   | Instructor not found      |
+| 403    | AUTH_001   | Unauthorized              |
 
 ---
 
@@ -116,18 +116,18 @@ PUT /courses/{courseId}
 
 ## Path Parameters
 
-| Name | Type | Description |
-|------|------|-------------|
+| Name     | Type | Description       |
+|----------|------|-------------------|
 | courseId | Long | Course Identifier |
 
 ## Validation
 
-| Field | Validation |
-|--------|------------|
-| courseTitle | Optional, Maximum 100 characters |
+| Field             | Validation                       |
+|-------------------|----------------------------------|
+| courseTitle       | Optional, Maximum 100 characters |
 | courseDescription | Optional, Maximum 200 characters |
-| courseTags | Optional |
-| isActive | Optional |
+| courseTags        | Optional                         |
+| isActive          | Optional                         |
 
 ## Request Body
 
@@ -172,11 +172,11 @@ PUT /courses/{courseId}
 
 ## Possible Errors
 
-| Status | Error Code | Description |
-|---------|------------|-------------|
-| 400 | COURSE_001 | Invalid request |
-| 404 | COURSE_003 | Course not found |
-| 403 | AUTH_001 | Unauthorized |
+| Status | Error Code | Description      |
+|--------|------------|------------------|
+| 400    | COURSE_001 | Invalid request  |
+| 404    | COURSE_003 | Course not found |
+| 403    | AUTH_001   | Unauthorized     |
 
 ---
 
@@ -192,15 +192,15 @@ GET /courses/{courseId}
 
 ## Path Parameters
 
-| Name | Type | Description |
-|------|------|-------------|
+| Name     | Type | Description       |
+|----------|------|-------------------|
 | courseId | Long | Course Identifier |
 
 ## Query Parameters
 
-| Parameter | Type | Required | Default | Description |
-|------------|------|----------|---------|-------------|
-| includeModules | Boolean | No | false | Include course modules |
+| Parameter      | Type    | Required | Default | Description            |
+|----------------|---------|----------|---------|------------------------|
+| includeModules | Boolean | No       | false   | Include course modules |
 
 ## Success Response
 
@@ -232,9 +232,9 @@ GET /courses/{courseId}
 
 ## Possible Errors
 
-| Status | Error Code | Description |
-|---------|------------|-------------|
-| 404 | COURSE_003 | Course not found |
+| Status | Error Code | Description      |
+|--------|------------|------------------|
+| 404    | COURSE_003 | Course not found |
 
 ---
 
@@ -250,13 +250,13 @@ GET /courses
 
 ## Query Parameters
 
-| Parameter | Type | Required | Default | Description |
-|------------|------|----------|---------|-------------|
-| active | Boolean | No | true | Return active/inactive courses |
-| pageNo | Integer | Yes | 1 | Page number |
-| pageSize | Integer | Yes | 10 | Page size |
-| sortBy | String | No | createdAt | Sort field |
-| sortOrder | String | No | desc | asc / desc |
+| Parameter | Type    | Required | Default   | Description                    |
+|-----------|---------|----------|-----------|--------------------------------|
+| active    | Boolean | No       | true      | Return active/inactive courses |
+| pageNo    | Integer | Yes      | 1         | Page number                    |
+| pageSize  | Integer | Yes      | 10        | Page size                      |
+| sortBy    | String  | No       | createdAt | Sort field                     |
+| sortOrder | String  | No       | desc      | asc / desc                     |
 
 ## Example
 
@@ -309,8 +309,8 @@ DELETE /courses/{courseId}
 
 ## Path Parameters
 
-| Name | Type | Description |
-|------|------|-------------|
+| Name     | Type | Description       |
+|----------|------|-------------------|
 | courseId | Long | Course Identifier |
 
 ## Behavior
@@ -337,24 +337,24 @@ DELETE /courses/{courseId}
 
 ## Possible Errors
 
-| Status | Error Code | Description |
-|---------|------------|-------------|
-| 404 | COURSE_003 | Course not found |
-| 409 | COURSE_004 | Course cannot be deleted |
-| 403 | AUTH_001 | Unauthorized |
+| Status | Error Code | Description              |
+|--------|------------|--------------------------|
+| 404    | COURSE_003 | Course not found         |
+| 409    | COURSE_004 | Course cannot be deleted |
+| 403    | AUTH_001   | Unauthorized             |
 
 ---
 
 # Error Codes
 
-| Code | Description |
-|------|-------------|
-| COURSE_001 | Invalid request |
+| Code       | Description               |
+|------------|---------------------------|
+| COURSE_001 | Invalid request           |
 | COURSE_002 | Course title is mandatory |
-| COURSE_003 | Course not found |
-| COURSE_004 | Course cannot be deleted |
-| USER_001 | Instructor not found |
-| AUTH_001 | Unauthorized |
+| COURSE_003 | Course not found          |
+| COURSE_004 | Course cannot be deleted  |
+| USER_001   | Instructor not found      |
+| AUTH_001   | Unauthorized              |
 
 ---
 

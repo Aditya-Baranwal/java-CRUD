@@ -49,6 +49,12 @@
 			<artifactId>spring-boot-starter-mail</artifactId>
 		</dependency>
 
+		<!-- Liquibase - Database schema management -->
+		<dependency>
+			<groupId>org.liquibase</groupId>
+			<artifactId>liquibase-core</artifactId>
+		</dependency>
+
 		<!-- Jakarta Mail - Jakarta EE mail API v2.0.0 -->
 		<dependency>
 			<groupId>com.sun.mail</groupId>

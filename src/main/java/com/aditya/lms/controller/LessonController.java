@@ -1,13 +1,13 @@
 package com.aditya.lms.controller;
 
 import com.lms.api.LessonsApi;
-import com.lms.model.CreateLessonRequestDTO;
-import com.lms.model.CreateLessonResponseDTO;
-import com.lms.model.DeleteLessonResponseDTO;
-import com.lms.model.GetLessonResponseDTO;
-import com.lms.model.ListLessonResponseDTO;
-import com.lms.model.UpdateLessonRequestDTO;
-import com.lms.model.UpdateLessonResponseDTO;
+import com.lms.model.LessonCreateRequestDTO;
+import com.lms.model.LessonCreateResponseDTO;
+import com.lms.model.LessonDeleteResponseDTO;
+import com.lms.model.LessonGetResponseDTO;
+import com.lms.model.LessonListResponseDTO;
+import com.lms.model.LessonUpdateRequestDTO;
+import com.lms.model.LessonUpdateResponseDTO;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -17,27 +17,27 @@ import org.springframework.web.bind.annotation.RestController;
 public class LessonController implements LessonsApi {
 
     @Override
-    public ResponseEntity<CreateLessonResponseDTO> createLesson(CreateLessonRequestDTO createLessonRequestDTO) {
+    public ResponseEntity<LessonCreateResponseDTO> createLesson(LessonCreateRequestDTO lessonCreateRequestDTO) {
         return null;
     }
 
     @Override
-    public ResponseEntity<DeleteLessonResponseDTO> deleteLesson(Long lessonId) {
+    public ResponseEntity<LessonDeleteResponseDTO> deleteLesson(Long lessonId) {
         return null;
     }
 
     @Override
-    public ResponseEntity<GetLessonResponseDTO> getLesson(Long lessonId) {
+    public ResponseEntity<LessonGetResponseDTO> getLesson(Long lessonId) {
         return null;
     }
 
     @Override
-    public ResponseEntity<ListLessonResponseDTO> listLessons(Long moduleId, Integer pageNo, Integer pageSize, Long userId, Boolean active, String sortBy, String sortOrder) {
+    public ResponseEntity<LessonListResponseDTO> listLessons(Long moduleId, Integer pageNo, Integer pageSize, Long userId, Boolean active, String sortBy, String sortOrder) {
         return null;
     }
 
     @Override
-    public ResponseEntity<UpdateLessonResponseDTO> updateLesson(Long lessonId, UpdateLessonRequestDTO updateLessonRequestDTO) {
+    public ResponseEntity<LessonUpdateResponseDTO> updateLesson(Long lessonId, LessonUpdateRequestDTO lessonUpdateRequestDTO) {
         return null;
     }
 }

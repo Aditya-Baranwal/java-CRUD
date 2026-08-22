@@ -1,0 +1,88 @@
+databaseChangeLog:
+  - changeSet:
+      id: 001-create-course-table
+      author: copilot
+      changes:
+        - createSequence:
+            sequenceName: course_id_seq
+            startValue: 1
+            incrementBy: 1
+        - createTable:
+            tableName: course
+            columns:
+              - column:
+                  name: id
+                  type: BIGINT
+                  constraints:
+                    primaryKey: true
+                    primaryKeyName: pk_course
+                    nullable: false
+              - column:
+                  name: title
+                  type: VARCHAR(100)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: description
+                  type: VARCHAR(200)
+                  constraints:
+                    nullable: true
+              - column:
+                  name: instructor_id
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+              - column:
+                  name: tags
+                  type: text[]
+                  defaultValueComputed: "'{}'::text[]"
+                  constraints:
+                    nullable: false
+              - column:
+                  name: is_active
+                  type: BOOLEAN
+                  defaultValueBoolean: true
+                  constraints:
+                    nullable: false
+              - column:
+                  name: created_at
+                  type: TIMESTAMP
+                  defaultValueComputed: CURRENT_TIMESTAMP
+                  constraints:
+                    nullable: false
+              - column:
+                  name: created_by
+                  type: BIGINT
+              - column:
+                  name: updated_at
+                  type: TIMESTAMP
+                  defaultValueComputed: CURRENT_TIMESTAMP
+                  constraints:
+                    nullable: false
+              - column:
+                  name: updated_by
+                  type: BIGINT
+              - column:
+                  name: version
+                  type: BIGINT
+                  defaultValueNumeric: 0
+                  constraints:
+                    nullable: false
+        - addForeignKeyConstraint:
+            baseTableName: course
+            baseColumnNames: instructor_id
+            referencedTableName: user
+            referencedColumnNames: id
+            constraintName: fk_course_instructor
+        - createIndex:
+            indexName: idx_course_instructor
+            tableName: course
+            columns:
+              - column:
+                  name: instructor_id
+        - createIndex:
+            indexName: idx_course_active
+            tableName: course
+            columns:
+              - column:
+                  name: is_active

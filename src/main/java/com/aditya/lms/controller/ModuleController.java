@@ -1,13 +1,13 @@
 package com.aditya.lms.controller;
 
 import com.lms.api.ModulesApi;
-import com.lms.model.CreateModuleRequestDTO;
-import com.lms.model.CreateModuleResponseDTO;
-import com.lms.model.DeleteModuleResponseDTO;
-import com.lms.model.GetModuleResponseDTO;
-import com.lms.model.ListModuleResponseDTO;
-import com.lms.model.UpdateModuleRequestDTO;
-import com.lms.model.UpdateModuleResponseDTO;
+import com.lms.model.ModuleCreateRequestDTO;
+import com.lms.model.ModuleCreateResponseDTO;
+import com.lms.model.ModuleDeleteResponseDTO;
+import com.lms.model.ModuleGetResponseDTO;
+import com.lms.model.ModuleListResponseDTO;
+import com.lms.model.ModuleUpdateRequestDTO;
+import com.lms.model.ModuleUpdateResponseDTO;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -17,27 +17,27 @@ import org.springframework.web.bind.annotation.RestController;
 public class ModuleController implements ModulesApi {
 
     @Override
-    public ResponseEntity<CreateModuleResponseDTO> createModule(CreateModuleRequestDTO createModuleRequestDTO) {
+    public ResponseEntity<ModuleCreateResponseDTO> createModule(ModuleCreateRequestDTO moduleCreateRequestDTO) {
         return null;
     }
 
     @Override
-    public ResponseEntity<DeleteModuleResponseDTO> deleteModule(Long moduleId) {
+    public ResponseEntity<ModuleDeleteResponseDTO> deleteModule(Long moduleId) {
         return null;
     }
 
     @Override
-    public ResponseEntity<GetModuleResponseDTO> getModule(Long moduleId, Boolean includeLessons) {
+    public ResponseEntity<ModuleGetResponseDTO> getModule(Long moduleId, Boolean includeLessons) {
         return null;
     }
 
     @Override
-    public ResponseEntity<ListModuleResponseDTO> listModules(Long courseId, Integer pageNo, Integer pageSize, Boolean active, String sortBy, String sortOrder) {
+    public ResponseEntity<ModuleListResponseDTO> listModules(Long courseId, Integer pageNo, Integer pageSize, Boolean active, String sortBy, String sortOrder) {
         return null;
     }
 
     @Override
-    public ResponseEntity<UpdateModuleResponseDTO> updateModule(Long moduleId, UpdateModuleRequestDTO updateModuleRequestDTO) {
+    public ResponseEntity<ModuleUpdateResponseDTO> updateModule(Long moduleId, ModuleUpdateRequestDTO moduleUpdateRequestDTO) {
         return null;
     }
 }

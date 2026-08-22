@@ -32,10 +32,7 @@ Before generating any entity, read the following documents.
 Required
 
 ```
-context/architectural-spec.md
-context/business-domain.md
-context/coding-standards.md
-
+context/**.md
 ```
 
 If any required document is missing, stop and explain what is required.

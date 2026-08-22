@@ -25,9 +25,23 @@ The generated specification must be production-ready and compatible with **OpenA
     * response examples
 * Include appropriate validation constraints.
 * Include standard success and error responses.
+* Keep schemas modular, so that schema can be used other schema as well
 * Apply the project's authentication and authorization standards.
 * Ensure the specification is backward compatible unless explicitly stated otherwise.
-* update *application.yaml* for all environment to generate with appropriate config for swagger 
+* update *application.yaml* for all environment to generate with appropriate config for swagger
+
+## Required OpenAPI Modeling Conventions
+
+* Prefer reusable shared schemas over inline definitions. Put common reusable types in `common.yaml` and reference them from the main spec with paths such as `./openapi/common.yaml#/components/schemas/...`.
+* Keep schema names entity-first and consistent, for example: `CourseCreateRequest`, `CourseUpdateRequest`, `CourseGetResponse`, `CourseListResponse`
+* Do not duplicate reusable schemas in both the main file and the common file. The common file should be the single source of truth for reusable enums and shared summaries.
+* Keep list endpoints separate from detail endpoints. List responses must use dedicated list schema objects.
+* Do not nest child collections in list responses. 
+* When a field is an array, define an explicit empty-array default (`default: []`) to reflect the project's expected no-value behavior and to keep the schema consistent with database array defaults.
+* Reuse common enums and shared summary schemas and pagination wrappers instead of redefining them inline.
+* Use path and query parameter names that follow the project conventions.
+* Keep relationships and nesting aligned with the design docs. For example, a `CourseResponse` may contain `modules` only in the full detail view, while `ModuleResponse` may contain `lessons` only in the full detail view, not in list views.
+* Prefer summary schemas for nested resource references to avoid over-fetching payloads and to keep the API contract lean.
 
 ## Spring Boot Code Generation
 

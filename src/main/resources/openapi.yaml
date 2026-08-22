@@ -35,11 +35,10 @@ components:
       bearerFormat: JWT
 
   schemas:
-    CreateCourseRequest:
+    CourseCreateRequest:
       type: object
       required:
         - courseTitle
-        - courseDescription
         - instructorId
       properties:
         courseTitle:
@@ -56,6 +55,7 @@ components:
           type: array
           items:
             type: string
+          default: []
           example:
             - java
             - spring
@@ -65,7 +65,7 @@ components:
           format: int64
           example: 101
 
-    UpdateCourseRequest:
+    CourseUpdateRequest:
       type: object
       properties:
         courseTitle:
@@ -80,6 +80,7 @@ components:
           type: array
           items:
             type: string
+          default: []
         isActive:
           type: boolean
 
@@ -97,22 +98,41 @@ components:
           type: array
           items:
             type: string
+          default: []
         instructorId:
           type: integer
           format: int64
-        instructorName:
-          type: string
-        modules:
-          type: array
-          items:
-            $ref: '#/components/schemas/ModuleResponse'
         isActive:
           type: boolean
         createdAt:
           type: string
           format: date-time
+        modules:
+          type: array
+          items:
+            $ref: './openapi/common.yaml#/components/schemas/ModuleSummary'
+          default: []
 
-    CreateModuleRequest:
+    CourseListResponse:
+      type: object
+      properties:
+        message:
+          type: string
+        data:
+          type: array
+          items:
+            $ref: './openapi/common.yaml#/components/schemas/CourseSummary'
+        page:
+          type: integer
+        size:
+          type: integer
+        total:
+          type: integer
+        timestamp:
+          type: string
+          format: date-time
+
+    ModuleCreateRequest:
       type: object
       required:
         - courseId
@@ -136,7 +156,7 @@ components:
           minimum: 1
           example: 1
 
-    UpdateModuleRequest:
+    ModuleUpdateRequest:
       type: object
       properties:
         moduleTitle:
@@ -170,14 +190,34 @@ components:
         lessons:
           type: array
           items:
-            $ref: '#/components/schemas/LessonResponse'
+            $ref: './openapi/common.yaml#/components/schemas/LessonSummary'
+          default: []
         isActive:
           type: boolean
         createdAt:
           type: string
           format: date-time
 
-    CreateLessonRequest:
+    ModuleListResponse:
+      type: object
+      properties:
+        message:
+          type: string
+        data:
+          type: array
+          items:
+            $ref: './openapi/common.yaml#/components/schemas/ModuleSummary'
+        page:
+          type: integer
+        size:
+          type: integer
+        total:
+          type: integer
+        timestamp:
+          type: string
+          format: date-time
+
+    LessonCreateRequest:
       type: object
       required:
         - moduleId
@@ -190,12 +230,7 @@ components:
           format: int64
           example: 10
         contentType:
-          type: string
-          enum:
-            - MP3
-            - MP4
-            - PDF
-            - TEXT
+          $ref: './openapi/common.yaml#/components/schemas/ContentType'
           example: MP4
         contentLink:
           type: string
@@ -206,16 +241,11 @@ components:
           minimum: 1
           example: 1
 
-    UpdateLessonRequest:
+    LessonUpdateRequest:
       type: object
       properties:
         contentType:
-          type: string
-          enum:
-            - MP3
-            - MP4
-            - PDF
-            - TEXT
+          $ref: './openapi/common.yaml#/components/schemas/ContentType'
         contentLink:
           type: string
           format: uri
@@ -235,12 +265,7 @@ components:
           type: integer
           format: int64
         contentType:
-          type: string
-          enum:
-            - MP3
-            - MP4
-            - PDF
-            - TEXT
+          $ref: './openapi/common.yaml#/components/schemas/ContentType'
         contentLink:
           type: string
           format: uri
@@ -251,11 +276,7 @@ components:
           format: int64
           nullable: true
         lessonStatus:
-          type: string
-          enum:
-            - UNSTARTED
-            - STARTED
-            - FINISHED
+          $ref: './openapi/common.yaml#/components/schemas/LessonStatus'
           nullable: true
         isActive:
           type: boolean
@@ -263,7 +284,26 @@ components:
           type: string
           format: date-time
 
-    CreateEnrollmentRequest:
+    LessonListResponse:
+      type: object
+      properties:
+        message:
+          type: string
+        data:
+          type: array
+          items:
+            $ref: './openapi/common.yaml#/components/schemas/LessonSummary'
+        page:
+          type: integer
+        size:
+          type: integer
+        total:
+          type: integer
+        timestamp:
+          type: string
+          format: date-time
+
+    EnrollmentCreateRequest:
       type: object
       required:
         - userId
@@ -293,24 +333,37 @@ components:
         courseTitle:
           type: string
         courseStatus:
-          type: string
-          enum:
-            - INCOMPLETE
-            - COMPLETE
+          $ref: './openapi/common.yaml#/components/schemas/CourseStatus'
         enrolledAt:
           type: string
           format: date-time
 
-    UpdateProgressRequest:
+    EnrollmentListResponse:
+      type: object
+      properties:
+        message:
+          type: string
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/EnrollmentResponse'
+        page:
+          type: integer
+        size:
+          type: integer
+        total:
+          type: integer
+        timestamp:
+          type: string
+          format: date-time
+
+    ProgressUpdateRequest:
       type: object
       required:
         - lessonStatus
       properties:
         lessonStatus:
-          type: string
-          enum:
-            - STARTED
-            - FINISHED
+          $ref: './openapi/common.yaml#/components/schemas/LessonStatus'
           example: STARTED
 
     ProgressResponse:
@@ -334,11 +387,7 @@ components:
           type: integer
           format: int64
         lessonStatus:
-          type: string
-          enum:
-            - UNSTARTED
-            - STARTED
-            - FINISHED
+          $ref: './openapi/common.yaml#/components/schemas/LessonStatus'
         startedAt:
           type: string
           format: date-time
@@ -348,50 +397,21 @@ components:
           format: date-time
           nullable: true
 
-    ApiResponse:
-      type: object
-      properties:
-        message:
-          type: string
-        data:
-          type: object
-        timestamp:
-          type: string
-          format: date-time
-
-    ApiListResponse:
+    ProgressListResponse:
       type: object
       properties:
         message:
           type: string
         data:
           type: array
+          items:
+            $ref: '#/components/schemas/ProgressResponse'
         page:
           type: integer
         size:
           type: integer
         total:
           type: integer
-        timestamp:
-          type: string
-          format: date-time
-
-    ErrorResponse:
-      type: object
-      properties:
-        message:
-          type: string
-        errorCode:
-          type: string
-        errors:
-          type: array
-          items:
-            type: object
-            properties:
-              field:
-                type: string
-              message:
-                type: string
         timestamp:
           type: string
           format: date-time
@@ -411,7 +431,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/CreateCourseRequest'
+              $ref: '#/components/schemas/CourseCreateRequest'
       responses:
         '201':
           description: Course created successfully
@@ -419,7 +439,7 @@ paths:
             application/json:
               schema:
                 type: object
-                title: CreateCourseResponse
+                title: CourseCreateResponse
                 properties:
                   message:
                     type: string
@@ -433,7 +453,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                $ref: './openapi/common.yaml#/components/schemas/ErrorResponse'
         '401':
           description: Unauthorized
         '403':
@@ -483,24 +503,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                title: ListCourseResponse
-                properties:
-                  message:
-                    type: string
-                  data:
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/CourseResponse'
-                  page:
-                    type: integer
-                  size:
-                    type: integer
-                  total:
-                    type: integer
-                  timestamp:
-                    type: string
-                    format: date-time
+                $ref: '#/components/schemas/CourseListResponse'
         '400':
           description: Bad request
         '401':
@@ -531,7 +534,7 @@ paths:
             application/json:
               schema:
                 type: object
-                title: GetCourseResponse
+                title: CourseGetResponse
                 properties:
                   message:
                     type: string
@@ -560,7 +563,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/UpdateCourseRequest'
+              $ref: '#/components/schemas/CourseUpdateRequest'
       responses:
         '200':
           description: Course updated successfully
@@ -568,7 +571,7 @@ paths:
             application/json:
               schema:
                 type: object
-                title: UpdateCourseResponse
+                title: CourseUpdateResponse
                 properties:
                   message:
                     type: string
@@ -603,7 +606,7 @@ paths:
             application/json:
               schema:
                 type: object
-                title: DeleteCourseResponse
+                title: CourseDeleteResponse
                 properties:
                   message:
                     type: string
@@ -630,7 +633,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/CreateModuleRequest'
+              $ref: '#/components/schemas/ModuleCreateRequest'
       responses:
         '201':
           description: Module created successfully
@@ -638,7 +641,7 @@ paths:
             application/json:
               schema:
                 type: object
-                title: CreateModuleResponse
+                title: ModuleCreateResponse
                 properties:
                   message:
                     type: string
@@ -704,24 +707,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                title: ListModuleResponse
-                properties:
-                  message:
-                    type: string
-                  data:
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/ModuleResponse'
-                  page:
-                    type: integer
-                  size:
-                    type: integer
-                  total:
-                    type: integer
-                  timestamp:
-                    type: string
-                    format: date-time
+                $ref: '#/components/schemas/ModuleListResponse'
         '400':
           description: Bad request
         '401':
@@ -752,7 +738,7 @@ paths:
             application/json:
               schema:
                 type: object
-                title: GetModuleResponse
+                title: ModuleGetResponse
                 properties:
                   message:
                     type: string
@@ -781,7 +767,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/UpdateModuleRequest'
+              $ref: '#/components/schemas/ModuleUpdateRequest'
       responses:
         '200':
           description: Module updated successfully
@@ -789,7 +775,7 @@ paths:
             application/json:
               schema:
                 type: object
-                title: UpdateModuleResponse
+                title: ModuleUpdateResponse
                 properties:
                   message:
                     type: string
@@ -826,7 +812,7 @@ paths:
             application/json:
               schema:
                 type: object
-                title: DeleteModuleResponse
+                title: ModuleDeleteResponse
                 properties:
                   message:
                     type: string
@@ -853,7 +839,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/CreateLessonRequest'
+              $ref: '#/components/schemas/LessonCreateRequest'
       responses:
         '201':
           description: Lesson created successfully
@@ -861,7 +847,7 @@ paths:
             application/json:
               schema:
                 type: object
-                title: CreateLessonResponse
+                title: LessonCreateResponse
                 properties:
                   message:
                     type: string
@@ -932,24 +918,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                title: ListLessonResponse
-                properties:
-                  message:
-                    type: string
-                  data:
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/LessonResponse'
-                  page:
-                    type: integer
-                  size:
-                    type: integer
-                  total:
-                    type: integer
-                  timestamp:
-                    type: string
-                    format: date-time
+                $ref: '#/components/schemas/LessonListResponse'
         '400':
           description: Bad request
         '401':
@@ -975,7 +944,7 @@ paths:
             application/json:
               schema:
                 type: object
-                title: GetLessonResponse
+                title: LessonGetResponse
                 properties:
                   message:
                     type: string
@@ -1004,7 +973,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/UpdateLessonRequest'
+              $ref: '#/components/schemas/LessonUpdateRequest'
       responses:
         '200':
           description: Lesson updated successfully
@@ -1012,7 +981,7 @@ paths:
             application/json:
               schema:
                 type: object
-                title: UpdateLessonResponse
+                title: LessonUpdateResponse
                 properties:
                   message:
                     type: string
@@ -1049,7 +1018,7 @@ paths:
             application/json:
               schema:
                 type: object
-                title: DeleteLessonResponse
+                title: LessonDeleteResponse
                 properties:
                   message:
                     type: string
@@ -1076,7 +1045,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/CreateEnrollmentRequest'
+              $ref: '#/components/schemas/EnrollmentCreateRequest'
       responses:
         '201':
           description: Enrollment created successfully
@@ -1084,7 +1053,7 @@ paths:
             application/json:
               schema:
                 type: object
-                title: CreateEnrollmentResponse
+                title: EnrollmentCreateResponse
                 properties:
                   message:
                     type: string
@@ -1152,24 +1121,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                title: ListEnrollmentResponse
-                properties:
-                  message:
-                    type: string
-                  data:
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/EnrollmentResponse'
-                  page:
-                    type: integer
-                  size:
-                    type: integer
-                  total:
-                    type: integer
-                  timestamp:
-                    type: string
-                    format: date-time
+                $ref: '#/components/schemas/EnrollmentListResponse'
         '400':
           description: Bad request
         '401':
@@ -1195,7 +1147,7 @@ paths:
             application/json:
               schema:
                 type: object
-                title: GetEnrollmentResponse
+                title: EnrollmentGetResponse
                 properties:
                   message:
                     type: string
@@ -1228,7 +1180,7 @@ paths:
             application/json:
               schema:
                 type: object
-                title: DeleteEnrollmentResponse
+                title: EnrollmentDeleteResponse
                 properties:
                   message:
                     type: string
@@ -1304,24 +1256,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                title: ListProgressResponse
-                properties:
-                  message:
-                    type: string
-                  data:
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/ProgressResponse'
-                  page:
-                    type: integer
-                  size:
-                    type: integer
-                  total:
-                    type: integer
-                  timestamp:
-                    type: string
-                    format: date-time
+                $ref: '#/components/schemas/ProgressListResponse'
         '400':
           description: Bad request
         '401':
@@ -1347,7 +1282,7 @@ paths:
             application/json:
               schema:
                 type: object
-                title: GetProgressResponse
+                title: ProgressGetResponse
                 properties:
                   message:
                     type: string
@@ -1376,7 +1311,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/UpdateProgressRequest'
+              $ref: '#/components/schemas/ProgressUpdateRequest'
       responses:
         '200':
           description: Progress updated successfully
@@ -1384,7 +1319,7 @@ paths:
             application/json:
               schema:
                 type: object
-                title: UpdateProgressResponse
+                title: ProgressUpdateResponse
                 properties:
                   message:
                     type: string

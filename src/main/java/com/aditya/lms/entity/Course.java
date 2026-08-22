@@ -19,6 +19,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
 import java.time.OffsetDateTime;
+import java.util.List;
 
 /**
  * JPA Entity representing a Course.
@@ -37,8 +38,8 @@ import java.time.OffsetDateTime;
 public class Course {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "course_seq")
-    @SequenceGenerator(name = "course_seq", sequenceName = "course_seq", allocationSize = 1)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "course_id_seq")
+    @SequenceGenerator(name = "course_id_seq", sequenceName = "course_id_seq", allocationSize = 1)
     @Column(name = "id")
     private Long id;
 
@@ -52,10 +53,10 @@ public class Course {
     private String description;
 
     /**
-     * Stored as JSONB in PostgreSQL. Example: ["java","spring"]
+     * Stored as ARRAY in PostgreSQL. Example: ["java","spring"]
      */
-    @Column(name = "tags", columnDefinition = "jsonb default '[]'")
-    private String tags;
+    @Column(name = "tags", columnDefinition = "text[]")
+    private List<String> tags;
 
     @Column(name = "instructor_id", nullable = false)
     private Long instructorId;

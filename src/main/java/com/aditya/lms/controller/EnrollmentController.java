@@ -1,11 +1,11 @@
 package com.aditya.lms.controller;
 
 import com.lms.api.EnrollmentsApi;
-import com.lms.model.CreateEnrollmentRequestDTO;
-import com.lms.model.CreateEnrollmentResponseDTO;
-import com.lms.model.DeleteEnrollmentResponseDTO;
-import com.lms.model.GetEnrollmentResponseDTO;
-import com.lms.model.ListEnrollmentResponseDTO;
+import com.lms.model.EnrollmentCreateRequestDTO;
+import com.lms.model.EnrollmentCreateResponseDTO;
+import com.lms.model.EnrollmentDeleteResponseDTO;
+import com.lms.model.EnrollmentGetResponseDTO;
+import com.lms.model.EnrollmentListResponseDTO;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -15,22 +15,22 @@ import org.springframework.web.bind.annotation.RestController;
 public class EnrollmentController implements EnrollmentsApi {
 
     @Override
-    public ResponseEntity<DeleteEnrollmentResponseDTO> cancelEnrollment(Long enrollmentId) {
+    public ResponseEntity<EnrollmentDeleteResponseDTO> cancelEnrollment(Long enrollmentId) {
         return null;
     }
 
     @Override
-    public ResponseEntity<CreateEnrollmentResponseDTO> createEnrollment(CreateEnrollmentRequestDTO createEnrollmentRequestDTO) {
+    public ResponseEntity<EnrollmentCreateResponseDTO> createEnrollment(EnrollmentCreateRequestDTO enrollmentCreateRequestDTO) {
         return null;
     }
 
     @Override
-    public ResponseEntity<GetEnrollmentResponseDTO> getEnrollment(Long enrollmentId) {
+    public ResponseEntity<EnrollmentGetResponseDTO> getEnrollment(Long enrollmentId) {
         return null;
     }
 
     @Override
-    public ResponseEntity<ListEnrollmentResponseDTO> listEnrollments(Long userId, Integer pageNo, Integer pageSize, String courseStatus, String sortBy, String sortOrder) {
+    public ResponseEntity<EnrollmentListResponseDTO> listEnrollments(Long userId, Integer pageNo, Integer pageSize, String courseStatus, String sortBy, String sortOrder) {
         return null;
     }
 

@@ -11,6 +11,10 @@ public interface CourseRepository extends JpaRepository<Course, Long> {
 
     Optional<Course> findByIdAndIsActiveTrue(Long id);
 
+    boolean existsByTitleIgnoreCaseAndInstructorIdAndIsActiveTrue(String title, Long instructorId);
+
+    boolean existsByTitleIgnoreCaseAndInstructorIdAndIsActiveTrueAndIdNot(String title, Long instructorId, Long id);
+
     Page<Course> findByIsActive(Boolean isActive, Pageable pageable);
 
     Page<Course> findByInstructorId(Long instructorId, Pageable pageable);

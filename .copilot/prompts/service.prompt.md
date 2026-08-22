@@ -33,16 +33,9 @@ Before generating a service, read the following documents.
 Required
 
 ```
-context/domain.md
-context/business-rules.md
-context/coding-guidelines.md
-context/api-spec.md
-context/db-schema.md
-context/error-handling.md
-context/security.md
+context/**.md
 
-docs/api.md
-docs/database.md
+docs/**.md
 ```
 
 If any required document is missing,
@@ -52,19 +45,8 @@ stop and explain what is required.
 
 # Objective
 
-Generate a Service responsible for implementing business logic.
-
-Examples
-
-```
-CourseService
-
-EnrollmentService
-
-BookingService
-
-PaymentService
-```
+Generate a Service responsible for implementing business logic,
+as explained in the context documents.
 
 ---
 
@@ -76,7 +58,6 @@ Service is responsible for
 - Validation orchestration
 - Transaction management
 - Repository coordination
-- Domain event publishing
 - Authorization checks
 - Workflow orchestration
 
@@ -86,7 +67,7 @@ Service must NOT
 - Return ResponseEntity
 - Execute SQL directly
 - Contain JPA annotations
-- Perform DTO mapping manually
+- Perform DTO mapping
 - Access request/response objects
 
 ---
@@ -97,10 +78,16 @@ Service must NOT
 service/
 ```
 
+Interface
+
+```
+service/interfaces/
+```
+
 Implementation
 
 ```
-service/impl/
+service/
 ```
 
 Example
@@ -116,26 +103,22 @@ Generate an interface only if the project follows that convention.
 
 # Naming Convention
 
+For Implementation class
+
 ```
-CourseService
+UpperCamelCase + ServiceImpl
+```
 
-BookingService
+For Interface class
 
-EnrollmentService
+```
+UpperCamelCase + Service
 ```
 
 Methods
 
 ```
-createCourse()
-
-updateCourse()
-
-deleteCourse()
-
-findCourseById()
-
-listCourses()
+lowerCamelCase
 ```
 
 ---
@@ -144,10 +127,10 @@ listCourses()
 
 Implementation
 
-```java
+```
 @Service
-
 @RequiredArgsConstructor
+@SL4j
 ```
 
 Do not use field injection.
@@ -163,9 +146,8 @@ Inject only required dependencies.
 Typical dependencies
 
 - Repository
-- Mapper
+- Mapper (if required, not for mapping with response DTO or request DTO)
 - Validator
-- Event Publisher
 - External Client
 
 Avoid unnecessary dependencies.
@@ -174,9 +156,9 @@ Avoid unnecessary dependencies.
 
 # Business Logic
 
-All business rules belong here.
+All common business rules belong here.
 
-Examples
+Rules include
 
 - Duplicate checks
 - Ownership validation
@@ -186,31 +168,9 @@ Examples
 
 Never move business rules into controllers or repositories.
 
----
+If unclear or confused
 
-# Transactions
-
-Transaction boundaries belong in Service.
-
-Use
-
-```java
-@Transactional
-```
-
-Write operations
-
-```
-@Transactional
-```
-
-Read operations
-
-```java
-@Transactional(readOnly = true)
-```
-
-Avoid unnecessary transactions.
+stop and ask for clarity in business rule
 
 ---
 
@@ -238,8 +198,8 @@ Business validation examples
 
 - Course already exists
 - User already enrolled
-- Booking overlaps
-- Inventory unavailable
+
+If validation fails, throw custom exception, extending base exception.
 
 ---
 
@@ -251,13 +211,9 @@ Prefer
 
 ```
 existsBy...
-
 countBy...
-
 findById()
-
 save()
-
 saveAll()
 ```
 
@@ -293,7 +249,7 @@ Response DTO
 
 # Exception Handling
 
-Throw domain-specific exceptions.
+Throw custom exceptions, custom exception extending base exception.
 
 Examples
 
@@ -310,24 +266,6 @@ BusinessException
 Do not catch exceptions unless recovery is possible.
 
 Allow Global Exception Handler to convert exceptions into API responses.
-
----
-
-# Event Publishing
-
-Publish domain events only after successful business operations.
-
-Examples
-
-```
-CourseCreatedEvent
-
-EnrollmentCreatedEvent
-
-BookingConfirmedEvent
-```
-
-Never publish events before transaction success.
 
 ---
 
@@ -365,7 +303,7 @@ Do NOT log
 
 ---
 
-# Performance
+# Persisting Performance
 
 Avoid
 
@@ -397,40 +335,7 @@ Avoid synchronization unless explicitly required.
 
 ---
 
-# External Services
-
-When calling external services
-
-- Apply timeout
-- Retry where appropriate
-- Circuit breaker if project supports it
-- Handle failures gracefully
-
-Never block transactions longer than necessary.
-
----
-
-# Design Principles
-
-Follow
-
-- SOLID
-- Clean Architecture
-- Single Responsibility
-
-Use design patterns only when they simplify the solution.
-
-Preferred
-
-- Strategy
-- Factory
-- Builder
-- Observer
-- Template Method
-
----
-
-# Code Quality Rules
+# Code Standards Rules
 
 Service should
 
@@ -443,9 +348,10 @@ Target
 
 ```
 Method Length < 40 lines
-
 Cyclomatic Complexity < 10
 ```
+
+Follow coding standards rule present in context/coding-standards.md
 
 ---
 
@@ -459,14 +365,6 @@ Avoid static methods and hidden dependencies.
 
 ---
 
-# Imports
-
-Generate only required imports.
-
-Avoid wildcard imports.
-
----
-
 # AI Self Validation
 
 Before returning generated code verify
@@ -475,7 +373,7 @@ Before returning generated code verify
 - No HTTP concerns
 - No SQL
 - Uses repositories correctly
-- Uses mapper
+- Uses mapper (if required, not for mapping with response DTO or request DTO)
 - Transactions correct
 - Validation present
 - Domain exceptions used
@@ -489,14 +387,13 @@ Before returning generated code verify
 
 Generate
 
-1. Service interface (if project convention)
+1. Service interface (as per requirement understood by reading context files)
 2. Service implementation
 3. Required imports
 4. Transaction annotations
 5. Business methods
 6. Logging
 7. Exception handling
-8. Event publishing (if applicable)
 
 Do not generate
 
@@ -508,33 +405,3 @@ Do not generate
 - Tests
 
 unless explicitly requested.
-
----
-
-# Example Invocation
-
-**Input**
-
-```
-Generate CourseService
-```
-
-**Expected Output**
-
-Generate
-
-```
-CourseService.java
-
-CourseServiceImpl.java
-```
-
-that
-
-- implements all business rules
-- manages transactions
-- coordinates repositories
-- uses dedicated mappers
-- throws domain-specific exceptions
-- follows project coding guidelines
-- is production-ready

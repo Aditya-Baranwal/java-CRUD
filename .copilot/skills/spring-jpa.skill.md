@@ -735,7 +735,7 @@ Use Testcontainers when supported.
 
 Every schema change must include
 
-- Flyway or liquibase migration, ask which one to use if it is not mentioned
+- Flyway or Liquibase migration, ask which one to use if it is not mentioned
 - Backward compatibility
 - Roll-forward strategy
 
@@ -762,27 +762,17 @@ Avoid
 
 Before returning code verify
 
-✓ Correct entity mapping
-
-✓ Explicit column mappings
-
-✓ LAZY relationships
-
-✓ Proper repository methods
-
-✓ Pagination supported
-
-✓ No N+1 issues
-
-✓ Optimistic locking considered
-
-✓ Dirty checking used correctly
-
-✓ Transactions in Service layer
-
-✓ Imports optimized
-
-✓ Production-ready
+- Correct entity mapping
+- Explicit column mappings
+- LAZY relationships
+- Proper repository methods
+- Pagination supported
+- No N+1 issues
+- Optimistic locking considered
+- Dirty checking used correctly
+- Transactions in Service layer
+- Imports optimized
+- Production-ready
 
 ---
 

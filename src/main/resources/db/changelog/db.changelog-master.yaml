@@ -1,0 +1,7 @@
+databaseChangeLog:
+  - include:
+      file: 000-create-user-table.yaml
+      relativeToChangelogFile: true
+  - include:
+      file: 001-create-course-table.yaml
+      relativeToChangelogFile: true

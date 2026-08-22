@@ -54,9 +54,7 @@ Examples
 
 ```
 CourseRepository
-
 BookingRepository
-
 UserRepository
 ```
 
@@ -173,7 +171,7 @@ Prefer Spring Data derived queries.
 
 Examples
 
-```java
+```
 Optional<Course> findByIdAndIsActiveTrue(Long id);
 
 List<Course> findByInstructorId(Long instructorId);
