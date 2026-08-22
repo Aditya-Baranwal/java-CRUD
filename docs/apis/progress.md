@@ -14,11 +14,11 @@ This document defines all Progress-related APIs exposed by the Learning Manageme
 
 # Authorization
 
-| Operation | ADMIN | INSTRUCTOR | USER |
-|-----------|:-----:|:----------:|:----:|
-| Get Progress | ✅ | ✅ | ✅ (Own Progress) |
-| List Progress | ✅ | ✅ | ✅ (Own Progress) |
-| Update Progress | ❌ | ❌ | ✅ (Own Progress) |
+| Operation       | ADMIN | INSTRUCTOR |       USER        |
+|-----------------|:-----:|:----------:|:-----------------:|
+| Get Progress    |  ✅   |     ✅     | ✅ (Own Progress) |
+| List Progress   |  ✅   |     ✅     | ✅ (Own Progress) |
+| Update Progress |  ❌   |     ❌     | ✅ (Own Progress) |
 
 ---
 
@@ -43,17 +43,17 @@ Content-Type: application/json
 
 ## Path Parameters
 
-| Name | Type | Description |
-|------|------|-------------|
+| Name       | Type | Description         |
+|------------|------|---------------------|
 | progressId | Long | Progress Identifier |
 
 ## Validation
 
-| Field | Validation |
-|--------|------------|
+| Field        | Validation                            |
+|--------------|---------------------------------------|
 | lessonStatus | Required, Must be STARTED or FINISHED |
-| lessonId | Must belong to enrolled course |
-| User | Can update only own progress |
+| lessonId     | Must belong to enrolled course        |
+| User         | Can update only own progress          |
 
 ## Request Body
 
@@ -96,14 +96,14 @@ Content-Type: application/json
 
 ## Possible Errors
 
-| Status | Error Code | Description |
-|---------|------------|-------------|
-| 400 | PROGRESS_001 | Invalid lesson status |
-| 403 | AUTH_001 | Unauthorized |
-| 404 | PROGRESS_002 | Progress not found |
-| 404 | LESSON_001 | Lesson not found |
-| 409 | PROGRESS_003 | Invalid status transition |
-| 409 | ENROLLMENT_001 | User is not enrolled in the course |
+| Status | Error Code     | Description                        |
+|--------|----------------|------------------------------------|
+| 400    | PROGRESS_001   | Invalid lesson status              |
+| 403    | AUTH_001       | Unauthorized                       |
+| 404    | PROGRESS_002   | Progress not found                 |
+| 404    | LESSON_001     | Lesson not found                   |
+| 409    | PROGRESS_003   | Invalid status transition          |
+| 409    | ENROLLMENT_001 | User is not enrolled in the course |
 
 ---
 
@@ -119,8 +119,8 @@ GET /progress/{progressId}
 
 ## Path Parameters
 
-| Name | Type | Description |
-|------|------|-------------|
+| Name       | Type | Description         |
+|------------|------|---------------------|
 | progressId | Long | Progress Identifier |
 
 ## Success Response
@@ -148,9 +148,9 @@ GET /progress/{progressId}
 
 ## Possible Errors
 
-| Status | Error Code | Description |
-|---------|------------|-------------|
-| 404 | PROGRESS_002 | Progress not found |
+| Status | Error Code   | Description        |
+|--------|--------------|--------------------|
+| 404    | PROGRESS_002 | Progress not found |
 
 ---
 
@@ -166,16 +166,16 @@ GET /progress
 
 ## Query Parameters
 
-| Parameter | Type | Required | Default | Description |
-|------------|------|----------|---------|-------------|
-| userId | Long | Yes | - | User whose progress is fetched |
-| courseId | Long | No | - | Filter progress by course |
-| moduleId | Long | No | - | Filter progress by module |
-| lessonStatus | Enum | No | - | UNSTARTED / STARTED / FINISHED |
-| pageNo | Integer | Yes | 1 | Page number |
-| pageSize | Integer | Yes | 10 | Page size |
-| sortBy | String | No | lessonId | Sort field |
-| sortOrder | String | No | asc | asc / desc |
+| Parameter    | Type    | Required | Default  | Description                    |
+|--------------|---------|----------|----------|--------------------------------|
+| userId       | Long    | Yes      | -        | User whose progress is fetched |
+| courseId     | Long    | No       | -        | Filter progress by course      |
+| moduleId     | Long    | No       | -        | Filter progress by module      |
+| lessonStatus | Enum    | No       | -        | UNSTARTED / STARTED / FINISHED |
+| pageNo       | Integer | Yes      | 1        | Page number                    |
+| pageSize     | Integer | Yes      | 10       | Page size                      |
+| sortBy       | String  | No       | lessonId | Sort field                     |
+| sortOrder    | String  | No       | asc      | asc / desc                     |
 
 ## Example
 
@@ -234,14 +234,14 @@ GET /progress?userId=25&lessonStatus=FINISHED
 
 # Error Codes
 
-| Code | Description |
-|------|-------------|
-| PROGRESS_001 | Invalid lesson status |
-| PROGRESS_002 | Progress not found |
-| PROGRESS_003 | Invalid status transition |
-| LESSON_001 | Lesson not found |
+| Code           | Description                        |
+|----------------|------------------------------------|
+| PROGRESS_001   | Invalid lesson status              |
+| PROGRESS_002   | Progress not found                 |
+| PROGRESS_003   | Invalid status transition          |
+| LESSON_001     | Lesson not found                   |
 | ENROLLMENT_001 | User is not enrolled in the course |
-| AUTH_001 | Unauthorized |
+| AUTH_001       | Unauthorized                       |
 
 ---
 
@@ -249,9 +249,9 @@ GET /progress?userId=25&lessonStatus=FINISHED
 
 | Current Status | Allowed Next Status |
 |----------------|---------------------|
-| UNSTARTED | STARTED |
-| STARTED | FINISHED |
-| FINISHED | — |
+| UNSTARTED      | STARTED             |
+| STARTED        | FINISHED            |
+| FINISHED       | —                   |
 
 ---
 

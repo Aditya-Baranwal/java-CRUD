@@ -14,13 +14,13 @@ This document defines all Module-related APIs exposed by the Learning Management
 
 # Authorization
 
-| Operation | ADMIN | INSTRUCTOR | USER |
-|-----------|:-----:|:----------:|:----:|
-| Create Module | ✅ | ✅ (Own Course) | ❌ |
-| Update Module | ✅ | ✅ (Own Course) | ❌ |
-| Get Module | ✅ | ✅ | ✅ |
-| List Modules | ✅ | ✅ | ✅ |
-| Delete Module | ✅ | ❌ | ❌ |
+| Operation     | ADMIN |   INSTRUCTOR    | USER |
+|---------------|:-----:|:---------------:|:----:|
+| Create Module |  ✅   | ✅ (Own Course) |  ❌  |
+| Update Module |  ✅   | ✅ (Own Course) |  ❌  |
+| Get Module    |  ✅   |       ✅        |  ✅  |
+| List Modules  |  ✅   |       ✅        |  ✅  |
+| Delete Module |  ✅   |       ❌        |  ❌  |
 
 ---
 
@@ -43,12 +43,12 @@ Content-Type: application/json
 
 ## Validation
 
-| Field | Validation |
-|--------|------------|
-| courseId | Required, Course must exist |
-| moduleTitle | Required, Maximum 50 characters |
+| Field             | Validation                       |
+|-------------------|----------------------------------|
+| courseId          | Required, Course must exist      |
+| moduleTitle       | Required, Maximum 50 characters  |
 | moduleDescription | Optional, Maximum 100 characters |
-| sequence | Required, Positive Integer |
+| sequence          | Required, Positive Integer       |
 
 ## Request Body
 
@@ -86,13 +86,13 @@ Content-Type: application/json
 
 ## Possible Errors
 
-| Status | Error Code | Description |
-|---------|------------|-------------|
-| 400 | MODULE_001 | Invalid request payload |
-| 400 | MODULE_002 | Module title is mandatory |
-| 404 | COURSE_001 | Course not found |
-| 409 | MODULE_003 | Sequence already exists |
-| 403 | AUTH_001 | Unauthorized |
+| Status | Error Code | Description               |
+|--------|------------|---------------------------|
+| 400    | MODULE_001 | Invalid request payload   |
+| 400    | MODULE_002 | Module title is mandatory |
+| 404    | COURSE_001 | Course not found          |
+| 409    | MODULE_003 | Sequence already exists   |
+| 403    | AUTH_001   | Unauthorized              |
 
 ---
 
@@ -108,18 +108,18 @@ PUT /modules/{moduleId}
 
 ## Path Parameters
 
-| Name | Type | Description |
-|------|------|-------------|
+| Name     | Type | Description       |
+|----------|------|-------------------|
 | moduleId | Long | Module Identifier |
 
 ## Validation
 
-| Field | Validation |
-|--------|------------|
-| moduleTitle | Optional, Maximum 50 characters |
+| Field             | Validation                       |
+|-------------------|----------------------------------|
+| moduleTitle       | Optional, Maximum 50 characters  |
 | moduleDescription | Optional, Maximum 100 characters |
-| sequence | Optional, Positive Integer |
-| isActive | Optional |
+| sequence          | Optional, Positive Integer       |
+| isActive          | Optional                         |
 
 ## Request Body
 
@@ -157,13 +157,13 @@ PUT /modules/{moduleId}
 
 ## Possible Errors
 
-| Status | Error Code | Description |
-|---------|------------|-------------|
-| 400 | MODULE_001 | Invalid request |
-| 404 | MODULE_004 | Module not found |
-| 404 | COURSE_001 | Course not found |
-| 409 | MODULE_003 | Sequence already exists |
-| 403 | AUTH_001 | Unauthorized |
+| Status | Error Code | Description             |
+|--------|------------|-------------------------|
+| 400    | MODULE_001 | Invalid request         |
+| 404    | MODULE_004 | Module not found        |
+| 404    | COURSE_001 | Course not found        |
+| 409    | MODULE_003 | Sequence already exists |
+| 403    | AUTH_001   | Unauthorized            |
 
 ---
 
@@ -179,15 +179,15 @@ GET /modules/{moduleId}
 
 ## Path Parameters
 
-| Name | Type | Description |
-|------|------|-------------|
+| Name     | Type | Description       |
+|----------|------|-------------------|
 | moduleId | Long | Module Identifier |
 
 ## Query Parameters
 
-| Parameter | Type | Required | Default | Description |
-|------------|------|----------|---------|-------------|
-| includeLessons | Boolean | No | false | Include lessons belonging to the module |
+| Parameter      | Type    | Required | Default | Description                             |
+|----------------|---------|----------|---------|-----------------------------------------|
+| includeLessons | Boolean | No       | false   | Include lessons belonging to the module |
 
 ## Success Response
 
@@ -215,9 +215,9 @@ GET /modules/{moduleId}
 
 ## Possible Errors
 
-| Status | Error Code | Description |
-|---------|------------|-------------|
-| 404 | MODULE_004 | Module not found |
+| Status | Error Code | Description      |
+|--------|------------|------------------|
+| 404    | MODULE_004 | Module not found |
 
 ---
 
@@ -233,14 +233,14 @@ GET /modules
 
 ## Query Parameters
 
-| Parameter | Type | Required | Default | Description |
-|------------|------|----------|---------|-------------|
-| courseId | Long | Yes | - | Course whose modules are to be fetched |
-| active | Boolean | No | true | Filter active/inactive modules |
-| pageNo | Integer | Yes | 1 | Page number |
-| pageSize | Integer | Yes | 10 | Page size |
-| sortBy | String | No | sequence | Sort field |
-| sortOrder | String | No | asc | asc / desc |
+| Parameter | Type    | Required | Default  | Description                            |
+|-----------|---------|----------|----------|----------------------------------------|
+| courseId  | Long    | Yes      | -        | Course whose modules are to be fetched |
+| active    | Boolean | No       | true     | Filter active/inactive modules         |
+| pageNo    | Integer | Yes      | 1        | Page number                            |
+| pageSize  | Integer | Yes      | 10       | Page size                              |
+| sortBy    | String  | No       | sequence | Sort field                             |
+| sortOrder | String  | No       | asc      | asc / desc                             |
 
 ## Example
 
@@ -290,8 +290,8 @@ DELETE /modules/{moduleId}
 
 ## Path Parameters
 
-| Name | Type | Description |
-|------|------|-------------|
+| Name     | Type | Description       |
+|----------|------|-------------------|
 | moduleId | Long | Module Identifier |
 
 ## Behavior
@@ -318,25 +318,25 @@ DELETE /modules/{moduleId}
 
 ## Possible Errors
 
-| Status | Error Code | Description |
-|---------|------------|-------------|
-| 404 | MODULE_004 | Module not found |
-| 409 | MODULE_005 | Module cannot be deleted |
-| 403 | AUTH_001 | Unauthorized |
+| Status | Error Code | Description              |
+|--------|------------|--------------------------|
+| 404    | MODULE_004 | Module not found         |
+| 409    | MODULE_005 | Module cannot be deleted |
+| 403    | AUTH_001   | Unauthorized             |
 
 ---
 
 # Error Codes
 
-| Code | Description |
-|------|-------------|
-| MODULE_001 | Invalid request |
-| MODULE_002 | Module title is mandatory |
+| Code       | Description                                      |
+|------------|--------------------------------------------------|
+| MODULE_001 | Invalid request                                  |
+| MODULE_002 | Module title is mandatory                        |
 | MODULE_003 | Module sequence already exists within the course |
-| MODULE_004 | Module not found |
-| MODULE_005 | Module cannot be deleted |
-| COURSE_001 | Course not found |
-| AUTH_001 | Unauthorized |
+| MODULE_004 | Module not found                                 |
+| MODULE_005 | Module cannot be deleted                         |
+| COURSE_001 | Course not found                                 |
+| AUTH_001   | Unauthorized                                     |
 
 ---
 

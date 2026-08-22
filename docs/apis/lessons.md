@@ -14,13 +14,13 @@ This document defines all Lesson-related APIs exposed by the Learning Management
 
 # Authorization
 
-| Operation | ADMIN | INSTRUCTOR | USER |
-|-----------|:-----:|:----------:|:----:|
-| Create Lesson | ✅ | ✅ (Own Course) | ❌ |
-| Update Lesson | ✅ | ✅ (Own Course) | ❌ |
-| Get Lesson | ✅ | ✅ | ✅ |
-| List Lessons | ✅ | ✅ | ✅ |
-| Delete Lesson | ✅ | ❌ | ❌ |
+| Operation     | ADMIN |   INSTRUCTOR    | USER |
+|---------------|:-----:|:---------------:|:----:|
+| Create Lesson |  ✅   | ✅ (Own Course) |  ❌  |
+| Update Lesson |  ✅   | ✅ (Own Course) |  ❌  |
+| Get Lesson    |  ✅   |       ✅        |  ✅  |
+| List Lessons  |  ✅   |       ✅        |  ✅  |
+| Delete Lesson |  ✅   |       ❌        |  ❌  |
 
 ---
 
@@ -43,12 +43,12 @@ Content-Type: application/json
 
 ## Validation
 
-| Field | Validation |
-|--------|------------|
-| moduleId | Required, Module must exist |
+| Field       | Validation                                   |
+|-------------|----------------------------------------------|
+| moduleId    | Required, Module must exist                  |
 | contentType | Required, Must be one of MP3, MP4, PDF, TEXT |
-| contentLink | Required, Valid URL |
-| sequence | Required, Positive Integer |
+| contentLink | Required, Valid URL                          |
+| sequence    | Required, Positive Integer                   |
 
 ## Request Body
 
@@ -86,14 +86,14 @@ Content-Type: application/json
 
 ## Possible Errors
 
-| Status | Error Code | Description |
-|---------|------------|-------------|
-| 400 | LESSON_001 | Invalid request payload |
-| 400 | LESSON_002 | Invalid content type |
-| 400 | LESSON_003 | Invalid content URL |
-| 404 | MODULE_001 | Module not found |
-| 409 | LESSON_004 | Lesson sequence already exists |
-| 403 | AUTH_001 | Unauthorized |
+| Status | Error Code | Description                    |
+|--------|------------|--------------------------------|
+| 400    | LESSON_001 | Invalid request payload        |
+| 400    | LESSON_002 | Invalid content type           |
+| 400    | LESSON_003 | Invalid content URL            |
+| 404    | MODULE_001 | Module not found               |
+| 409    | LESSON_004 | Lesson sequence already exists |
+| 403    | AUTH_001   | Unauthorized                   |
 
 ---
 
@@ -109,18 +109,18 @@ PUT /lessons/{lessonId}
 
 ## Path Parameters
 
-| Name | Type | Description |
-|------|------|-------------|
+| Name     | Type | Description       |
+|----------|------|-------------------|
 | lessonId | Long | Lesson Identifier |
 
 ## Validation
 
-| Field | Validation |
-|--------|------------|
-| contentType | Optional, Valid Enum |
-| contentLink | Optional, Valid URL |
-| sequence | Optional, Positive Integer |
-| isActive | Optional |
+| Field       | Validation                 |
+|-------------|----------------------------|
+| contentType | Optional, Valid Enum       |
+| contentLink | Optional, Valid URL        |
+| sequence    | Optional, Positive Integer |
+| isActive    | Optional                   |
 
 ## Request Body
 
@@ -158,13 +158,13 @@ PUT /lessons/{lessonId}
 
 ## Possible Errors
 
-| Status | Error Code | Description |
-|---------|------------|-------------|
-| 400 | LESSON_001 | Invalid request |
-| 404 | LESSON_005 | Lesson not found |
-| 404 | MODULE_001 | Module not found |
-| 409 | LESSON_004 | Lesson sequence already exists |
-| 403 | AUTH_001 | Unauthorized |
+| Status | Error Code | Description                    |
+|--------|------------|--------------------------------|
+| 400    | LESSON_001 | Invalid request                |
+| 404    | LESSON_005 | Lesson not found               |
+| 404    | MODULE_001 | Module not found               |
+| 409    | LESSON_004 | Lesson sequence already exists |
+| 403    | AUTH_001   | Unauthorized                   |
 
 ---
 
@@ -180,8 +180,8 @@ GET /lessons/{lessonId}
 
 ## Path Parameters
 
-| Name | Type | Description |
-|------|------|-------------|
+| Name     | Type | Description       |
+|----------|------|-------------------|
 | lessonId | Long | Lesson Identifier |
 
 ## Success Response
@@ -209,9 +209,9 @@ GET /lessons/{lessonId}
 
 ## Possible Errors
 
-| Status | Error Code | Description |
-|---------|------------|-------------|
-| 404 | LESSON_005 | Lesson not found |
+| Status | Error Code | Description      |
+|--------|------------|------------------|
+| 404    | LESSON_005 | Lesson not found |
 
 ---
 
@@ -227,15 +227,15 @@ GET /lessons
 
 ## Query Parameters
 
-| Parameter | Type | Required | Default | Description |
-|------------|------|----------|---------|-------------|
-| moduleId | Long | Yes | - | Module whose lessons are to be fetched |
-| userId | Long | No | - | Include lesson progress for a user |
-| active | Boolean | No | true | Filter active/inactive lessons |
-| pageNo | Integer | Yes | 1 | Page number |
-| pageSize | Integer | Yes | 10 | Page size |
-| sortBy | String | No | sequence | Sort field |
-| sortOrder | String | No | asc | asc / desc |
+| Parameter | Type    | Required | Default  | Description                            |
+|-----------|---------|----------|----------|----------------------------------------|
+| moduleId  | Long    | Yes      | -        | Module whose lessons are to be fetched |
+| userId    | Long    | No       | -        | Include lesson progress for a user     |
+| active    | Boolean | No       | true     | Filter active/inactive lessons         |
+| pageNo    | Integer | Yes      | 1        | Page number                            |
+| pageSize  | Integer | Yes      | 10       | Page size                              |
+| sortBy    | String  | No       | sequence | Sort field                             |
+| sortOrder | String  | No       | asc      | asc / desc                             |
 
 ## Example
 
@@ -317,8 +317,8 @@ DELETE /lessons/{lessonId}
 
 ## Path Parameters
 
-| Name | Type | Description |
-|------|------|-------------|
+| Name     | Type | Description       |
+|----------|------|-------------------|
 | lessonId | Long | Lesson Identifier |
 
 ## Behavior
@@ -345,26 +345,26 @@ DELETE /lessons/{lessonId}
 
 ## Possible Errors
 
-| Status | Error Code | Description |
-|---------|------------|-------------|
-| 404 | LESSON_005 | Lesson not found |
-| 409 | LESSON_006 | Lesson cannot be deleted |
-| 403 | AUTH_001 | Unauthorized |
+| Status | Error Code | Description              |
+|--------|------------|--------------------------|
+| 404    | LESSON_005 | Lesson not found         |
+| 409    | LESSON_006 | Lesson cannot be deleted |
+| 403    | AUTH_001   | Unauthorized             |
 
 ---
 
 # Error Codes
 
-| Code | Description |
-|------|-------------|
-| LESSON_001 | Invalid request |
-| LESSON_002 | Invalid content type |
-| LESSON_003 | Invalid content URL |
+| Code       | Description                                      |
+|------------|--------------------------------------------------|
+| LESSON_001 | Invalid request                                  |
+| LESSON_002 | Invalid content type                             |
+| LESSON_003 | Invalid content URL                              |
 | LESSON_004 | Lesson sequence already exists within the module |
-| LESSON_005 | Lesson not found |
-| LESSON_006 | Lesson cannot be deleted |
-| MODULE_001 | Module not found |
-| AUTH_001 | Unauthorized |
+| LESSON_005 | Lesson not found                                 |
+| LESSON_006 | Lesson cannot be deleted                         |
+| MODULE_001 | Module not found                                 |
+| AUTH_001   | Unauthorized                                     |
 
 ---
 
