@@ -7,4 +7,8 @@ public class CourseConflictException extends BaseException {
     public CourseConflictException(String message) {
         super(message, "COURSE_409", HttpStatus.CONFLICT);
     }
+
+    public CourseConflictException(ErrorMessages.Error error) {
+        super(error.message(), error.code(), HttpStatus.CONFLICT);
+    }
 }

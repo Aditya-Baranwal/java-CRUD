@@ -60,13 +60,14 @@ components:
             - java
             - spring
             - backend
-        courseStatus:
-          $ref: './openapi/common.yaml#/components/schemas/CourseStatus'
-          default: UNPUBLISHED
         instructorId:
           type: integer
           format: int64
           example: 101
+        canEnrollment:
+          type: boolean
+          default: false
+          example: true
 
     CourseUpdateRequest:
       type: object
@@ -86,7 +87,7 @@ components:
           default: []
         courseStatus:
           $ref: './openapi/common.yaml#/components/schemas/CourseStatus'
-        isActive:
+        canEnrollment:
           type: boolean
 
     CourseResponse:
@@ -109,7 +110,7 @@ components:
         instructorId:
           type: integer
           format: int64
-        isActive:
+        canEnrollment:
           type: boolean
         createdAt:
           type: string
@@ -474,11 +475,11 @@ paths:
       summary: List courses
       operationId: listCourses
       parameters:
-        - name: active
+        - name: courseStatus
           in: query
+          description: Filter courses by lifecycle status. If omitted, all statuses are returned.
           schema:
-            type: boolean
-            default: true
+            $ref: './openapi/common.yaml#/components/schemas/CourseStatus'
         - name: pageNo
           in: query
           required: true

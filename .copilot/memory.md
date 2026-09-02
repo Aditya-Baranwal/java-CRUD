@@ -13,14 +13,14 @@
 
 ## Architecture
 - Layered monolithic (Controller → Service → Repository → DB)
-- Soft deletes using `is_active` flag
+- Soft deletes use the course `can_enrollment` flag to disable enrollment while preserving the course record
 - Stateless application instances
 - Container: Docker
-- Default config lives in `src/main/resources/application.yaml` for all profiles
-- Liquibase is enabled by default in `application.yaml` via `spring.liquibase.enabled: true`
+- Default config lives in `src/main/resources/config/application.yaml` and profile overrides live alongside it
+- Liquibase is enabled by default in `config/application.yaml` via `spring.liquibase.enabled: true`
 
 ## Logging
-- Default logging is configured in `application.yaml`
+- Default logging is configured in `config/application.yaml`
 - Uses structured JSON console output
 - Includes MDC fields: `requestId`, `userId`, `method`, `path`
 - File logging enabled with rolling policy under `logs/lms-core.log`
@@ -35,32 +35,38 @@
   - `EnrollmentController` → `com.lms.api.EnrollmentsApi`
   - `ProgressController` → `com.lms.api.ProgressApi`
 - Base mapping uses `@RequestMapping("/api/v1")` to align with server prefix in `openapi.yaml`
-- `CourseController` is wired to `CourseService` and does DTO↔Entity mapping via `CourseMapper`
-- Other controllers are still stubbed with empty implementations (`return null;`)
+- `CourseController`, `ModuleController`, `LessonController`, `EnrollmentController`, and `ProgressController` are wired to services plus plain Spring `@Component` mappers for DTO↔Entity mapping
 - Use explicit imports only (no wildcard imports like `com.lms.model.*`) across controllers
 
 ## Service Layer
-- `CourseService` and `CourseServiceImpl` are implemented
-- Service contract is entity-based (`Course` as input/output), not DTO-based
+- `CourseService` and `CourseServiceImpl` are implemented.
+- Service contract is entity-based (`Course` as input/output), not DTO-based.
 - Business rules enforced:
-  - duplicate active course title per instructor is not allowed
+  - duplicate course title per instructor is rejected with a conflict error
   - course instructor cannot be changed during update
-  - soft delete sets `isActive=false`
-  - create requires mandatory fields: `title` and `instructorId`
+  - create only allows `DRAFT` as initial state and defaults `canEnrollment=false`
+  - `can_enrollment` is only valid when `course_status = PUBLISHED`
+  - terminal states block edit/delete transitions
+  - only `PUBLISHED` and `PLANNED_TO_UNPUBLISH` are student-visible
+  - student lists are filtered by `course_status`, not enrollment or `can_enrollment`
+  - soft delete sets `canEnrollment=false` and moves the course to `MANUAL_UNPUBLISHED`
 
 ## Exception Handling
-- Added base domain exception: `BaseException` with `errorCode` and `HttpStatus`
+- Added base domain exception: `BaseException` with `errorCode` and `HttpStatus`.
 - Added course exceptions:
   - `CourseNotFoundException` (`COURSE_404`)
   - `CourseConflictException` (`COURSE_409`)
   - `CourseValidationException` (`COURSE_400`)
-- Added `GlobalExceptionHandler` (`@RestControllerAdvice`) returning `ErrorResponseDTO`
+- Centralized all reusable error codes/messages in `com.aditya.lms.exception.ErrorMessages` using a shared `Error` record.
+- Added `GlobalExceptionHandler` (`@RestControllerAdvice`) returning `ErrorResponseDTO`.
 
 ## OpenAPI Updates
 - Course lifecycle status is modeled through a dedicated `courseStatus` field and shared enum `CourseStatus`.
-- `CourseCreateRequest` and `CourseUpdateRequest` include the `courseStatus` field with default `UNPUBLISHED` where appropriate.
-- `CourseResponse` and `CourseSummary` include `courseStatus` to reflect lifecycle state in create/get/list payloads.
-- The shared enum values follow the schema contract: `DRAFT`, `READY_TO_PUBLISH`, `PUBLISHED`, `READY_TO_UNPUBLISH`, `UNPUBLISHED`, `MANUAL_UNPUBLISHED`.
+- Query filters use `courseStatus` instead of an `active` flag; visibility checks are based on lifecycle status.
+- The course enrollment gate is named `canEnrollment` in the API and `can_enrollment` in the database; it is only meaningful when `courseStatus = PUBLISHED`.
+- `CourseCreateRequest` and `CourseUpdateRequest` default to `DRAFT` on creation; `canEnrollment` defaults to `false` in the domain model.
+- `CourseResponse` and `CourseSummary` include `courseStatus` and `canEnrollment` to reflect lifecycle state and enrollment availability in create/get/list payloads.
+- The shared enum values follow the schema contract: `DRAFT`, `READY_TO_PUBLISH`, `PUBLISHED`, `PLANNED_TO_UNPUBLISH`, `READY_TO_UNPUBLISH`, `UNPUBLISHED`, `MANUAL_UNPUBLISHED`.
 - `Course.tags` is represented as `courseTags` array with default `[]` in all API schema variants.
 - Generated OpenAPI DTOs use enum wrappers like `CourseResponse.CourseStatusEnum` and `CourseListResponseDataInnerDTO.CourseStatusEnum`; mapper code must convert domain enum values to these generated enum types.
 
@@ -75,13 +81,14 @@
   - `005-create-progress-table.yaml`
 - Changelog includes are set with `relativeToChangelogFile: true` in master file to avoid include-path parsing issues.
 - `000-create-user-table.yaml` defines PostgreSQL enum `user_role` (`ADMIN`, `INSTRUCTOR`, `USER`) and uses it as the `user.role` column type (not `VARCHAR`).
-- `001-create-course-table.yaml` defines `course_id_seq` and uses PostgreSQL `text[]` for `course.tags` with default `'{}'::text[]`.
+- `001-create-course-table.yaml` defines `course_id_seq`, `can_enrollment` as the enrollment gate, and uses PostgreSQL `text[]` for `course.tags` with default `'{}'::text[]`.
 - `002-create-module-table.yaml` defines `module_id_seq`, FK to `course`, and unique `(course_id, sequence)` constraint.
 - `003-create-lesson-table.yaml` defines `lesson_id_seq`, PostgreSQL enum `content_type`, and unique `(module_id, sequence)` constraint.
 - `004-create-enrollment-table.yaml` defines `enrollment_id_seq`, PostgreSQL enum `course_completion_status`, unique `(user_id, course_id)`, and `version` column.
 - `005-create-progress-table.yaml` defines `progress_id_seq`, PostgreSQL enum `lesson_status`, unique `(user_id, lesson_id)`, and `version` column.
 - `Course.tags` is modeled as `List<String>` in Java and persisted as PostgreSQL `text[]` with default `[]`.
-- `Course.courseStatus` uses the `CourseStatus` enum and maps to PostgreSQL column `course_status` with default `UNPUBLISHED`.
+- `Course.courseStatus` uses the `CourseStatus` enum and maps to PostgreSQL column `course_status` with default `DRAFT`.
+- `Course.canEnrollment` defaults to `false` and is treated as the enrollment gate only when the lifecycle status is `PUBLISHED`.
 - `Enrollment.courseCompletionStatus` uses the `CourseCompletionStatus` enum and maps to the PostgreSQL column `course_completion_status`.
 
 ## OpenAPI Design Conventions
@@ -104,7 +111,7 @@
 - `Enrollment` and `Progress` follow the schema-specific columns and carry the `version` field for optimistic locking
 
 ### Key Entity Changes (Aug 2026)
-- `Course`: fields renamed to `title`, `description`, `tags`; adds `courseStatus` enum field mapped to PostgreSQL `course_status`; table = `course`; has `@Version`
+- `Course`: fields renamed to `title`, `description`, `tags`; adds `courseStatus` enum field mapped to PostgreSQL `course_status`; adds `canEnrollment` gate mapped to PostgreSQL `can_enrollment`; table = `course`; has `@Version`
 - `Module`: fields renamed to `title`, `description`; table = `module`; title max 50, description max 100; has `@Version`
 - `Lesson`: removed `userId`, `lessonStatus`; fixed `@JoinColumn` on `module`; table = `lesson`; has `@Version`
 - `Enrollment`: renamed enum usage to `CourseCompletionStatus`; column is `course_completion_status`; has `@Version`

@@ -526,3 +526,35 @@ For detailed specifications
 ```
 docs/
 ```
+
+---
+
+# Error Messages
+
+All user-facing error message strings must be defined in the single shared `com.aditya.lms.exception.ErrorMessages` class, not in per-domain classes or inline string literals inside service or validation methods.
+
+## Structure
+
+```java
+public final class ErrorMessages {
+
+    private ErrorMessages() {}
+
+    public record Error(String code, String message) {}
+
+    public static final Error COURSE_PAYLOAD_REQUIRED = new Error("COURSE_001", "Course payload is required");
+    public static final Error COURSE_TITLE_MANDATORY = new Error("COURSE_002", "courseTitle is mandatory");
+
+    public static Error courseInvalidTransition(Object from, Object to) {
+        return new Error("COURSE_009", "Course status transition from " + from + " to " + to + " is not allowed");
+    }
+}
+```
+
+## Rules
+
+- Keep all error codes and messages in the global `ErrorMessages` class.
+- For each message, include both a stable error code and a user-facing message in the `Error` record.
+- Use `public static final Error` for fixed messages and `public static Error` factory methods for dynamic messages.
+- Never inline error message strings directly in service or validation methods.
+- Use the `Error` record when constructing domain exceptions so that the code and message remain consistent.

@@ -1,10 +1,11 @@
-.PHONY: help generate-api build test run run-local run-debug-local clean install local-setup liquibase-update liquibase-rollback
+.PHONY: help generate-api build test unit-test run run-local run-debug-local clean install local-setup liquibase-update liquibase-rollback
 
 help:
 	@echo "Available commands:"
 	@echo "  make generate-open-spec     - Generate DTOs and controller interfaces from OpenAPI spec"
 	@echo "  make build             - Build the project"
 	@echo "  make test              - Run tests"
+	@echo "  make unit-test [TEST=ClassName] - Run unit test cases (optionally a single test class)"
 	@echo "  make run               - Run the application"
 	@echo "  make run-local         - Run the application with local profile"
 	@echo "  make run-debug-local   - Run the application in debug mode with local profile"
@@ -26,6 +27,14 @@ build:
 test:
 	@echo "Running tests..."
 	./mvnw test
+
+unit-test:
+	@echo "Running unit tests..."
+ifdef TEST
+	./mvnw test -Dtest=$(TEST)
+else
+	./mvnw test -Dtest='**/*Test'
+endif
 
 run:
 	@echo "Starting application..."

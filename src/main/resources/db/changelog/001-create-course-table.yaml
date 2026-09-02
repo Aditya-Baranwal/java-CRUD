@@ -9,7 +9,7 @@ databaseChangeLog:
             incrementBy: 1
         - sql:
             dbms: postgresql
-            sql: CREATE TYPE course_status AS ENUM ('DRAFT', 'READY_TO_PUBLISH', 'PUBLISHED', 'READY_TO_UNPUBLISH', 'UNPUBLISHED', 'MANUAL_UNPUBLISHED');
+            sql: CREATE TYPE course_status AS ENUM ('DRAFT', 'READY_TO_PUBLISH', 'PUBLISHED', 'PLANNED_TO_UNPUBLISH', 'READY_TO_UNPUBLISH', 'UNPUBLISHED', 'MANUAL_UNPUBLISHED');
         - createTable:
             tableName: course
             columns:
@@ -42,15 +42,15 @@ databaseChangeLog:
                   constraints:
                     nullable: false
               - column:
-                  name: is_active
+                  name: can_enrollment
                   type: BOOLEAN
-                  defaultValueBoolean: true
+                  defaultValueBoolean: false
                   constraints:
                     nullable: false
               - column:
                   name: course_status
                   type: course_status
-                  defaultValue: UNPUBLISHED
+                  defaultValue: DRAFT
                   constraints:
                     nullable: false
               - column:
@@ -90,8 +90,8 @@ databaseChangeLog:
               - column:
                   name: instructor_id
         - createIndex:
-            indexName: idx_course_active
+            indexName: idx_course_can_enrollment
             tableName: course
             columns:
               - column:
-                  name: is_active
+                  name: can_enrollment

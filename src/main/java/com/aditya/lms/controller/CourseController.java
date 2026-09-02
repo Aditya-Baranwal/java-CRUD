@@ -44,9 +44,9 @@ public class CourseController implements CoursesApi {
     }
 
     @Override
-    public ResponseEntity<CourseListResponseDTO> listCourses(Integer pageNo, Integer pageSize, Boolean active, String sortBy, String sortOrder) {
+    public ResponseEntity<CourseListResponseDTO> listCourses(Integer pageNo, Integer pageSize, String courseStatus, String sortBy, String sortOrder) {
         return ResponseEntity.ok(
-                courseMapper.toListResponse(courseService.listCourses(pageNo, pageSize, active, sortBy, sortOrder)));
+                courseMapper.toListResponse(courseService.listCourses(pageNo, pageSize, courseMapper.toDomainStatus(courseStatus), sortBy, sortOrder)));
     }
 
     @Override

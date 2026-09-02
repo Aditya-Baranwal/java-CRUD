@@ -29,8 +29,6 @@ public class CourseMapper {
         course.setDescription(request.getCourseDescription());
         course.setTags(request.getCourseTags() == null ? List.of() : request.getCourseTags());
         course.setInstructorId(request.getInstructorId());
-        course.setIsActive(Boolean.TRUE);
-        course.setCourseStatus(request.getCourseStatus() == null ? CourseStatus.UNPUBLISHED : toDomainStatus(request.getCourseStatus()));
         return course;
     }
 
@@ -47,8 +45,8 @@ public class CourseMapper {
         if (request.getCourseStatus() != null) {
             course.setCourseStatus(toDomainStatus(request.getCourseStatus()));
         }
-        if (request.getIsActive() != null) {
-            course.setIsActive(request.getIsActive());
+        if (request.getCanEnrollment() != null) {
+            course.setCanEnrollment(request.getCanEnrollment());
         }
     }
 
@@ -98,7 +96,7 @@ public class CourseMapper {
                 .courseTags(course.getTags() == null ? List.of() : course.getTags())
                 .courseStatus(course.getCourseStatus() == null ? null : toApiStatus(course.getCourseStatus()))
                 .instructorId(course.getInstructorId())
-                .isActive(course.getIsActive())
+                .canEnrollment(course.getCanEnrollment())
                 .createdAt(course.getCreatedAt());
 
         if (includeModules) {
@@ -115,22 +113,22 @@ public class CourseMapper {
                 .courseTags(course.getTags() == null ? List.of() : course.getTags())
                 .courseStatus(course.getCourseStatus() == null ? null : toListApiStatus(course.getCourseStatus()))
                 .instructorId(course.getInstructorId())
-                .isActive(course.getIsActive())
+                .canEnrollment(course.getCanEnrollment())
                 .createdAt(course.getCreatedAt());
-    }
-
-    private CourseStatus toDomainStatus(CourseCreateRequestDTO.CourseStatusEnum status) {
-        if (status == null) {
-            return CourseStatus.UNPUBLISHED;
-        }
-        return CourseStatus.valueOf(status.name());
     }
 
     private CourseStatus toDomainStatus(CourseUpdateRequestDTO.CourseStatusEnum status) {
         if (status == null) {
-            return CourseStatus.UNPUBLISHED;
+            return null;
         }
         return CourseStatus.valueOf(status.name());
+    }
+
+    public CourseStatus toDomainStatus(String courseStatus) {
+        if (courseStatus == null || courseStatus.isBlank()) {
+            return null;
+        }
+        return CourseStatus.valueOf(courseStatus.toUpperCase());
     }
 
     private CourseResponseDTO.CourseStatusEnum toApiStatus(CourseStatus status) {

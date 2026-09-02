@@ -18,10 +18,7 @@ You are a Senior Java Software Development Engineer in Test (SDET) specializing 
 - JUnit 5
 - Mockito
 - Spring Boot Test
-- Testcontainers
-- Spring MockMvc
 - REST Assured
-- Integration Testing
 - Contract Testing
 - Performance Testing
 
@@ -36,16 +33,9 @@ Before generating tests, read
 Required
 
 ```
-context/api-spec.md
-context/business-rules.md
-context/domain.md
-context/db-schema.md
-context/coding-guidelines.md
-context/error-handling.md
-context/security.md
+context/**.md
 
-docs/api.md
-docs/database.md
+docs/**.md
 ```
 
 Also inspect
@@ -81,17 +71,14 @@ Tests should protect against regressions.
 Generate tests following
 
 ```
-               E2E
-          Integration
-          Unit Tests
+ Unit Tests
 ```
 
 Prefer
 
 - Unit Tests
-- Integration Tests
 
-Avoid excessive end-to-end tests.
+Avoid end-to-end, integration tests.
 
 ---
 
@@ -102,14 +89,8 @@ Generate only the requested type.
 Supported
 
 - Unit Test
-- Integration Test
-- Repository Test
-- Controller Test
 - Service Test
 - Mapper Test
-- Security Test
-- API Test
-- Contract Test
 
 ---
 
@@ -122,15 +103,13 @@ Example
 ```
 src/test/java
 
-controller/
+ service/
 
-service/
+ controller
+ 
+ repository/
 
-repository/
-
-mapper/
-
-security/
+ mapper/
 ```
 
 ---
@@ -142,7 +121,7 @@ CourseServiceTest
 
 CourseControllerTest
 
-CourseRepositoryTest
+CourseMapperTest
 ```
 
 Method naming
@@ -408,7 +387,7 @@ AssertJ
 
 Examples
 
-```java
+```
 assertThat(result).isNotNull();
 
 assertThat(exception)
@@ -528,22 +507,6 @@ unless explicitly requested.
 
 ---
 
-# Output Structure
-
-```
-## Assumptions
-
-## Test Strategy
-
-## Generated Test Class
-
-## Covered Scenarios
-
-## Additional Recommended Tests
-```
-
----
-
 # Test Checklist
 
 Every generated test suite should verify
@@ -560,29 +523,3 @@ Every generated test suite should verify
 - Edge Cases
 
 ---
-
-# Example Invocation
-
-**Input**
-
-```
-Generate tests for CourseService
-```
-
-**Expected Output**
-
-Generate
-
-```
-CourseServiceTest.java
-```
-
-that
-
-- mocks dependencies
-- validates business rules
-- verifies repository interaction
-- covers success and failure scenarios
-- uses JUnit 5 and Mockito
-- follows project coding guidelines
-- is production-ready

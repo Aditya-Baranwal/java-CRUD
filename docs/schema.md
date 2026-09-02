@@ -99,17 +99,22 @@ user_id
 
 ## Boolean Columns
 
-Boolean columns start with
+Boolean columns normally start with
 
 ```text
 is_
 ```
 
-Examples
+For the course table, the enrollment gate is named
 
 ```text
-is_active
-is_deleted
+can_enrollment
+```
+
+Example
+
+```text
+can_enrollment
 ```
 
 ---
@@ -164,15 +169,17 @@ Stores all users of the platform.
 
 Stores all courses available in the system.
 
-| Column        | Type          | Default           | Nullable | Constraint |
-|---------------|---------------|-------------------|----------|------------|
-| id            | BIGINT        | AUTO_INCREMENT    | No       | PK         |
-| title         | VARCHAR(100)  | -                 | No       |            |
-| description   | VARCHAR(200)  | -                 | No       |            |
-| instructor_id | BIGINT        | -                 | No       | FK         |
-| tags          | ARRAY         | '[]'              | No       |            |
-| is_active     | BOOLEAN       | TRUE              | No       |            |
-| course_status | COURSE_STATUS | UNPUBLISHED       | No       |            |
+| Column         | Type          | Default        | Nullable | Constraint |
+|----------------|---------------|----------------|----------|------------|
+| id             | BIGINT        | AUTO_INCREMENT | No       | PK         |
+| title          | VARCHAR(100)  | -              | No       |            |
+| description    | VARCHAR(200)  | -              | No       |            |
+| instructor_id  | BIGINT        | -              | No       | FK         |
+| tags           | ARRAY         | '[]'           | No       |            |
+| can_enrollment | BOOLEAN       | FALSE          | No       |            |
+| course_status  | COURSE_STATUS | DRAFT          | No       |            |
+
+`can_enrollment` is only relevant when `course_status = PUBLISHED`; for all other lifecycle states it is treated as false/ignored.
 | created_at    | TIMESTAMP     | CURRENT_TIMESTAMP | No       |            |
 | created_by    | BIGINT        | NULL              | No       |            |
 | updated_at    | TIMESTAMP     | CURRENT_TIMESTAMP | No       |            |
@@ -308,6 +315,14 @@ UNIQUE(mobile_no)
 
 ---
 
+## Course
+
+```sql
+UNIQUE(title, instructor_id)
+```
+
+---
+
 ## Enrollment
 
 ```sql
@@ -366,6 +381,9 @@ ON course(instructor_id);
 
 CREATE INDEX idx_course_active
 ON course(is_active);
+
+CREATE UNIQUE INDEX uk_course_title_instructor
+ON course(title, instructor_id);
 ```
 
 ---
@@ -444,14 +462,15 @@ ON progress(lesson_status);
 
 ## COURSE_STATUS
 
-| Value              | Description                    |
-|--------------------|--------------------------------|
-| DRAFT              | Course is not published        |
-| READY_TO_PUBLISH   | Course is ready to publish     |
-| PUBLISHED          | Course is published            |
-| READY_TO_UNPUBLISH | Course is ready to unpublish   |
-| UNPUBLISHED        | Course is unpublished          |
-| MANUAL_UNPUBLISHED | Course is manually unpublished |
+| Value                | Description                    |
+|----------------------|--------------------------------|
+| DRAFT                | Course is not published        |
+| READY_TO_PUBLISH     | Course is ready to publish     |
+| PUBLISHED            | Course is published            |
+| PLANNED_TO_UNPUBLISH | Course is picked to unpublish  |
+| READY_TO_UNPUBLISH   | Course is ready to unpublish   |
+| UNPUBLISHED          | Course is unpublished          |
+| MANUAL_UNPUBLISHED   | Course is manually unpublished |
 
 ---
 

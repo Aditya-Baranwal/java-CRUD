@@ -1,6 +1,7 @@
 package com.aditya.lms.service.interfaces;
 
 import com.aditya.lms.entity.Course;
+import com.aditya.lms.enums.CourseStatus;
 import org.springframework.data.domain.Page;
 
 public interface CourseService {
@@ -9,7 +10,7 @@ public interface CourseService {
 
     Course getCourse(Long courseId);
 
-    Page<Course> listCourses(Integer pageNo, Integer pageSize, Boolean active, String sortBy, String sortOrder);
+    Page<Course> listCourses(Integer pageNo, Integer pageSize, CourseStatus courseStatus, String sortBy, String sortOrder);
 
     Course updateCourse(Long courseId, Course course);
 

@@ -49,6 +49,7 @@ Content-Type: application/json
 | courseDescription | Optional, Maximum 200 characters |
 | instructorId      | Required, Instructor must exist  |
 | courseTags        | Optional                         |
+| canEnrollment     | Optional, defaults to false      |
 
 ## Request Body
 
@@ -61,7 +62,8 @@ Content-Type: application/json
         "spring",
         "backend"
     ],
-    "instructorId": 101
+    "instructorId": 101,
+    "canEnrollment": true
 }
 ```
 
@@ -88,7 +90,7 @@ Content-Type: application/json
         "courseStatus": "DRAFT",
         "instructorId": 101,
         "instructorName": "John Doe",
-        "isActive": true,
+        "canEnrollment": true,
         "createdAt": "2026-08-02T10:30:00Z"
     }
 }
@@ -128,7 +130,7 @@ PUT /courses/{courseId}
 | courseTitle       | Optional, Maximum 100 characters |
 | courseDescription | Optional, Maximum 200 characters |
 | courseTags        | Optional                         |
-| isActive          | Optional                         |
+| canEnrollment     | Optional                         |
 
 ## Request Body
 
@@ -141,7 +143,7 @@ PUT /courses/{courseId}
         "java"
     ],
     "courseStatus": "DRAFT",
-    "isActive": true
+    "canEnrollment": true
 }
 ```
 
@@ -167,7 +169,7 @@ PUT /courses/{courseId}
         "courseStatus": "DRAFT",
         "instructorId": 101,
         "instructorName": "John Doe",
-        "isActive": true,
+        "canEnrollment": true,
         "createdAt": "2026-08-02T10:30:00Z"
     }
 }
@@ -228,7 +230,7 @@ GET /courses/{courseId}
         "instructorId": 101,
         "instructorName": "John Doe",
         "modules": [],
-        "isActive": true,
+        "canEnrollment": true,
         "createdAt": "2026-08-02T10:30:00Z"
     }
 }
@@ -254,19 +256,18 @@ GET /courses
 
 ## Query Parameters
 
-| Parameter    | Type    | Required | Default   | Description                             |
-|--------------|---------|----------|-----------|-----------------------------------------|
-| active       | Boolean | No       | true      | Return active/inactive courses          |
-| courseStatus | String  | No       | published | useful to filter course based on status |
-| pageNo       | Integer | Yes      | 1         | Page number                             |
-| pageSize     | Integer | Yes      | 10        | Page size                               |
-| sortBy       | String  | No       | createdAt | Sort field                              |
-| sortOrder    | String  | No       | desc      | asc / desc                              |
+| Parameter    | Type    | Required | Default   | Description                |
+|--------------|---------|----------|-----------|----------------------------|
+| courseStatus | String  | No       | published | Filter by lifecycle status |
+| pageNo       | Integer | Yes      | 1         | Page number                |
+| pageSize     | Integer | Yes      | 10        | Page size                  |
+| sortBy       | String  | No       | createdAt | Sort field                 |
+| sortOrder    | String  | No       | desc      | asc / desc                 |
 
 ## Example
 
 ```http
-GET /courses?active=true&pageNo=1&pageSize=10&sortBy=createdAt&sortOrder=desc
+GET /courses?courseStatus=PUBLISHED&pageNo=1&pageSize=10&sortBy=createdAt&sortOrder=desc
 ```
 
 ## Success Response
@@ -291,7 +292,7 @@ GET /courses?active=true&pageNo=1&pageSize=10&sortBy=createdAt&sortOrder=desc
             "courseStatus": "DRAFT",
             "instructorId": 101,
             "instructorName": "John Doe",
-            "isActive": true,
+            "canEnrollment": true,
             "createdAt": "2026-08-02T10:30:00Z"
         }
     ],
@@ -305,7 +306,7 @@ GET /courses?active=true&pageNo=1&pageSize=10&sortBy=createdAt&sortOrder=desc
 
 # Delete Course
 
-Performs a soft delete by marking the course as inactive.
+Performs a soft delete by closing course enrollment.
 
 ## Endpoint
 
@@ -322,7 +323,7 @@ DELETE /courses/{courseId}
 ## Behavior
 
 - Course is **not physically deleted**.
-- Updates `is_active = false`.
+- Sets `canEnrollment = false` and marks the course as `MANUAL_UNPUBLISHED`.
 - Existing enrollments remain unchanged.
 - Existing modules and lessons are retained.
 
@@ -336,7 +337,7 @@ DELETE /courses/{courseId}
 
 ```json
 {
-    "message": "Course inactivated successfully",
+    "message": "Course enrollment closed successfully",
     "data": {}
 }
 ```
@@ -367,8 +368,8 @@ DELETE /courses/{courseId}
 # Design Decisions
 
 - Resource-oriented REST APIs.
-- Soft delete is implemented using the `is_active` flag. is_active = true indicates that the courses cannot be enrolled anymore.
-- had added a `courseStatus` field to manage course lifecycle, only in_active courses can be unpublished.
+- Soft delete is implemented by setting `canEnrollment = false` and moving the course to `MANUAL_UNPUBLISHED`.
+- A `courseStatus` field manages the lifecycle; `canEnrollment` is only meaningful when the status is `PUBLISHED`.
 - Pagination is supported for all list operations.
 - Sorting is supported using `sortBy` and `sortOrder`.
 - Filtering is implemented using query parameters.

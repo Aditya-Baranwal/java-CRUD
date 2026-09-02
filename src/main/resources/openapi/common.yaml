@@ -27,10 +27,11 @@ components:
         - DRAFT
         - READY_TO_PUBLISH
         - PUBLISHED
+        - PLANNED_TO_UNPUBLISH
         - READY_TO_UNPUBLISH
         - UNPUBLISHED
         - MANUAL_UNPUBLISHED
-      description: Course lifecycle status.
+      description: Course lifecycle status. `can_enrollment` is only considered when the course is in `PUBLISHED` state.
 
     CourseCompletionStatus:
       type: string
@@ -67,7 +68,7 @@ components:
         instructorId:
           type: integer
           format: int64
-        isActive:
+        canEnrollment:
           type: boolean
         createdAt:
           type: string

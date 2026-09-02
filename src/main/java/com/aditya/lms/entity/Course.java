@@ -64,12 +64,12 @@ public class Course {
     @Column(name = "instructor_id", nullable = false)
     private Long instructorId;
 
-    @Column(name = "is_active", nullable = false, columnDefinition = "boolean default true")
-    private Boolean isActive;
+    @Column(name = "can_enrollment", nullable = false, columnDefinition = "boolean default false")
+    private Boolean canEnrollment = Boolean.FALSE;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "course_status", nullable = false)
-    private CourseStatus courseStatus;
+    @Column(name = "course_status", nullable = false, columnDefinition = "course_status default 'DRAFT'")
+    private CourseStatus courseStatus = CourseStatus.DRAFT;
 
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
