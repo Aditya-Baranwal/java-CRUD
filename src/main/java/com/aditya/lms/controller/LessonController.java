@@ -22,18 +22,22 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 public class LessonController implements LessonsApi {
 
+    // TODO: replace with the authenticated caller's id once a security layer is introduced;
+    // wired to the admin-variant service methods as a stopgap since all roles are not yet distinguishable.
+    private static final Long TEMP_REQUESTER_ID = 0L;
+
     private final LessonService lessonService;
     private final LessonMapper lessonMapper;
 
     @Override
     public ResponseEntity<LessonCreateResponseDTO> createLesson(LessonCreateRequestDTO lessonCreateRequestDTO) {
-        Lesson created = lessonService.createLesson(lessonMapper.toEntity(lessonCreateRequestDTO));
+        Lesson created = lessonService.createLessonAsAdmin(lessonMapper.toEntity(lessonCreateRequestDTO), TEMP_REQUESTER_ID);
         return ResponseEntity.status(HttpStatus.CREATED).body(lessonMapper.toCreateResponse(created));
     }
 
     @Override
     public ResponseEntity<LessonDeleteResponseDTO> deleteLesson(Long lessonId) {
-        lessonService.deleteLesson(lessonId);
+        lessonService.deleteLessonAsAdmin(lessonId, TEMP_REQUESTER_ID);
         return ResponseEntity.ok(lessonMapper.toDeleteResponse("Lesson deleted successfully"));
     }
 
@@ -45,14 +49,14 @@ public class LessonController implements LessonsApi {
 
     @Override
     public ResponseEntity<LessonListResponseDTO> listLessons(Long moduleId, Integer pageNo, Integer pageSize, Long userId, Boolean active, String sortBy, String sortOrder) {
-        return ResponseEntity.ok(lessonMapper.toListResponse(lessonService.listLessons(moduleId, pageNo, pageSize, userId, active, sortBy, sortOrder)));
+        return ResponseEntity.ok(lessonMapper.toListResponse(lessonService.listLessonsForAdmin(moduleId, pageNo, pageSize, active, sortBy, sortOrder)));
     }
 
     @Override
     public ResponseEntity<LessonUpdateResponseDTO> updateLesson(Long lessonId, LessonUpdateRequestDTO lessonUpdateRequestDTO) {
         Lesson lessonToUpdate = new Lesson();
         lessonMapper.applyUpdates(lessonToUpdate, lessonUpdateRequestDTO);
-        Lesson updated = lessonService.updateLesson(lessonId, lessonToUpdate);
+        Lesson updated = lessonService.updateLessonAsAdmin(lessonId, lessonToUpdate, TEMP_REQUESTER_ID);
         return ResponseEntity.ok(lessonMapper.toUpdateResponse(updated));
     }
 }

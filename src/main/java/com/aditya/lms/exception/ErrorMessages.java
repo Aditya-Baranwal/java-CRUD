@@ -39,4 +39,37 @@ public final class ErrorMessages {
     public static Error courseLimitedEdit(Object status) {
         return new Error("COURSE_012", "Only courseStatus and canEnrollment are editable when course is in " + status + " state");
     }
+
+    // ── Lesson ──────────────────────────────────────────────────────────────
+
+    public static final Error LESSON_PAYLOAD_REQUIRED       = new Error("LESSON_001", "Lesson payload is required");
+    public static final Error LESSON_MODULE_ID_MANDATORY    = new Error("LESSON_002", "moduleId is mandatory");
+    public static final Error LESSON_CONTENT_TYPE_MANDATORY = new Error("LESSON_003", "contentType is mandatory");
+    public static final Error LESSON_CONTENT_LINK_MANDATORY = new Error("LESSON_004", "contentLink is mandatory");
+    public static final Error LESSON_SEQUENCE_MANDATORY     = new Error("LESSON_005", "sequence is mandatory and must be >= 1");
+    public static final Error LESSON_REQUESTER_ID_MANDATORY = new Error("LESSON_006", "requesterId is mandatory");
+    public static final Error LESSON_MODULE_UPDATE          = new Error("LESSON_007", "Lesson module cannot be changed");
+    public static final Error LESSON_CONTENT_LINK_BLANK     = new Error("LESSON_008", "contentLink cannot be blank");
+    public static final Error LESSON_SEQUENCE_INVALID       = new Error("LESSON_009", "sequence must be >= 1");
+    public static final Error LESSON_DUPLICATE_SEQUENCE     = new Error("LESSON_010", "Active lesson with the same sequence already exists within the module");
+
+    public static Error lessonNotFound(Long lessonId) {
+        return new Error("LESSON_404", "Lesson not found for id: " + lessonId);
+    }
+
+    public static Error lessonInstructorForbidden(Long courseId) {
+        return new Error("LESSON_011", "Instructor does not own the course for id: " + courseId);
+    }
+
+    public static Error lessonCourseStateCreateBlocked(Object courseStatus) {
+        return new Error("LESSON_012", "Lesson cannot be created while course is in " + courseStatus + " state");
+    }
+
+    public static Error lessonCourseStateEditBlocked(Object courseStatus) {
+        return new Error("LESSON_013", "Lesson cannot be edited while course is in " + courseStatus + " state");
+    }
+
+    public static Error lessonCourseStateDeleteBlocked(Object courseStatus) {
+        return new Error("LESSON_014", "Lesson cannot be deleted while course is in " + courseStatus + " state");
+    }
 }

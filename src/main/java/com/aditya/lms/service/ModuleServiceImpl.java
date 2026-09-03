@@ -75,26 +75,29 @@ public class ModuleServiceImpl implements ModuleService {
                 .orElseThrow(() -> new ModuleNotFoundException(moduleId));
 
         validateModuleForUpdate(existing, module);
-
-        if (module.getTitle() != null) {
-            existing.setTitle(module.getTitle());
-        }
-        if (module.getDescription() != null) {
-            existing.setDescription(module.getDescription());
-        }
-        if (module.getSequence() != null) {
-            existing.setSequence(module.getSequence());
-        }
-        if (module.getIsActive() != null) {
-            existing.setIsActive(module.getIsActive());
-        }
-        if (module.getUpdatedBy() != null) {
-            existing.setUpdatedBy(module.getUpdatedBy());
-        }
+        applyUpdates(existing, module);
 
         Module updated = moduleRepository.save(existing);
         log.info("Module updated successfully moduleId={}", updated.getId());
         return updated;
+    }
+
+    private void applyUpdates(Module existing, Module incoming) {
+        if (incoming.getTitle() != null) {
+            existing.setTitle(incoming.getTitle());
+        }
+        if (incoming.getDescription() != null) {
+            existing.setDescription(incoming.getDescription());
+        }
+        if (incoming.getSequence() != null) {
+            existing.setSequence(incoming.getSequence());
+        }
+        if (incoming.getIsActive() != null) {
+            existing.setIsActive(incoming.getIsActive());
+        }
+        if (incoming.getUpdatedBy() != null) {
+            existing.setUpdatedBy(incoming.getUpdatedBy());
+        }
     }
 
     @Override

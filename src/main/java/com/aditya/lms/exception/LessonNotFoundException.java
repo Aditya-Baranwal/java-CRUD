@@ -5,6 +5,10 @@ import org.springframework.http.HttpStatus;
 public class LessonNotFoundException extends BaseException {
 
     public LessonNotFoundException(Long lessonId) {
-        super("Lesson not found for id: " + lessonId, "LESSON_005", HttpStatus.NOT_FOUND);
+        this(ErrorMessages.lessonNotFound(lessonId));
+    }
+
+    public LessonNotFoundException(ErrorMessages.Error error) {
+        super(error.message(), error.code(), HttpStatus.NOT_FOUND);
     }
 }

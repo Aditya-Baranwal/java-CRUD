@@ -5,13 +5,23 @@ import org.springframework.data.domain.Page;
 
 public interface LessonService {
 
-    Lesson createLesson(Lesson lesson);
+    Lesson createLessonAsAdmin(Lesson lesson, Long adminId);
+
+    Lesson createLessonAsInstructor(Lesson lesson, Long instructorId);
 
     Lesson getLesson(Long lessonId);
 
-    Page<Lesson> listLessons(Long moduleId, Integer pageNo, Integer pageSize, Long userId, Boolean active, String sortBy, String sortOrder);
+    Page<Lesson> listLessonsForAdmin(Long moduleId, Integer pageNo, Integer pageSize, Boolean active, String sortBy, String sortOrder);
 
-    Lesson updateLesson(Long lessonId, Lesson lesson);
+    Page<Lesson> listLessonsForInstructor(Long moduleId, Long instructorId, Integer pageNo, Integer pageSize, Boolean active, String sortBy, String sortOrder);
 
-    void deleteLesson(Long lessonId);
+    Page<Lesson> listLessonsForStudent(Long moduleId, Integer pageNo, Integer pageSize, String sortBy, String sortOrder);
+
+    Lesson updateLessonAsAdmin(Long lessonId, Lesson lesson, Long adminId);
+
+    Lesson updateLessonAsInstructor(Long lessonId, Lesson lesson, Long instructorId);
+
+    void deleteLessonAsAdmin(Long lessonId, Long adminId);
+
+    void deleteLessonAsInstructor(Long lessonId, Long instructorId);
 }

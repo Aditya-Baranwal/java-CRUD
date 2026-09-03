@@ -51,13 +51,31 @@
   - student lists are filtered by `course_status`, not enrollment or `can_enrollment`
   - soft delete sets `canEnrollment=false` and moves the course to `MANUAL_UNPUBLISHED`
 
+- `LessonService` / `LessonServiceImpl` enforce the rules in `docs/decisions/module.decisions.md`, applied one level deeper via `Lesson -> Module -> Course`:
+  - Lesson create/update/delete is only allowed while the owning course's `courseStatus` is `DRAFT` or `READY_TO_PUBLISH`; blocked once `PUBLISHED` or higher (this single gate also covers toggling `isActive`, since that's a subset of "edit").
+  - Listing: admin/instructor see all lessons (active + inactive) only when the course is `DRAFT`; otherwise the `active` filter applies (defaults to `true`) — same as student view.
+  - **Role modeling convention**: no `UserRole` enum/parameter is used. Authorization is expressed as **separate methods per caller role** (mirrors the existing `CourseService.listCoursesForAdmin/Instructor/Student` pattern):
+    - `createLessonAsAdmin(lesson, adminId)` / `createLessonAsInstructor(lesson, instructorId)`
+    - `updateLessonAsAdmin(lessonId, lesson, adminId)` / `updateLessonAsInstructor(lessonId, lesson, instructorId)`
+    - `deleteLessonAsAdmin(lessonId, adminId)` / `deleteLessonAsInstructor(lessonId, instructorId)`
+    - `listLessonsForAdmin(...)` / `listLessonsForInstructor(moduleId, instructorId, ...)` / `listLessonsForStudent(...)`
+  - Students get **no** create/update/delete method at all — unauthorized actions are prevented at compile time, not via a runtime role check.
+  - Instructor variants verify `course.instructorId == instructorId` (`ErrorMessages.lessonInstructorForbidden`, thrown as `LessonForbiddenException`, HTTP 403); admin variants skip ownership checks.
+  - `LessonController` currently wires all calls to the **admin-variant** methods with a hardcoded `TEMP_REQUESTER_ID = 0L` as a stopgap (marked `TODO`), since there is no authenticated caller identity yet — replace once a security layer exists.
+  - There is no `User` entity, `Role` enum, or Spring Security layer anywhere in the codebase yet; any future role/ownership enforcement work needs this foundation first.
+
 ## Exception Handling
 - Added base domain exception: `BaseException` with `errorCode` and `HttpStatus`.
 - Added course exceptions:
   - `CourseNotFoundException` (`COURSE_404`)
   - `CourseConflictException` (`COURSE_409`)
   - `CourseValidationException` (`COURSE_400`)
-- Centralized all reusable error codes/messages in `com.aditya.lms.exception.ErrorMessages` using a shared `Error` record.
+- Added lesson exceptions, all supporting an `ErrorMessages.Error`-based constructor in addition to a raw-string fallback:
+  - `LessonNotFoundException` (`LESSON_404`)
+  - `LessonConflictException` (`LESSON_409`)
+  - `LessonValidationException` (`LESSON_400`)
+  - `LessonForbiddenException` (`LESSON_403`) — new, added for instructor-ownership violations; there was previously no 403/Forbidden exception class in the project.
+- Centralized all reusable error codes/messages in `com.aditya.lms.exception.ErrorMessages` using a shared `Error` record; Lesson-specific codes are `LESSON_001`-`LESSON_014` plus `LESSON_404`.
 - Added `GlobalExceptionHandler` (`@RestControllerAdvice`) returning `ErrorResponseDTO`.
 
 ## OpenAPI Updates
