@@ -2,7 +2,7 @@
 
 - admin and instructor can create a course.
 - admin can update any course.
-- instructor can update only those courses which he/she has created.
+- instructor can update only those courses whin m nbvwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww32mch he/she has created.
 - student cannot create or update any course.
 - course can be made open or closed for enrollment only in published state.
 - `can_enrollment` flag indicates whether students are allowed to enroll in the course.

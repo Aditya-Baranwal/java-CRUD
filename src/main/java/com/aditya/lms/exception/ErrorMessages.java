@@ -72,4 +72,40 @@ public final class ErrorMessages {
     public static Error lessonCourseStateDeleteBlocked(Object courseStatus) {
         return new Error("LESSON_014", "Lesson cannot be deleted while course is in " + courseStatus + " state");
     }
+
+    // ── Module ──────────────────────────────────────────────────────────────
+
+    public static final Error MODULE_PAYLOAD_REQUIRED       = new Error("MODULE_001", "Module payload is required");
+    public static final Error MODULE_COURSE_ID_MANDATORY    = new Error("MODULE_002", "courseId is mandatory");
+    public static final Error MODULE_TITLE_MANDATORY        = new Error("MODULE_003", "moduleTitle is mandatory");
+    public static final Error MODULE_SEQUENCE_MANDATORY     = new Error("MODULE_004", "sequence is mandatory and must be >= 1");
+    public static final Error MODULE_REQUESTER_ID_MANDATORY = new Error("MODULE_005", "requesterId is mandatory");
+    public static final Error MODULE_COURSE_UPDATE          = new Error("MODULE_006", "Module course cannot be changed");
+    public static final Error MODULE_TITLE_BLANK             = new Error("MODULE_007", "moduleTitle cannot be blank");
+    public static final Error MODULE_SEQUENCE_INVALID       = new Error("MODULE_008", "sequence must be >= 1");
+    public static final Error MODULE_DUPLICATE_SEQUENCE     = new Error("MODULE_009", "Active module with the same sequence already exists within the course");
+
+    public static Error moduleNotFound(Long moduleId) {
+        return new Error("MODULE_404", "Module not found for id: " + moduleId);
+    }
+
+    public static Error moduleCourseNotFound(Long courseId) {
+        return new Error("MODULE_010", "Course not found for module creation, courseId: " + courseId);
+    }
+
+    public static Error moduleInstructorForbidden(Long courseId) {
+        return new Error("MODULE_011", "Instructor does not own the course for id: " + courseId);
+    }
+
+    public static Error moduleCourseStateCreateBlocked(Object courseStatus) {
+        return new Error("MODULE_012", "Module cannot be created while course is in " + courseStatus + " state");
+    }
+
+    public static Error moduleCourseStateEditBlocked(Object courseStatus) {
+        return new Error("MODULE_013", "Module cannot be edited while course is in " + courseStatus + " state");
+    }
+
+    public static Error moduleCourseStateDeleteBlocked(Object courseStatus) {
+        return new Error("MODULE_014", "Module cannot be deleted while course is in " + courseStatus + " state");
+    }
 }

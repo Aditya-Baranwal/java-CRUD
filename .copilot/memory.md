@@ -64,6 +64,13 @@
   - `LessonController` currently wires all calls to the **admin-variant** methods with a hardcoded `TEMP_REQUESTER_ID = 0L` as a stopgap (marked `TODO`), since there is no authenticated caller identity yet — replace once a security layer exists.
   - There is no `User` entity, `Role` enum, or Spring Security layer anywhere in the codebase yet; any future role/ownership enforcement work needs this foundation first.
 
+- `ModuleService` / `ModuleServiceImpl` enforce the rules in `docs/decisions/module.decisions.md` (applied one level shallower than Lesson, directly via `Module -> Course`) using the **same per-role-method convention** as `LessonService`:
+  - Module create/update/delete (including the `isActive` toggle) is only allowed while the owning course's `courseStatus` is `DRAFT` or `READY_TO_PUBLISH`; blocked once `PUBLISHED` or higher.
+  - Listing: admin/instructor see all modules (active + inactive) only when the course is `DRAFT`; otherwise the `active` filter applies (defaults to `true`) — same as student view.
+  - Methods: `createModuleAsAdmin(module, adminId)` / `createModuleAsInstructor(module, instructorId)`; `updateModuleAsAdmin(moduleId, module, adminId)` / `updateModuleAsInstructor(moduleId, module, instructorId)`; `deleteModuleAsAdmin(moduleId, adminId)` / `deleteModuleAsInstructor(moduleId, instructorId)`; `listModulesForAdmin(...)` / `listModulesForInstructor(courseId, instructorId, ...)` / `listModulesForStudent(...)`.
+  - Students get no create/update/delete method; instructor variants verify `course.instructorId == instructorId` via `ModuleForbiddenException` (`MODULE_403`), admin variants skip ownership checks.
+  - `ModuleController` wires all calls to the admin-variant methods with the same `TEMP_REQUESTER_ID = 0L` stopgap as `LessonController`, pending a real security layer.
+
 ## Exception Handling
 - Added base domain exception: `BaseException` with `errorCode` and `HttpStatus`.
 - Added course exceptions:
@@ -75,8 +82,20 @@
   - `LessonConflictException` (`LESSON_409`)
   - `LessonValidationException` (`LESSON_400`)
   - `LessonForbiddenException` (`LESSON_403`) — new, added for instructor-ownership violations; there was previously no 403/Forbidden exception class in the project.
-- Centralized all reusable error codes/messages in `com.aditya.lms.exception.ErrorMessages` using a shared `Error` record; Lesson-specific codes are `LESSON_001`-`LESSON_014` plus `LESSON_404`.
+- Added module exceptions (same `Error`-record pattern):
+  - `ModuleNotFoundException` (`MODULE_404`)
+  - `ModuleConflictException` (`MODULE_409`)
+  - `ModuleValidationException` (`MODULE_400`)
+  - `ModuleForbiddenException` (`MODULE_403`) — new, for instructor-ownership violations, mirrors `LessonForbiddenException`.
+- Centralized all reusable error codes/messages in `com.aditya.lms.exception.ErrorMessages` using a shared `Error` record; Lesson-specific codes are `LESSON_001`-`LESSON_014` plus `LESSON_404`; Module-specific codes are `MODULE_001`-`MODULE_014` plus `MODULE_404`.
 - Added `GlobalExceptionHandler` (`@RestControllerAdvice`) returning `ErrorResponseDTO`.
+
+## Unit Test Conventions (`.copilot/prompts/unit.test.prompt.md`)
+- JUnit 5 + Mockito + AssertJ; `@ExtendWith(MockitoExtension.class)`, `@Mock` for repositories, `@InjectMocks` for the service under test, `@Captor` for `ArgumentCaptor` (e.g. entity captor + `Pageable` captor). Never mock the class under test or mappers/entities.
+- Service test classes (e.g. `ModuleServiceImplTest`) group tests per public method with `@Nested` classes (`CreateModule`, `GetModule`, `ListModules`, `UpdateModule`, `DeleteModule`), mirroring `CourseServiceImplTest`. Each nested class covers happy path, validation failures (null/blank/invalid input), business-rule violations (duplicate sequence, non-mutable course state via `@ParameterizedTest @EnumSource`), forbidden/ownership failures, and not-found.
+- Mapper test classes (e.g. `ModuleMapperTest`) instantiate the mapper directly (no mocks needed) and group by mapper method (`ToEntity`, `ApplyUpdates`, `ToCreateResponse`, `ToGetResponse`, `ToUpdateResponse`, `ToDeleteResponse`, `ToListResponse`), asserting field mapping, null handling, and collection/page mapping.
+- Test fixtures live in `src/test/java/com/aditya/lms/testdata/` as final classes with a private constructor, a `defaultXxxBuilder()` returning the Lombok builder, and convenience static factory methods (e.g. `ModuleTestData.draftModule()`, `moduleWithCourseStatus(status)`, `newUnsavedModule()`), matching `CourseTestData`.
+- `ModuleServiceImplTest`/`ModuleMapperTest`/`ModuleTestData` and `LessonServiceImplTest`/`LessonMapperTest`/`LessonTestData` were added following this convention; all mirror the `Course` equivalents 1:1 in structure.
 
 ## OpenAPI Updates
 - Course lifecycle status is modeled through a dedicated `courseStatus` field and shared enum `CourseStatus`.

@@ -242,7 +242,7 @@ Represents a user's enrollment into a course.
 | course_id                | BIGINT                   | -                 | No       | FK         |
 | course_completion_status | COURSE_COMPLETION_STATUS | INCOMPLETE        | No       |            |
 | enrolled_at              | TIMESTAMP                | CURRENT_TIMESTAMP | No       |            |
-
+| enrolled_by              | BIGINT                   | NULL              | No       |            |
 ---
 
 ## Progress

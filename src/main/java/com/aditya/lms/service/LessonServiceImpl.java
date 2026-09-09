@@ -28,7 +28,7 @@ import java.util.function.Function;
 
 /**
  * Business logic for Lesson lifecycle, following the rules documented in
- * docs/decisions/module.decisions.md (applied one level deeper via Module -> Course).
+ * docs/decisions/lesson.decisions.md.
  * Role-based access is expressed as separate methods per caller role (admin/instructor/student)
  * rather than a runtime role parameter, so unauthorized actions (e.g. student mutating a lesson)
  * are caught at compile time by simply not exposing such a method.

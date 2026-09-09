@@ -5,13 +5,23 @@ import org.springframework.data.domain.Page;
 
 public interface ModuleService {
 
-    Module createModule(Module module);
+    Module createModuleAsAdmin(Module module, Long adminId);
+
+    Module createModuleAsInstructor(Module module, Long instructorId);
 
     Module getModule(Long moduleId);
 
-    Page<Module> listModules(Long courseId, Integer pageNo, Integer pageSize, Boolean active, String sortBy, String sortOrder);
+    Page<Module> listModulesForAdmin(Long courseId, Integer pageNo, Integer pageSize, Boolean active, String sortBy, String sortOrder);
 
-    Module updateModule(Long moduleId, Module module);
+    Page<Module> listModulesForInstructor(Long courseId, Long instructorId, Integer pageNo, Integer pageSize, Boolean active, String sortBy, String sortOrder);
 
-    void deleteModule(Long moduleId);
+    Page<Module> listModulesForStudent(Long courseId, Integer pageNo, Integer pageSize, String sortBy, String sortOrder);
+
+    Module updateModuleAsAdmin(Long moduleId, Module module, Long adminId);
+
+    Module updateModuleAsInstructor(Long moduleId, Module module, Long instructorId);
+
+    void deleteModuleAsAdmin(Long moduleId, Long adminId);
+
+    void deleteModuleAsInstructor(Long moduleId, Long instructorId);
 }

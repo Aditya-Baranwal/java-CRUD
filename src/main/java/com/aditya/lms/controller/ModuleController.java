@@ -22,18 +22,22 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 public class ModuleController implements ModulesApi {
 
+    // TODO: replace with the authenticated caller's id once a security layer is introduced;
+    // wired to the admin-variant service methods as a stopgap since all roles are not yet distinguishable.
+    private static final Long TEMP_REQUESTER_ID = 0L;
+
     private final ModuleService moduleService;
     private final ModuleMapper moduleMapper;
 
     @Override
     public ResponseEntity<ModuleCreateResponseDTO> createModule(ModuleCreateRequestDTO moduleCreateRequestDTO) {
-        Module created = moduleService.createModule(moduleMapper.toEntity(moduleCreateRequestDTO));
+        Module created = moduleService.createModuleAsAdmin(moduleMapper.toEntity(moduleCreateRequestDTO), TEMP_REQUESTER_ID);
         return ResponseEntity.status(HttpStatus.CREATED).body(moduleMapper.toCreateResponse(created));
     }
 
     @Override
     public ResponseEntity<ModuleDeleteResponseDTO> deleteModule(Long moduleId) {
-        moduleService.deleteModule(moduleId);
+        moduleService.deleteModuleAsAdmin(moduleId, TEMP_REQUESTER_ID);
         return ResponseEntity.ok(moduleMapper.toDeleteResponse("Module deleted successfully"));
     }
 
@@ -45,14 +49,14 @@ public class ModuleController implements ModulesApi {
 
     @Override
     public ResponseEntity<ModuleListResponseDTO> listModules(Long courseId, Integer pageNo, Integer pageSize, Boolean active, String sortBy, String sortOrder) {
-        return ResponseEntity.ok(moduleMapper.toListResponse(moduleService.listModules(courseId, pageNo, pageSize, active, sortBy, sortOrder)));
+        return ResponseEntity.ok(moduleMapper.toListResponse(moduleService.listModulesForAdmin(courseId, pageNo, pageSize, active, sortBy, sortOrder)));
     }
 
     @Override
     public ResponseEntity<ModuleUpdateResponseDTO> updateModule(Long moduleId, ModuleUpdateRequestDTO moduleUpdateRequestDTO) {
         Module moduleToUpdate = new Module();
         moduleMapper.applyUpdates(moduleToUpdate, moduleUpdateRequestDTO);
-        Module updated = moduleService.updateModule(moduleId, moduleToUpdate);
+        Module updated = moduleService.updateModuleAsAdmin(moduleId, moduleToUpdate, TEMP_REQUESTER_ID);
         return ResponseEntity.ok(moduleMapper.toUpdateResponse(updated));
     }
 }
