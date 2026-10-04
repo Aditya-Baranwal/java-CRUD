@@ -5,6 +5,7 @@ import com.aditya.lms.enums.LessonStatus;
 import com.aditya.lms.exception.ProgressNotFoundException;
 import com.aditya.lms.exception.ProgressValidationException;
 import com.aditya.lms.repository.ProgressRepository;
+import com.aditya.lms.service.interfaces.EnrollmentService;
 import com.aditya.lms.service.interfaces.ProgressService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -23,6 +24,7 @@ import java.time.OffsetDateTime;
 public class ProgressServiceImpl implements ProgressService {
 
     private final ProgressRepository progressRepository;
+    private final EnrollmentService enrollmentService;
 
     @Override
     @Transactional(readOnly = true)
@@ -111,6 +113,10 @@ public class ProgressServiceImpl implements ProgressService {
 
         Progress updated = progressRepository.save(existing);
         log.info("Progress updated successfully progressId={}, lessonStatus={}", updated.getId(), updated.getLessonStatus());
+
+        Long courseId = updated.getLesson().getModule().getCourse().getId();
+        enrollmentService.refreshCompletionStatus(updated.getUserId(), courseId);
+
         return updated;
     }
 

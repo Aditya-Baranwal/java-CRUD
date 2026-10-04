@@ -108,4 +108,22 @@ public final class ErrorMessages {
     public static Error moduleCourseStateDeleteBlocked(Object courseStatus) {
         return new Error("MODULE_014", "Module cannot be deleted while course is in " + courseStatus + " state");
     }
+
+    // ── Enrollment ──────────────────────────────────────────────────────────
+
+    public static final Error ENROLLMENT_PAYLOAD_REQUIRED       = new Error("ENROLLMENT_001", "Enrollment payload is required");
+    public static final Error ENROLLMENT_USER_ID_MANDATORY      = new Error("ENROLLMENT_002", "userId is mandatory");
+    public static final Error ENROLLMENT_COURSE_ID_MANDATORY    = new Error("ENROLLMENT_003", "courseId is mandatory");
+    public static final Error ENROLLMENT_REQUESTER_ID_MANDATORY = new Error("ENROLLMENT_004", "requesterId is mandatory");
+    public static final Error ENROLLMENT_DUPLICATE              = new Error("ENROLLMENT_005", "User is already enrolled in this course");
+    public static final Error ENROLLMENT_COURSE_CLOSED          = new Error("ENROLLMENT_006", "Course enrollment is disabled");
+    public static final Error ENROLLMENT_SELF_ENROLL_ONLY       = new Error("ENROLLMENT_007", "Students may only enroll themselves in a course");
+
+    public static Error enrollmentNotFound(Long enrollmentId) {
+        return new Error("ENROLLMENT_404", "Enrollment not found for id: " + enrollmentId);
+    }
+
+    public static Error enrollmentCourseNotPublished(Object courseStatus) {
+        return new Error("ENROLLMENT_008", "Enrollment is not allowed while course is in " + courseStatus + " state");
+    }
 }

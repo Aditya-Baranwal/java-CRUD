@@ -345,6 +345,13 @@ components:
         enrolledAt:
           type: string
           format: date-time
+        canEnrolledStudentViewCourseContent:
+          type: boolean
+          description: Whether the enrolled student can currently view the course content, derived from the course's status and enrollment settings.
+        courseAccessMessage:
+          type: string
+          nullable: true
+          description: Human-readable message explaining course content accessibility, derived from the course's status and enrollment settings.
 
     EnrollmentListResponse:
       type: object

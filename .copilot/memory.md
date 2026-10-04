@@ -71,7 +71,18 @@
   - Students get no create/update/delete method; instructor variants verify `course.instructorId == instructorId` via `ModuleForbiddenException` (`MODULE_403`), admin variants skip ownership checks.
   - `ModuleController` wires all calls to the admin-variant methods with the same `TEMP_REQUESTER_ID = 0L` stopgap as `LessonController`, pending a real security layer.
 
-## Exception Handling
+- `EnrollmentService` / `EnrollmentServiceImpl` enforce the rules in `docs/decisions/enrollment.decisions.md`, again using the per-role-method convention, but with only **two** roles (instructors have zero enrollment capability — no method exists for them at all, enforced at compile time):
+  - `createEnrollmentAsStudent(enrollment, studentId)`: requires `enrollment.userId == studentId` (else `EnrollmentForbiddenException` / `ENROLLMENT_SELF_ENROLL_ONLY`), course must be `PUBLISHED` **and** `canEnrollment == true` (else `EnrollmentConflictException`).
+  - `createEnrollmentAsAdmin(enrollment, adminId)`: the admin can enroll themselves or any student on their behalf; course must be `PUBLISHED` only — `canEnrollment` is **not** checked (asymmetric with the student path, per the decision doc).
+  - Both create paths share a private `saveEnrollment` helper: duplicate-enrollment check (`existsByUserIdAndCourse_Id`), sets `courseCompletionStatus=INCOMPLETE` and `isActive=true`, saves, then seeds one `Progress` row per course lesson (`UNSTARTED`) via `LessonRepository.findByModule_Course_Id` + `ProgressRepository.saveAll`.
+  - `cancelEnrollment(id)`: hard-deletes the enrollment and all its `Progress` rows for that user/course; no-ops if already inactive.
+  - `refreshCompletionStatus(userId, courseId)`: recomputes `CourseCompletionStatus` (COMPLETE only when **every** `Progress` row for that user/course is `FINISHED`) and saves only if the value actually changed (idempotent). No-ops when no enrollment or no progress rows exist. This is the "mark complete when all lessons finished" rule, and it lives in `EnrollmentService` (not `ProgressService`) since it's an enrollment-level concern — `ProgressServiceImpl.updateProgress` calls `enrollmentService.refreshCompletionStatus(...)` after every progress save (cross-service wiring, constructor-injected).
+  - Service-layer derived fields: `EnrollmentServiceImpl` keeps two private helper methods (`canEnrolledStudentViewCourseContent` and `courseAccessMessage`) and wraps the entity in a `com.aditya.lms.dto.EnrollmentView` record. That record is the actual return type for `createEnrollmentAsStudent`, `createEnrollmentAsAdmin`, `getEnrollment`, and `listEnrollments` because the `Enrollment` entity itself has no columns for the derived API fields. `EnrollmentView` is defined as `Enrollment enrollment, boolean canEnrolledStudentViewCourseContent, String courseAccessMessage`.
+  - `EnrollmentMapper.toCreateResponse(EnrollmentView)` / `toGetResponse(EnrollmentView)` / `toListResponse(Page<EnrollmentView>)` take the service DTO directly — no extra boolean/resolver-function parameters are passed in, and the mapper remains a presentation-only layer.
+  - `EnrollmentController` wires `createEnrollment` to `createEnrollmentAsAdmin` with the same `TEMP_REQUESTER_ID = 0L` stopgap (no HTTP entry point yet for student self-enroll, same known gap as Module/Lesson).
+  - `EnrollmentResponse` DTO (OpenAPI) gained two fields to support this: `canEnrolledStudentViewCourseContent` (boolean) and `courseAccessMessage` (string, nullable) — named `courseAccessMessage` rather than bare `message` to avoid colliding with the wrapper response's own top-level `message` field.
+
+
 - Added base domain exception: `BaseException` with `errorCode` and `HttpStatus`.
 - Added course exceptions:
   - `CourseNotFoundException` (`COURSE_404`)
@@ -87,7 +98,12 @@
   - `ModuleConflictException` (`MODULE_409`)
   - `ModuleValidationException` (`MODULE_400`)
   - `ModuleForbiddenException` (`MODULE_403`) — new, for instructor-ownership violations, mirrors `LessonForbiddenException`.
-- Centralized all reusable error codes/messages in `com.aditya.lms.exception.ErrorMessages` using a shared `Error` record; Lesson-specific codes are `LESSON_001`-`LESSON_014` plus `LESSON_404`; Module-specific codes are `MODULE_001`-`MODULE_014` plus `MODULE_404`.
+- Added enrollment exceptions (same `Error`-record pattern):
+  - `EnrollmentNotFoundException` (`ENROLLMENT_404`)
+  - `EnrollmentConflictException` (`ENROLLMENT_409`) — duplicate enrollment, course-closed, course-not-published
+  - `EnrollmentValidationException` (`ENROLLMENT_400`)
+  - `EnrollmentForbiddenException` (`ENROLLMENT_403`) — new, for the "student can only self-enroll" rule.
+- Centralized all reusable error codes/messages in `com.aditya.lms.exception.ErrorMessages` using a shared `Error` record; Lesson-specific codes are `LESSON_001`-`LESSON_014` plus `LESSON_404`; Module-specific codes are `MODULE_001`-`MODULE_014` plus `MODULE_404`; Enrollment-specific codes are `ENROLLMENT_001`-`ENROLLMENT_008` plus `ENROLLMENT_404`.
 - Added `GlobalExceptionHandler` (`@RestControllerAdvice`) returning `ErrorResponseDTO`.
 
 ## Unit Test Conventions (`.copilot/prompts/unit.test.prompt.md`)
@@ -96,6 +112,7 @@
 - Mapper test classes (e.g. `ModuleMapperTest`) instantiate the mapper directly (no mocks needed) and group by mapper method (`ToEntity`, `ApplyUpdates`, `ToCreateResponse`, `ToGetResponse`, `ToUpdateResponse`, `ToDeleteResponse`, `ToListResponse`), asserting field mapping, null handling, and collection/page mapping.
 - Test fixtures live in `src/test/java/com/aditya/lms/testdata/` as final classes with a private constructor, a `defaultXxxBuilder()` returning the Lombok builder, and convenience static factory methods (e.g. `ModuleTestData.draftModule()`, `moduleWithCourseStatus(status)`, `newUnsavedModule()`), matching `CourseTestData`.
 - `ModuleServiceImplTest`/`ModuleMapperTest`/`ModuleTestData` and `LessonServiceImplTest`/`LessonMapperTest`/`LessonTestData` were added following this convention; all mirror the `Course` equivalents 1:1 in structure.
+- `EnrollmentServiceImplTest`/`EnrollmentMapperTest`/`EnrollmentTestData` follow the same convention: nested classes per public method (`CreateEnrollmentAsStudent`, `CreateEnrollmentAsAdmin`, `GetEnrollment`, `ListEnrollments`, `CancelEnrollment`, `RefreshCompletionStatus`, `DerivedFieldsOnEnrollmentView`); mocks `EnrollmentRepository`/`CourseRepository`/`LessonRepository`/`ProgressRepository`. Since `canEnrolledStudentViewCourseContent`/`courseAccessMessage` are private helpers, they're exercised indirectly by asserting the `EnrollmentView` returned from public methods (e.g. `getEnrollment`), not called directly. `EnrollmentMapperTest` constructs `EnrollmentView` records by hand (no mocks needed) to verify the mapper's field mapping only — it does not test any derived-field business logic since the mapper no longer computes any.
 
 ## OpenAPI Updates
 - Course lifecycle status is modeled through a dedicated `courseStatus` field and shared enum `CourseStatus`.
