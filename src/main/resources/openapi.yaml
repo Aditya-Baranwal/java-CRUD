@@ -279,12 +279,52 @@ components:
           format: uri
         sequence:
           type: integer
+        isActive:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+
+    LessonProgressResponse:
+      type: object
+      properties:
+        lessonId:
+          type: integer
+          format: int64
+        moduleId:
+          type: integer
+          format: int64
+        contentType:
+          $ref: './openapi/common.yaml#/components/schemas/ContentType'
+        contentLink:
+          type: string
+          format: uri
+        sequence:
+          type: integer
         userId:
           type: integer
           format: int64
+          description: Echoes back the queried userId.
+        progressId:
+          type: integer
+          format: int64
           nullable: true
+          description: Progress record id for userId and this lesson, when present.
         lessonStatus:
           $ref: './openapi/common.yaml#/components/schemas/LessonStatus'
+          nullable: true
+          description: Raw progress status for userId, when enrolled; null otherwise.
+        isLessonCompleted:
+          type: boolean
+          nullable: true
+          description: Whether userId has completed this lesson; null when the user is not enrolled.
+        progressStartedAt:
+          type: string
+          format: date-time
+          nullable: true
+        progressCompletedAt:
+          type: string
+          format: date-time
           nullable: true
         isActive:
           type: boolean
@@ -300,7 +340,9 @@ components:
         data:
           type: array
           items:
-            $ref: './openapi/common.yaml#/components/schemas/LessonSummary'
+            oneOf:
+              - $ref: './openapi/common.yaml#/components/schemas/LessonSummary'
+              - $ref: './openapi/common.yaml#/components/schemas/LessonProgressSummary'
         page:
           type: integer
         size:
@@ -894,9 +936,16 @@ paths:
             format: int64
         - name: userId
           in: query
+          description: Required when progress=true; selects which user's lesson progress details to include.
           schema:
             type: integer
             format: int64
+        - name: progress
+          in: query
+          description: When true, each item is returned in the lesson-details-plus-progress shape.
+          schema:
+            type: boolean
+            default: false
         - name: active
           in: query
           schema:
@@ -952,6 +1001,18 @@ paths:
           schema:
             type: integer
             format: int64
+        - name: userId
+          in: query
+          description: Required when progress=true; selects which user's lesson progress details to include.
+          schema:
+            type: integer
+            format: int64
+        - name: progress
+          in: query
+          description: When true, the lesson is returned in the lesson-details-plus-progress shape.
+          schema:
+            type: boolean
+            default: false
       responses:
         '200':
           description: Lesson fetched successfully
@@ -964,7 +1025,9 @@ paths:
                   message:
                     type: string
                   data:
-                    $ref: '#/components/schemas/LessonResponse'
+                    oneOf:
+                      - $ref: '#/components/schemas/LessonResponse'
+                      - $ref: '#/components/schemas/LessonProgressResponse'
                   timestamp:
                     type: string
                     format: date-time

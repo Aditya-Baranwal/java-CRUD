@@ -73,6 +73,8 @@ public final class ErrorMessages {
         return new Error("LESSON_014", "Lesson cannot be deleted while course is in " + courseStatus + " state");
     }
 
+    public static final Error LESSON_USER_ID_MANDATORY = new Error("LESSON_015", "userId is mandatory when progress=true");
+
     // ── Module ──────────────────────────────────────────────────────────────
 
     public static final Error MODULE_PAYLOAD_REQUIRED       = new Error("MODULE_001", "Module payload is required");

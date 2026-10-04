@@ -37,5 +37,8 @@ public interface ProgressRepository extends JpaRepository<Progress, Long> {
     List<Progress> findByUserIdAndLesson_Module_Course_Id(Long userId, Long courseId);
 
     @EntityGraph(attributePaths = {"lesson", "lesson.module", "lesson.module.course"})
+    List<Progress> findByUserIdAndLesson_Module_Id(Long userId, Long moduleId);
+
+    @EntityGraph(attributePaths = {"lesson", "lesson.module", "lesson.module.course"})
     List<Progress> findByUserIdAndLesson_Id(Long userId, Long lessonId);
 }

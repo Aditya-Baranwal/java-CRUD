@@ -17,3 +17,9 @@
 - lesson is going to be listed by moduleId for student, instructor and admin.
 - instructor and admin can see all lessons for a module, irrespective of the `is_active` flag, when Course is in DRAFT state.
 - lesson can be created only when the course is in DRAFT, READY_TO_PUBLISH state.
+
+## tracking lesson completion
+- For student & admin roles 
+* if enrolled in the course, then lesson is considered completed if progress for lesson is completed by user.
+* while listing lessons for a module, add lesson completion status, progress details as well for following roles. If they are enrolled in the course.
+* while fetching lesson details, add lesson completion status, progress details as well for following roles. If they are enrolled in the course.

@@ -1,18 +1,24 @@
 package com.aditya.lms.service;
 
+import com.aditya.lms.dto.LessonView;
 import com.aditya.lms.entity.Course;
 import com.aditya.lms.entity.Lesson;
 import com.aditya.lms.entity.Module;
+import com.aditya.lms.entity.Progress;
 import com.aditya.lms.enums.ContentType;
 import com.aditya.lms.enums.CourseStatus;
+import com.aditya.lms.enums.LessonStatus;
 import com.aditya.lms.exception.ErrorMessages;
 import com.aditya.lms.exception.LessonConflictException;
 import com.aditya.lms.exception.LessonForbiddenException;
 import com.aditya.lms.exception.LessonNotFoundException;
 import com.aditya.lms.exception.LessonValidationException;
 import com.aditya.lms.exception.ModuleNotFoundException;
+import com.aditya.lms.repository.EnrollmentRepository;
 import com.aditya.lms.repository.LessonRepository;
 import com.aditya.lms.repository.ModuleRepository;
+import com.aditya.lms.repository.ProgressRepository;
+import com.aditya.lms.testdata.EnrollmentTestData;
 import com.aditya.lms.testdata.LessonTestData;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
@@ -48,12 +54,19 @@ class LessonServiceImplTest {
     private static final Long ADMIN_ID = 1L;
     private static final Long INSTRUCTOR_ID = 101L;
     private static final Long OTHER_INSTRUCTOR_ID = 202L;
+    private static final Long USER_ID = 201L;
 
     @Mock
     private LessonRepository lessonRepository;
 
     @Mock
     private ModuleRepository moduleRepository;
+
+    @Mock
+    private EnrollmentRepository enrollmentRepository;
+
+    @Mock
+    private ProgressRepository progressRepository;
 
     @InjectMocks
     private LessonServiceImpl lessonService;
@@ -292,16 +305,74 @@ class LessonServiceImplTest {
                     .isInstanceOf(LessonNotFoundException.class)
                     .hasMessage(ErrorMessages.lessonNotFound(99L).message());
         }
+
+        @Test
+        void shouldReturnLessonWithProgressWhenUserIsEnrolledAndProgressExists() {
+            Progress progress = EnrollmentTestData.progress(USER_ID, draftLesson, LessonStatus.FINISHED);
+            progress.setId(301L);
+            progress.setStartedAt(draftLesson.getCreatedAt());
+            progress.setCompletedAt(draftLesson.getCreatedAt().plusDays(1));
+            when(lessonRepository.findByIdAndIsActiveTrue(1L)).thenReturn(Optional.of(draftLesson));
+            when(enrollmentRepository.existsByUserIdAndCourse_Id(USER_ID, draftLesson.getModule().getCourse().getId())).thenReturn(true);
+            when(progressRepository.findByUserIdAndLesson_Id(USER_ID, 1L)).thenReturn(List.of(progress));
+
+            LessonView result = lessonService.getLessonWithProgress(1L, USER_ID);
+
+            assertThat(result.lesson()).isEqualTo(draftLesson);
+            assertThat(result.userId()).isEqualTo(USER_ID);
+            assertThat(result.progressId()).isEqualTo(301L);
+            assertThat(result.isLessonCompleted()).isTrue();
+            assertThat(result.progressStatus()).isEqualTo(LessonStatus.FINISHED);
+            assertThat(result.progressStartedAt()).isEqualTo(progress.getStartedAt());
+            assertThat(result.progressCompletedAt()).isEqualTo(progress.getCompletedAt());
+        }
+
+        @Test
+        void shouldReturnUnstartedProgressWhenUserIsEnrolledButProgressDoesNotExist() {
+            when(lessonRepository.findByIdAndIsActiveTrue(1L)).thenReturn(Optional.of(draftLesson));
+            when(enrollmentRepository.existsByUserIdAndCourse_Id(USER_ID, draftLesson.getModule().getCourse().getId())).thenReturn(true);
+            when(progressRepository.findByUserIdAndLesson_Id(USER_ID, 1L)).thenReturn(List.of());
+
+            LessonView result = lessonService.getLessonWithProgress(1L, USER_ID);
+
+            assertThat(result.userId()).isEqualTo(USER_ID);
+            assertThat(result.progressId()).isNull();
+            assertThat(result.isLessonCompleted()).isFalse();
+            assertThat(result.progressStatus()).isEqualTo(LessonStatus.UNSTARTED);
+            assertThat(result.progressStartedAt()).isNull();
+            assertThat(result.progressCompletedAt()).isNull();
+        }
+
+        @Test
+        void shouldReturnNullProgressFieldsWhenUserIsNotEnrolled() {
+            when(lessonRepository.findByIdAndIsActiveTrue(1L)).thenReturn(Optional.of(draftLesson));
+            when(enrollmentRepository.existsByUserIdAndCourse_Id(USER_ID, draftLesson.getModule().getCourse().getId())).thenReturn(false);
+
+            LessonView result = lessonService.getLessonWithProgress(1L, USER_ID);
+
+            assertThat(result.userId()).isEqualTo(USER_ID);
+            assertThat(result.progressId()).isNull();
+            assertThat(result.isLessonCompleted()).isNull();
+            assertThat(result.progressStatus()).isNull();
+            verify(progressRepository, never()).findByUserIdAndLesson_Id(anyLong(), anyLong());
+        }
+
+        @Test
+        void shouldRequireUserIdWhenProgressIsRequested() {
+            assertThatThrownBy(() -> lessonService.getLessonWithProgress(1L, null))
+                    .isInstanceOf(LessonValidationException.class)
+                    .hasMessage(ErrorMessages.LESSON_USER_ID_MANDATORY.message());
+        }
     }
 
-    // ── listLessonsForAdmin / ForInstructor / ForStudent ────────────────────
+    // ── listLessons / ForInstructor / ForStudent ────────────────────────────
 
     @Nested
     class ListLessons {
 
         @Test
         void shouldThrowWhenModuleIdIsNullForAdmin() {
-            assertThatThrownBy(() -> lessonService.listLessonsForAdmin(null, 1, 10, null, null, null))
+            assertThatThrownBy(() -> lessonService.listLessons(null, 1, 10, null, null, null))
                     .isInstanceOf(LessonValidationException.class)
                     .hasMessage(ErrorMessages.LESSON_MODULE_ID_MANDATORY.message());
         }
@@ -310,7 +381,7 @@ class LessonServiceImplTest {
         void shouldThrowNotFoundWhenModuleDoesNotExist() {
             when(moduleRepository.findById(1L)).thenReturn(Optional.empty());
 
-            assertThatThrownBy(() -> lessonService.listLessonsForAdmin(1L, 1, 10, null, null, null))
+            assertThatThrownBy(() -> lessonService.listLessons(1L, 1, 10, null, null, null))
                     .isInstanceOf(ModuleNotFoundException.class);
         }
 
@@ -320,7 +391,7 @@ class LessonServiceImplTest {
             when(lessonRepository.findByModule_Id(eq(1L), any(Pageable.class)))
                     .thenReturn(new PageImpl<>(List.of(draftLesson)));
 
-            Page<Lesson> result = lessonService.listLessonsForAdmin(1L, 1, 10, null, null, null);
+            Page<Lesson> result = lessonService.listLessons(1L, 1, 10, null, null, null);
 
             assertThat(result.getContent()).containsExactly(draftLesson);
             verify(lessonRepository).findByModule_Id(eq(1L), any(Pageable.class));
@@ -334,7 +405,7 @@ class LessonServiceImplTest {
             when(lessonRepository.findByModule_IdAndIsActive(eq(1L), eq(true), any(Pageable.class)))
                     .thenReturn(new PageImpl<>(List.of(draftLesson)));
 
-            Page<Lesson> result = lessonService.listLessonsForAdmin(1L, 1, 10, null, null, null);
+            Page<Lesson> result = lessonService.listLessons(1L, 1, 10, null, null, null);
 
             assertThat(result.getContent()).containsExactly(draftLesson);
             verify(lessonRepository).findByModule_IdAndIsActive(eq(1L), eq(true), any(Pageable.class));
@@ -347,7 +418,7 @@ class LessonServiceImplTest {
             when(lessonRepository.findByModule_IdAndIsActive(eq(1L), eq(false), any(Pageable.class)))
                     .thenReturn(new PageImpl<>(List.of()));
 
-            lessonService.listLessonsForAdmin(1L, 1, 10, Boolean.FALSE, null, null);
+            lessonService.listLessons(1L, 1, 10, Boolean.FALSE, null, null);
 
             verify(lessonRepository).findByModule_IdAndIsActive(eq(1L), eq(false), any(Pageable.class));
         }
@@ -389,7 +460,7 @@ class LessonServiceImplTest {
             when(lessonRepository.findByModule_Id(eq(1L), any(Pageable.class)))
                     .thenReturn(new PageImpl<>(List.of()));
 
-            lessonService.listLessonsForAdmin(1L, null, null, null, null, null);
+            lessonService.listLessons(1L, null, null, null, null, null);
 
             verify(lessonRepository).findByModule_Id(eq(1L), pageableCaptor.capture());
             Pageable pageable = pageableCaptor.getValue();
@@ -405,7 +476,7 @@ class LessonServiceImplTest {
             when(lessonRepository.findByModule_Id(eq(1L), any(Pageable.class)))
                     .thenReturn(new PageImpl<>(List.of()));
 
-            lessonService.listLessonsForAdmin(1L, 1, 500, null, null, null);
+            lessonService.listLessons(1L, 1, 500, null, null, null);
 
             verify(lessonRepository).findByModule_Id(eq(1L), pageableCaptor.capture());
             assertThat(pageableCaptor.getValue().getPageSize()).isEqualTo(100);
@@ -417,12 +488,59 @@ class LessonServiceImplTest {
             when(lessonRepository.findByModule_Id(eq(1L), any(Pageable.class)))
                     .thenReturn(new PageImpl<>(List.of()));
 
-            lessonService.listLessonsForAdmin(1L, 2, 20, null, "sequence", "asc");
+            lessonService.listLessons(1L, 2, 20, null, "sequence", "asc");
 
             verify(lessonRepository).findByModule_Id(eq(1L), pageableCaptor.capture());
             Pageable pageable = pageableCaptor.getValue();
             assertThat(pageable.getPageNumber()).isEqualTo(1);
             assertThat(pageable.getSort().getOrderFor("sequence").getDirection()).isEqualTo(Sort.Direction.ASC);
+        }
+
+        @Test
+        void shouldAttachProgressForAdminListingWhenRequested() {
+            Progress progress = EnrollmentTestData.progress(USER_ID, draftLesson, LessonStatus.STARTED);
+            progress.setId(301L);
+            progress.setStartedAt(draftLesson.getCreatedAt());
+            when(moduleRepository.findById(1L)).thenReturn(Optional.of(draftModule));
+            when(lessonRepository.findByModule_Id(eq(1L), any(Pageable.class)))
+                    .thenReturn(new PageImpl<>(List.of(draftLesson)));
+            when(enrollmentRepository.existsByUserIdAndCourse_Id(USER_ID, draftModule.getCourse().getId())).thenReturn(true);
+            when(progressRepository.findByUserIdAndLesson_Module_Id(USER_ID, 1L)).thenReturn(List.of(progress));
+
+            Page<LessonView> result = lessonService.listLessonsWithProgress(1L, USER_ID, 1, 10, null, null, null);
+
+            assertThat(result.getContent()).singleElement().satisfies(view -> {
+                assertThat(view.lesson()).isEqualTo(draftLesson);
+                assertThat(view.userId()).isEqualTo(USER_ID);
+                assertThat(view.progressId()).isEqualTo(301L);
+                assertThat(view.progressStatus()).isEqualTo(LessonStatus.STARTED);
+                assertThat(view.isLessonCompleted()).isFalse();
+            });
+        }
+
+        @Test
+        void shouldReturnNullProgressFieldsInListingWhenUserIsNotEnrolled() {
+            when(moduleRepository.findById(1L)).thenReturn(Optional.of(draftModule));
+            when(lessonRepository.findByModule_Id(eq(1L), any(Pageable.class)))
+                    .thenReturn(new PageImpl<>(List.of(draftLesson)));
+            when(enrollmentRepository.existsByUserIdAndCourse_Id(USER_ID, draftModule.getCourse().getId())).thenReturn(false);
+
+            Page<LessonView> result = lessonService.listLessonsWithProgress(1L, USER_ID, 1, 10, null, null, null);
+
+            assertThat(result.getContent()).singleElement().satisfies(view -> {
+                assertThat(view.userId()).isEqualTo(USER_ID);
+                assertThat(view.progressId()).isNull();
+                assertThat(view.isLessonCompleted()).isNull();
+                assertThat(view.progressStatus()).isNull();
+            });
+            verify(progressRepository, never()).findByUserIdAndLesson_Module_Id(anyLong(), anyLong());
+        }
+
+        @Test
+        void shouldRequireUserIdForProgressListing() {
+            assertThatThrownBy(() -> lessonService.listLessonsWithProgress(1L, null, 1, 10, null, null, null))
+                    .isInstanceOf(LessonValidationException.class)
+                    .hasMessage(ErrorMessages.LESSON_USER_ID_MANDATORY.message());
         }
     }
 

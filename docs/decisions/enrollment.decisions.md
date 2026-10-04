@@ -20,3 +20,8 @@
 | READY_TO_UNPUBLISH   | -              | No                                       | Course will be soon removed.     |
 | UNPUBLISHED          | -              | No                                       | Course is removed by instructor. |
 | MANUAL_UNPUBLISHED   | -              | No                                       | Course is removed.               |
+
+## progress creation on enrollment:
+- when ever a enrollment in a course is done, progress for all lessons of all modules of the course should be created for that user with `NOT_STARTED` state.
+
+## emrollment status transition rules:

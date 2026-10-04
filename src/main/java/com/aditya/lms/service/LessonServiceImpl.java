@@ -1,17 +1,22 @@
 package com.aditya.lms.service;
 
+import com.aditya.lms.dto.LessonView;
 import com.aditya.lms.entity.Course;
 import com.aditya.lms.entity.Lesson;
 import com.aditya.lms.entity.Module;
+import com.aditya.lms.entity.Progress;
 import com.aditya.lms.enums.CourseStatus;
+import com.aditya.lms.enums.LessonStatus;
 import com.aditya.lms.exception.ErrorMessages;
 import com.aditya.lms.exception.LessonConflictException;
 import com.aditya.lms.exception.LessonForbiddenException;
 import com.aditya.lms.exception.LessonNotFoundException;
 import com.aditya.lms.exception.LessonValidationException;
 import com.aditya.lms.exception.ModuleNotFoundException;
+import com.aditya.lms.repository.EnrollmentRepository;
 import com.aditya.lms.repository.LessonRepository;
 import com.aditya.lms.repository.ModuleRepository;
+import com.aditya.lms.repository.ProgressRepository;
 import com.aditya.lms.service.interfaces.LessonService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -22,6 +27,9 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.function.Function;
@@ -44,8 +52,10 @@ public class LessonServiceImpl implements LessonService {
             CourseStatus.READY_TO_PUBLISH
     );
 
+    private final EnrollmentRepository enrollmentRepository;
     private final LessonRepository lessonRepository;
     private final ModuleRepository moduleRepository;
+    private final ProgressRepository progressRepository;
 
     @Override
     @Transactional
@@ -70,21 +80,69 @@ public class LessonServiceImpl implements LessonService {
 
     @Override
     @Transactional(readOnly = true)
-    public Page<Lesson> listLessonsForAdmin(Long moduleId, Integer pageNo, Integer pageSize, Boolean active, String sortBy, String sortOrder) {
-        return listLessons(moduleId, pageNo, pageSize, active, sortBy, sortOrder, true);
+    public LessonView getLessonWithProgress(Long lessonId, Long userId) {
+        validateProgressUserId(userId);
+        Lesson lesson = getLesson(lessonId);
+        Long courseId = lesson.getModule().getCourse().getId();
+        boolean enrolled = enrollmentRepository.existsByUserIdAndCourse_Id(userId, courseId);
+        if (!enrolled) {
+            return buildLessonView(lesson, userId, null, false);
+        }
+
+        Progress progress = progressRepository.findByUserIdAndLesson_Id(userId, lessonId).stream()
+                .findFirst()
+                .orElse(null);
+        return buildLessonView(lesson, userId, progress, true);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Page<Lesson> listLessons(Long moduleId, Integer pageNo, Integer pageSize, Boolean active, String sortBy, String sortOrder) {
+        Module module = getModule(moduleId);
+        return listLessons(module, pageNo, pageSize, active, sortBy, sortOrder, true);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Page<LessonView> listLessonsWithProgress(Long moduleId, Long userId, Integer pageNo, Integer pageSize, Boolean active, String sortBy, String sortOrder) {
+        validateProgressUserId(userId);
+        Module module = getModule(moduleId);
+        Page<Lesson> lessons = listLessons(module, pageNo, pageSize, active, sortBy, sortOrder, true);
+        return attachProgress(module, userId, lessons);
     }
 
     @Override
     @Transactional(readOnly = true)
     public Page<Lesson> listLessonsForInstructor(Long moduleId, Long instructorId, Integer pageNo, Integer pageSize, Boolean active, String sortBy, String sortOrder) {
         requireId(instructorId);
-        return listLessons(moduleId, pageNo, pageSize, active, sortBy, sortOrder, true);
+        Module module = getModule(moduleId);
+        return listLessons(module, pageNo, pageSize, active, sortBy, sortOrder, true);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Page<LessonView> listLessonsForInstructorWithProgress(Long moduleId, Long instructorId, Long userId, Integer pageNo, Integer pageSize, Boolean active, String sortBy, String sortOrder) {
+        requireId(instructorId);
+        validateProgressUserId(userId);
+        Module module = getModule(moduleId);
+        Page<Lesson> lessons = listLessons(module, pageNo, pageSize, active, sortBy, sortOrder, true);
+        return attachProgress(module, userId, lessons);
     }
 
     @Override
     @Transactional(readOnly = true)
     public Page<Lesson> listLessonsForStudent(Long moduleId, Integer pageNo, Integer pageSize, String sortBy, String sortOrder) {
-        return listLessons(moduleId, pageNo, pageSize, Boolean.TRUE, sortBy, sortOrder, false);
+        Module module = getModule(moduleId);
+        return listLessons(module, pageNo, pageSize, Boolean.TRUE, sortBy, sortOrder, false);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Page<LessonView> listLessonsForStudentWithProgress(Long moduleId, Long userId, Integer pageNo, Integer pageSize, String sortBy, String sortOrder) {
+        validateProgressUserId(userId);
+        Module module = getModule(moduleId);
+        Page<Lesson> lessons = listLessons(module, pageNo, pageSize, Boolean.TRUE, sortBy, sortOrder, false);
+        return attachProgress(module, userId, lessons);
     }
 
     @Override
@@ -146,15 +204,9 @@ public class LessonServiceImpl implements LessonService {
         return created;
     }
 
-    private Page<Lesson> listLessons(Long moduleId, Integer pageNo, Integer pageSize, Boolean active, String sortBy, String sortOrder, boolean staffView) {
-        if (moduleId == null) {
-            throw new LessonValidationException(ErrorMessages.LESSON_MODULE_ID_MANDATORY);
-        }
-
-        Module module = moduleRepository.findById(moduleId)
-                .orElseThrow(() -> new ModuleNotFoundException(moduleId));
-
+    private Page<Lesson> listLessons(Module module, Integer pageNo, Integer pageSize, Boolean active, String sortBy, String sortOrder, boolean staffView) {
         Pageable pageable = buildPageable(pageNo, pageSize, sortBy, sortOrder);
+        Long moduleId = module.getId();
 
         boolean canSeeAllRegardlessOfActive = staffView && module.getCourse().getCourseStatus() == CourseStatus.DRAFT;
         if (canSeeAllRegardlessOfActive) {
@@ -163,6 +215,47 @@ public class LessonServiceImpl implements LessonService {
 
         boolean activeFilter = active == null || active;
         return lessonRepository.findByModule_IdAndIsActive(moduleId, activeFilter, pageable);
+    }
+
+    private Module getModule(Long moduleId) {
+        if (moduleId == null) {
+            throw new LessonValidationException(ErrorMessages.LESSON_MODULE_ID_MANDATORY);
+        }
+        return moduleRepository.findById(moduleId)
+                .orElseThrow(() -> new ModuleNotFoundException(moduleId));
+    }
+
+    private Page<LessonView> attachProgress(Module module, Long userId, Page<Lesson> lessons) {
+        boolean enrolled = enrollmentRepository.existsByUserIdAndCourse_Id(userId, module.getCourse().getId());
+        if (!enrolled) {
+            return lessons.map(lesson -> buildLessonView(lesson, userId, null, false));
+        }
+
+        Map<Long, Progress> progressByLessonId = new HashMap<>();
+        List<Progress> progressRecords = progressRepository.findByUserIdAndLesson_Module_Id(userId, module.getId());
+        for (Progress progress : progressRecords) {
+            progressByLessonId.put(progress.getLesson().getId(), progress);
+        }
+
+        return lessons.map(lesson -> buildLessonView(lesson, userId, progressByLessonId.get(lesson.getId()), true));
+    }
+
+    private LessonView buildLessonView(Lesson lesson, Long userId, Progress progress, boolean enrolled) {
+        if (!enrolled) {
+            return new LessonView(lesson, userId, null, null, null, null, null);
+        }
+        if (progress == null) {
+            return new LessonView(lesson, userId, null, Boolean.FALSE, LessonStatus.UNSTARTED, null, null);
+        }
+        return new LessonView(
+                lesson,
+                userId,
+                progress.getId(),
+                progress.getLessonStatus() == LessonStatus.FINISHED,
+                progress.getLessonStatus(),
+                progress.getStartedAt(),
+                progress.getCompletedAt()
+        );
     }
 
     /**
@@ -226,6 +319,12 @@ public class LessonServiceImpl implements LessonService {
     private void requireId(Long id) {
         if (id == null) {
             throw new LessonValidationException(ErrorMessages.LESSON_REQUESTER_ID_MANDATORY);
+        }
+    }
+
+    private void validateProgressUserId(Long userId) {
+        if (userId == null) {
+            throw new LessonValidationException(ErrorMessages.LESSON_USER_ID_MANDATORY);
         }
     }
 

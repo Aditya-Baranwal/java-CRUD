@@ -16,3 +16,9 @@
 - module cannot be deleted once the course is in PUBLISHED or other higher state by instructor as well as admin.
 - module is going to be listed by courseId for student, instructor and admin.
 - instructor and admin can see all modules for a course, irrespective of the `is_active` flag, when course is in DRAFT state.
+
+## tracking module completion
+- For student & admin roles 
+* if enrolled in the course, then module is considered completed if all lessons of the module are completed.
+* while listing modules for a course, add module completion status. If they are enrolled in the course.
+* while fetching module details, add module completion status. If they are enrolled in the course.

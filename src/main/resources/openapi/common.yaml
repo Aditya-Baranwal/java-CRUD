@@ -117,6 +117,53 @@ components:
           type: string
           format: date-time
 
+    LessonProgressSummary:
+      type: object
+      properties:
+        lessonId:
+          type: integer
+          format: int64
+        moduleId:
+          type: integer
+          format: int64
+        contentType:
+          $ref: './common.yaml#/components/schemas/ContentType'
+        contentLink:
+          type: string
+          format: uri
+        sequence:
+          type: integer
+        isActive:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+        userId:
+          type: integer
+          format: int64
+          description: Echoes back the queried userId.
+        progressId:
+          type: integer
+          format: int64
+          nullable: true
+          description: Progress record id for userId and this lesson, when present.
+        lessonStatus:
+          $ref: './common.yaml#/components/schemas/LessonStatus'
+          nullable: true
+          description: Raw progress status for userId, when enrolled; null otherwise.
+        isLessonCompleted:
+          type: boolean
+          nullable: true
+          description: Whether userId has completed this lesson; null when the user is not enrolled.
+        progressStartedAt:
+          type: string
+          format: date-time
+          nullable: true
+        progressCompletedAt:
+          type: string
+          format: date-time
+          nullable: true
+
     ErrorDetail:
       type: object
       properties:

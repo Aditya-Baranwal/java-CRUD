@@ -42,14 +42,24 @@ public class LessonController implements LessonsApi {
     }
 
     @Override
-    public ResponseEntity<LessonGetResponseDTO> getLesson(Long lessonId) {
+    public ResponseEntity<LessonGetResponseDTO> getLesson(Long lessonId, Long userId, Boolean progress) {
+        if (Boolean.TRUE.equals(progress)) {
+            return ResponseEntity.ok(lessonMapper.toGetProgressResponse(lessonService.getLessonWithProgress(lessonId, userId)));
+        }
         Lesson lesson = lessonService.getLesson(lessonId);
         return ResponseEntity.ok(lessonMapper.toGetResponse(lesson));
     }
 
     @Override
-    public ResponseEntity<LessonListResponseDTO> listLessons(Long moduleId, Integer pageNo, Integer pageSize, Long userId, Boolean active, String sortBy, String sortOrder) {
-        return ResponseEntity.ok(lessonMapper.toListResponse(lessonService.listLessonsForAdmin(moduleId, pageNo, pageSize, active, sortBy, sortOrder)));
+    public ResponseEntity<LessonListResponseDTO> listLessons(Long moduleId, Integer pageNo, Integer pageSize, Long userId, Boolean progress, Boolean active, String sortBy, String sortOrder) {
+        if (Boolean.TRUE.equals(progress)) {
+            return ResponseEntity.ok(lessonMapper.toListProgressResponse(
+                    lessonService.listLessonsWithProgress(moduleId, userId, pageNo, pageSize, active, sortBy, sortOrder)
+            ));
+        }
+        return ResponseEntity.ok(lessonMapper.toListResponse(
+                lessonService.listLessons(moduleId, pageNo, pageSize, active, sortBy, sortOrder)
+        ));
     }
 
     @Override
