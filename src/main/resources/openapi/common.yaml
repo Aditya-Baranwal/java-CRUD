@@ -89,11 +89,50 @@ components:
           type: string
         sequence:
           type: integer
+        totalLessonCount:
+          type: integer
+          description: Total number of active lessons in the module.
         isActive:
           type: boolean
         createdAt:
           type: string
           format: date-time
+
+    ModuleProgressSummary:
+      type: object
+      properties:
+        moduleId:
+          type: integer
+          format: int64
+        courseId:
+          type: integer
+          format: int64
+        moduleTitle:
+          type: string
+        moduleDescription:
+          type: string
+        sequence:
+          type: integer
+        isActive:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+        userId:
+          type: integer
+          format: int64
+          description: Echoes back the queried userId.
+        isModuleCompleted:
+          type: boolean
+          nullable: true
+          description: Whether all active lessons in the module are completed by userId; null when the user is not enrolled.
+        completedLessonCount:
+          type: integer
+          nullable: true
+          description: Number of active lessons completed by userId.
+        totalLessonCount:
+          type: integer
+          description: Total number of active lessons in the module.
 
     LessonSummary:
       type: object

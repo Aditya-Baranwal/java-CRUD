@@ -1,7 +1,11 @@
 package com.aditya.lms.service;
 
+import com.aditya.lms.dto.ModuleView;
 import com.aditya.lms.entity.Course;
+import com.aditya.lms.entity.Lesson;
 import com.aditya.lms.entity.Module;
+import com.aditya.lms.entity.Progress;
+import com.aditya.lms.enums.LessonStatus;
 import com.aditya.lms.enums.CourseStatus;
 import com.aditya.lms.exception.ErrorMessages;
 import com.aditya.lms.exception.ModuleConflictException;
@@ -9,7 +13,10 @@ import com.aditya.lms.exception.ModuleForbiddenException;
 import com.aditya.lms.exception.ModuleNotFoundException;
 import com.aditya.lms.exception.ModuleValidationException;
 import com.aditya.lms.repository.CourseRepository;
+import com.aditya.lms.repository.EnrollmentRepository;
+import com.aditya.lms.repository.LessonRepository;
 import com.aditya.lms.repository.ModuleRepository;
+import com.aditya.lms.repository.ProgressRepository;
 import com.aditya.lms.service.interfaces.ModuleService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -20,6 +27,10 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.function.Function;
@@ -43,8 +54,11 @@ public class ModuleServiceImpl implements ModuleService {
             CourseStatus.READY_TO_PUBLISH
     );
 
+    private final EnrollmentRepository enrollmentRepository;
+    private final LessonRepository lessonRepository;
     private final ModuleRepository moduleRepository;
     private final CourseRepository courseRepository;
+    private final ProgressRepository progressRepository;
 
     @Override
     @Transactional
@@ -62,28 +76,74 @@ public class ModuleServiceImpl implements ModuleService {
 
     @Override
     @Transactional(readOnly = true)
-    public Module getModule(Long moduleId) {
-        return moduleRepository.findByIdAndIsActiveTrue(moduleId)
+    public ModuleView getModule(Long moduleId) {
+        Module module = moduleRepository.findByIdAndIsActiveTrue(moduleId)
                 .orElseThrow(() -> new ModuleNotFoundException(moduleId));
+        return new ModuleView(module, null, null, null, countActiveLessons(module));
     }
 
     @Override
     @Transactional(readOnly = true)
-    public Page<Module> listModulesForAdmin(Long courseId, Integer pageNo, Integer pageSize, Boolean active, String sortBy, String sortOrder) {
-        return listModules(courseId, pageNo, pageSize, active, sortBy, sortOrder, true);
+    public ModuleView getModuleWithProgress(Long moduleId, Long userId) {
+        validateProgressUserId(userId);
+        Module module = moduleRepository.findByIdAndIsActiveTrue(moduleId)
+                .orElseThrow(() -> new ModuleNotFoundException(moduleId));
+        Long courseId = module.getCourse().getId();
+        boolean enrolled = enrollmentRepository.existsByUserIdAndCourse_Id(userId, courseId);
+        return buildModuleView(module, userId, enrolled);
     }
 
     @Override
     @Transactional(readOnly = true)
-    public Page<Module> listModulesForInstructor(Long courseId, Long instructorId, Integer pageNo, Integer pageSize, Boolean active, String sortBy, String sortOrder) {
+    public Page<ModuleView> listModules(Long courseId, Integer pageNo, Integer pageSize, Boolean active, String sortBy, String sortOrder) {
+        Course course = getCourse(courseId);
+        Page<Module> modules = listModulesPage(course, pageNo, pageSize, active, sortBy, sortOrder, true);
+        return attachCounts(course, modules);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Page<ModuleView> listModulesWithProgress(Long courseId, Long userId, Integer pageNo, Integer pageSize, Boolean active, String sortBy, String sortOrder) {
+        validateProgressUserId(userId);
+        Course course = getCourse(courseId);
+        Page<Module> modules = listModulesPage(course, pageNo, pageSize, active, sortBy, sortOrder, true);
+        return attachProgress(course, modules, userId);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Page<ModuleView> listModulesForInstructor(Long courseId, Long instructorId, Integer pageNo, Integer pageSize, Boolean active, String sortBy, String sortOrder) {
         requireId(instructorId);
-        return listModules(courseId, pageNo, pageSize, active, sortBy, sortOrder, true);
+        Course course = getCourse(courseId);
+        Page<Module> modules = listModulesPage(course, pageNo, pageSize, active, sortBy, sortOrder, true);
+        return attachCounts(course, modules);
     }
 
     @Override
     @Transactional(readOnly = true)
-    public Page<Module> listModulesForStudent(Long courseId, Integer pageNo, Integer pageSize, String sortBy, String sortOrder) {
-        return listModules(courseId, pageNo, pageSize, Boolean.TRUE, sortBy, sortOrder, false);
+    public Page<ModuleView> listModulesForInstructorWithProgress(Long courseId, Long instructorId, Long userId, Integer pageNo, Integer pageSize, Boolean active, String sortBy, String sortOrder) {
+        requireId(instructorId);
+        validateProgressUserId(userId);
+        Course course = getCourse(courseId);
+        Page<Module> modules = listModulesPage(course, pageNo, pageSize, active, sortBy, sortOrder, true);
+        return attachProgress(course, modules, userId);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Page<ModuleView> listModulesForStudent(Long courseId, Integer pageNo, Integer pageSize, String sortBy, String sortOrder) {
+        Course course = getCourse(courseId);
+        Page<Module> modules = listModulesPage(course, pageNo, pageSize, Boolean.TRUE, sortBy, sortOrder, false);
+        return attachCounts(course, modules);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Page<ModuleView> listModulesForStudentWithProgress(Long courseId, Long userId, Integer pageNo, Integer pageSize, String sortBy, String sortOrder) {
+        validateProgressUserId(userId);
+        Course course = getCourse(courseId);
+        Page<Module> modules = listModulesPage(course, pageNo, pageSize, Boolean.TRUE, sortBy, sortOrder, false);
+        return attachProgress(course, modules, userId);
     }
 
     @Override
@@ -144,15 +204,9 @@ public class ModuleServiceImpl implements ModuleService {
         return created;
     }
 
-    private Page<Module> listModules(Long courseId, Integer pageNo, Integer pageSize, Boolean active, String sortBy, String sortOrder, boolean staffView) {
-        if (courseId == null) {
-            throw new ModuleValidationException(ErrorMessages.MODULE_COURSE_ID_MANDATORY);
-        }
-
-        Course course = courseRepository.findById(courseId)
-                .orElseThrow(() -> new ModuleConflictException(ErrorMessages.moduleCourseNotFound(courseId)));
-
+    private Page<Module> listModulesPage(Course course, Integer pageNo, Integer pageSize, Boolean active, String sortBy, String sortOrder, boolean staffView) {
         Pageable pageable = buildPageable(pageNo, pageSize, sortBy, sortOrder);
+        Long courseId = course.getId();
 
         boolean canSeeAllRegardlessOfActive = staffView && course.getCourseStatus() == CourseStatus.DRAFT;
         if (canSeeAllRegardlessOfActive) {
@@ -161,6 +215,106 @@ public class ModuleServiceImpl implements ModuleService {
 
         boolean activeFilter = active == null || active;
         return moduleRepository.findByCourse_IdAndIsActive(courseId, activeFilter, pageable);
+    }
+
+    private Course getCourse(Long courseId) {
+        if (courseId == null) {
+            throw new ModuleValidationException(ErrorMessages.MODULE_COURSE_ID_MANDATORY);
+        }
+        return courseRepository.findById(courseId)
+                .orElseThrow(() -> new ModuleConflictException(ErrorMessages.moduleCourseNotFound(courseId)));
+    }
+
+    private Page<ModuleView> attachCounts(Course course, Page<Module> modules) {
+        Map<Long, Integer> totalLessonsByModuleId = activeLessonCountsByModule(course.getId());
+        return modules.map(module -> new ModuleView(
+                module,
+                null,
+                null,
+                null,
+                totalLessonsByModuleId.getOrDefault(module.getId(), 0)
+        ));
+    }
+
+    private Page<ModuleView> attachProgress(Course course, Page<Module> modules, Long userId) {
+        Map<Long, Integer> totalLessonsByModuleId = activeLessonCountsByModule(course.getId());
+        boolean enrolled = enrollmentRepository.existsByUserIdAndCourse_Id(userId, course.getId());
+        if (!enrolled) {
+            return modules.map(module -> new ModuleView(
+                    module,
+                    userId,
+                    null,
+                    null,
+                    totalLessonsByModuleId.getOrDefault(module.getId(), 0)
+            ));
+        }
+
+        Map<Long, Set<Long>> completedLessonIdsByModuleId = new HashMap<>();
+
+        List<Progress> progressRecords = progressRepository.findByUserIdAndLesson_Module_Course_Id(userId, course.getId());
+        for (Progress progress : progressRecords) {
+            Lesson lesson = progress.getLesson();
+            if (!Boolean.TRUE.equals(lesson.getIsActive()) || progress.getLessonStatus() != LessonStatus.FINISHED) {
+                continue;
+            }
+            completedLessonIdsByModuleId
+                    .computeIfAbsent(lesson.getModule().getId(), ignored -> new HashSet<>())
+                    .add(lesson.getId());
+        }
+
+        return modules.map(module -> buildModuleView(module, userId, totalLessonsByModuleId, completedLessonIdsByModuleId));
+    }
+
+    private ModuleView buildModuleView(Module module, Long userId, boolean enrolled) {
+        int totalLessonCount = countActiveLessons(module);
+        if (!enrolled) {
+            return new ModuleView(module, userId, null, null, totalLessonCount);
+        }
+        int completedLessonCount = (int) progressRepository.findByUserIdAndLesson_Module_Id(userId, module.getId()).stream()
+                .filter(progress -> Boolean.TRUE.equals(progress.getLesson().getIsActive()))
+                .filter(progress -> progress.getLessonStatus() == LessonStatus.FINISHED)
+                .map(progress -> progress.getLesson().getId())
+                .distinct()
+                .count();
+        return new ModuleView(
+                module,
+                userId,
+                totalLessonCount > 0 && completedLessonCount == totalLessonCount,
+                completedLessonCount,
+                totalLessonCount
+        );
+    }
+
+    private Map<Long, Integer> activeLessonCountsByModule(Long courseId) {
+        Map<Long, Integer> totalLessonsByModuleId = new HashMap<>();
+        List<Lesson> activeLessons = lessonRepository.findByModule_Course_Id(courseId).stream()
+                .filter(lesson -> Boolean.TRUE.equals(lesson.getIsActive()))
+                .toList();
+        for (Lesson lesson : activeLessons) {
+            totalLessonsByModuleId.merge(lesson.getModule().getId(), 1, Integer::sum);
+        }
+        return totalLessonsByModuleId;
+    }
+
+    private int countActiveLessons(Module module) {
+        if (module.getLessons() == null) {
+            return 0;
+        }
+        return (int) module.getLessons().stream()
+                .filter(lesson -> Boolean.TRUE.equals(lesson.getIsActive()))
+                .count();
+    }
+
+    private ModuleView buildModuleView(Module module, Long userId, Map<Long, Integer> totalLessonsByModuleId, Map<Long, Set<Long>> completedLessonIdsByModuleId) {
+        int totalLessonCount = totalLessonsByModuleId.getOrDefault(module.getId(), 0);
+        int completedLessonCount = completedLessonIdsByModuleId.getOrDefault(module.getId(), Set.of()).size();
+        return new ModuleView(
+                module,
+                userId,
+                totalLessonCount > 0 && completedLessonCount == totalLessonCount,
+                completedLessonCount,
+                totalLessonCount
+        );
     }
 
     /**
@@ -228,6 +382,12 @@ public class ModuleServiceImpl implements ModuleService {
     private void requireId(Long id) {
         if (id == null) {
             throw new ModuleValidationException(ErrorMessages.MODULE_REQUESTER_ID_MANDATORY);
+        }
+    }
+
+    private void validateProgressUserId(Long userId) {
+        if (userId == null) {
+            throw new ModuleValidationException(ErrorMessages.MODULE_USER_ID_MANDATORY);
         }
     }
 

@@ -1,5 +1,6 @@
 package com.aditya.lms.mapper;
 
+import com.aditya.lms.dto.ModuleView;
 import com.aditya.lms.entity.Course;
 import com.aditya.lms.entity.Lesson;
 import com.aditya.lms.entity.Module;
@@ -10,6 +11,9 @@ import com.lms.model.ModuleCreateResponseDTO;
 import com.lms.model.ModuleDeleteResponseDTO;
 import com.lms.model.ModuleGetResponseDTO;
 import com.lms.model.ModuleListResponseDTO;
+import com.lms.model.ModuleListResponseDataInnerDTO;
+import com.lms.model.ModuleListResponseDataInnerOneOfDTO;
+import com.lms.model.ModuleProgressResponseDTO;
 import com.lms.model.ModuleResponseDTO;
 import com.lms.model.ModuleResponseLessonsInnerDTO;
 import com.lms.model.ModuleUpdateRequestDTO;
@@ -56,21 +60,28 @@ public class ModuleMapper {
     public ModuleCreateResponseDTO toCreateResponse(Module module) {
         return new ModuleCreateResponseDTO()
                 .message("Module created successfully")
-                .data(toResponse(module, false))
+                .data(toResponse(new ModuleView(module, null, null, null, 0), false))
                 .timestamp(OffsetDateTime.now());
     }
 
-    public ModuleGetResponseDTO toGetResponse(Module module, boolean includeLessons) {
+    public ModuleGetResponseDTO toGetResponse(ModuleView moduleView, boolean includeLessons) {
         return new ModuleGetResponseDTO()
                 .message("Module fetched successfully")
-                .data(toResponse(module, includeLessons))
+                .data(toResponse(moduleView, includeLessons))
+                .timestamp(OffsetDateTime.now());
+    }
+
+    public ModuleGetResponseDTO toGetProgressResponse(ModuleView moduleView, boolean includeLessons) {
+        return new ModuleGetResponseDTO()
+                .message("Module fetched successfully")
+                .data(toProgressResponse(moduleView, includeLessons))
                 .timestamp(OffsetDateTime.now());
     }
 
     public ModuleUpdateResponseDTO toUpdateResponse(Module module) {
         return new ModuleUpdateResponseDTO()
                 .message("Module updated successfully")
-                .data(toResponse(module, false))
+                .data(toResponse(new ModuleView(module, null, null, null, 0), false))
                 .timestamp(OffsetDateTime.now());
     }
 
@@ -81,7 +92,7 @@ public class ModuleMapper {
                 .timestamp(OffsetDateTime.now());
     }
 
-    public ModuleListResponseDTO toListResponse(Page<Module> page) {
+    public ModuleListResponseDTO toListResponse(Page<ModuleView> page) {
         return new ModuleListResponseDTO()
                 .message("Modules fetched successfully")
                 .data(page.getContent().stream().map(this::toListItem).toList())
@@ -91,13 +102,25 @@ public class ModuleMapper {
                 .timestamp(OffsetDateTime.now());
     }
 
-    private ModuleResponseDTO toResponse(Module module, boolean includeLessons) {
+    public ModuleListResponseDTO toListProgressResponse(Page<ModuleView> page) {
+        return new ModuleListResponseDTO()
+                .message("Modules fetched successfully")
+                .data(page.getContent().stream().map(this::toProgressListItem).toList())
+                .page(page.getNumber() + 1)
+                .size(page.getSize())
+                .total(Math.toIntExact(page.getTotalElements()))
+                .timestamp(OffsetDateTime.now());
+    }
+
+    private ModuleResponseDTO toResponse(ModuleView moduleView, boolean includeLessons) {
+        Module module = moduleView.module();
         ModuleResponseDTO response = new ModuleResponseDTO()
                 .moduleId(module.getId())
                 .courseId(module.getCourse() == null ? null : module.getCourse().getId())
                 .moduleTitle(module.getTitle())
                 .moduleDescription(module.getDescription())
                 .sequence(module.getSequence())
+                .totalLessonCount(moduleView.totalLessonCount())
                 .isActive(module.getIsActive())
                 .createdAt(module.getCreatedAt());
 
@@ -110,15 +133,57 @@ public class ModuleMapper {
         return response;
     }
 
-    private CourseResponseModulesInnerDTO toListItem(Module module) {
+    private ModuleProgressResponseDTO toProgressResponse(ModuleView moduleView, boolean includeLessons) {
+        Module module = moduleView.module();
+        ModuleProgressResponseDTO response = new ModuleProgressResponseDTO()
+                .moduleId(module.getId())
+                .courseId(module.getCourse() == null ? null : module.getCourse().getId())
+                .moduleTitle(module.getTitle())
+                .moduleDescription(module.getDescription())
+                .sequence(module.getSequence())
+                .userId(moduleView.userId())
+                .isModuleCompleted(moduleView.isModuleCompleted())
+                .completedLessonCount(moduleView.completedLessonCount())
+                .totalLessonCount(moduleView.totalLessonCount())
+                .isActive(module.getIsActive())
+                .createdAt(module.getCreatedAt());
+
+        if (!includeLessons || module.getLessons() == null || !Hibernate.isInitialized(module.getLessons())) {
+            response.setLessons(Collections.emptyList());
+            return response;
+        }
+
+        response.setLessons(module.getLessons().stream().map(this::toLessonInner).toList());
+        return response;
+    }
+
+    private ModuleListResponseDataInnerDTO toListItem(ModuleView moduleView) {
+        Module module = moduleView.module();
         return new CourseResponseModulesInnerDTO()
                 .moduleId(module.getId())
                 .courseId(module.getCourse() == null ? null : module.getCourse().getId())
                 .moduleTitle(module.getTitle())
                 .moduleDescription(module.getDescription())
                 .sequence(module.getSequence())
+                .totalLessonCount(moduleView.totalLessonCount())
                 .isActive(module.getIsActive())
                 .createdAt(module.getCreatedAt());
+    }
+
+    private ModuleListResponseDataInnerDTO toProgressListItem(ModuleView moduleView) {
+        Module module = moduleView.module();
+        return new ModuleListResponseDataInnerOneOfDTO()
+                .moduleId(module.getId())
+                .courseId(module.getCourse() == null ? null : module.getCourse().getId())
+                .moduleTitle(module.getTitle())
+                .moduleDescription(module.getDescription())
+                .sequence(module.getSequence())
+                .isActive(module.getIsActive())
+                .createdAt(module.getCreatedAt())
+                .userId(moduleView.userId())
+                .isModuleCompleted(moduleView.isModuleCompleted())
+                .completedLessonCount(moduleView.completedLessonCount())
+                .totalLessonCount(moduleView.totalLessonCount());
     }
 
     private ModuleResponseLessonsInnerDTO toLessonInner(Lesson lesson) {

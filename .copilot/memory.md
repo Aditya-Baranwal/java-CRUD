@@ -58,10 +58,12 @@
     - `createLessonAsAdmin(lesson, adminId)` / `createLessonAsInstructor(lesson, instructorId)`
     - `updateLessonAsAdmin(lessonId, lesson, adminId)` / `updateLessonAsInstructor(lessonId, lesson, instructorId)`
     - `deleteLessonAsAdmin(lessonId, adminId)` / `deleteLessonAsInstructor(lessonId, instructorId)`
-    - `listLessonsForAdmin(...)` / `listLessonsForInstructor(moduleId, instructorId, ...)` / `listLessonsForStudent(...)`
+    - shared reads use role-neutral methods `listLessons(...)` and `listLessonsWithProgress(...)`, while instructor/student-specific variants remain `listLessonsForInstructor(...)`, `listLessonsForInstructorWithProgress(...)`, `listLessonsForStudent(...)`, and `listLessonsForStudentWithProgress(...)`
   - Students get **no** create/update/delete method at all — unauthorized actions are prevented at compile time, not via a runtime role check.
   - Instructor variants verify `course.instructorId == instructorId` (`ErrorMessages.lessonInstructorForbidden`, thrown as `LessonForbiddenException`, HTTP 403); admin variants skip ownership checks.
-  - `LessonController` currently wires all calls to the **admin-variant** methods with a hardcoded `TEMP_REQUESTER_ID = 0L` as a stopgap (marked `TODO`), since there is no authenticated caller identity yet — replace once a security layer exists.
+  - Lesson progress reads are modeled separately from plain reads: `getLesson(...)` returns the plain lesson entity, `getLessonWithProgress(lessonId, userId)` returns `LessonView`, and `listLessonsWithProgress(...)` / the instructor/student progress variants return `Page<LessonView>`. `LessonView` wraps `Lesson` plus derived progress fields (`userId`, `progressId`, `isLessonCompleted`, `progressStatus`, `progressStartedAt`, `progressCompletedAt`).
+  - Progress read behavior: when the requested `userId` is enrolled, an existing `Progress` row is surfaced directly; when enrolled but no row exists, the API derives `progressId=null`, `progressStatus=UNSTARTED`, `isLessonCompleted=false` without persisting anything; when not enrolled, all progress-derived fields are `null`.
+  - `LessonController` currently wires writes to the admin-variant mutation methods and wires list reads to the shared `listLessons(...)` / `listLessonsWithProgress(...)` methods with a hardcoded `TEMP_REQUESTER_ID = 0L` stopgap for mutations only. There is still no controller/security-layer role gate for `progress=true`; current behavior is enrollment-gated only.
   - There is no `User` entity, `Role` enum, or Spring Security layer anywhere in the codebase yet; any future role/ownership enforcement work needs this foundation first.
 
 - `ModuleService` / `ModuleServiceImpl` enforce the rules in `docs/decisions/module.decisions.md` (applied one level shallower than Lesson, directly via `Module -> Course`) using the **same per-role-method convention** as `LessonService`:
@@ -103,7 +105,7 @@
   - `EnrollmentConflictException` (`ENROLLMENT_409`) — duplicate enrollment, course-closed, course-not-published
   - `EnrollmentValidationException` (`ENROLLMENT_400`)
   - `EnrollmentForbiddenException` (`ENROLLMENT_403`) — new, for the "student can only self-enroll" rule.
-- Centralized all reusable error codes/messages in `com.aditya.lms.exception.ErrorMessages` using a shared `Error` record; Lesson-specific codes are `LESSON_001`-`LESSON_014` plus `LESSON_404`; Module-specific codes are `MODULE_001`-`MODULE_014` plus `MODULE_404`; Enrollment-specific codes are `ENROLLMENT_001`-`ENROLLMENT_008` plus `ENROLLMENT_404`.
+- Centralized all reusable error codes/messages in `com.aditya.lms.exception.ErrorMessages` using a shared `Error` record; Lesson-specific codes are `LESSON_001`-`LESSON_015` plus `LESSON_404`; Module-specific codes are `MODULE_001`-`MODULE_014` plus `MODULE_404`; Enrollment-specific codes are `ENROLLMENT_001`-`ENROLLMENT_008` plus `ENROLLMENT_404`.
 - Added `GlobalExceptionHandler` (`@RestControllerAdvice`) returning `ErrorResponseDTO`.
 
 ## Unit Test Conventions (`.copilot/prompts/unit.test.prompt.md`)
@@ -151,7 +153,8 @@
 - List endpoints use dedicated list response schemas (`CourseListResponse`, `ModuleListResponse`, `LessonListResponse`, `EnrollmentListResponse`, `ProgressListResponse`) and do not include nested child collections in the list payloads.
 - Nested child collections remain only in detail responses (`CourseResponse.modules`, `ModuleResponse.lessons`), not in list responses.
 - Array response fields define `default: []` to reflect empty-array semantics in the API contract and match PostgreSQL array defaults.
-- Common enums and summary schemas such as `ContentType`, `LessonStatus`, `CourseCompletionStatus`, `ModuleSummary`, `LessonSummary`, `ErrorResponse`, and list wrappers should be shared rather than redefined inline.
+- Common enums and summary schemas such as `ContentType`, `LessonStatus`, `CourseCompletionStatus`, `ModuleSummary`, `LessonSummary`, `LessonProgressSummary`, `ErrorResponse`, and list wrappers should be shared rather than redefined inline.
+- Lesson read APIs use two response shapes: plain `LessonResponse` / `LessonSummary` by default, and `LessonProgressResponse` / `LessonProgressSummary` when `progress=true`. `GET /lessons` and `GET /lessons/{lessonId}` both accept `progress` plus `userId`, and progress-mode responses include `progressId`.
 
 ## Entity Layer
 

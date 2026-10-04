@@ -195,11 +195,55 @@ components:
           type: string
         sequence:
           type: integer
+        totalLessonCount:
+          type: integer
+          description: Total number of active lessons in the module.
         lessons:
           type: array
           items:
             $ref: './openapi/common.yaml#/components/schemas/LessonSummary'
           default: []
+        isActive:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+
+    ModuleProgressResponse:
+      type: object
+      properties:
+        moduleId:
+          type: integer
+          format: int64
+        courseId:
+          type: integer
+          format: int64
+        moduleTitle:
+          type: string
+        moduleDescription:
+          type: string
+        sequence:
+          type: integer
+        lessons:
+          type: array
+          items:
+            $ref: './openapi/common.yaml#/components/schemas/LessonSummary'
+          default: []
+        userId:
+          type: integer
+          format: int64
+          description: Echoes back the queried userId.
+        isModuleCompleted:
+          type: boolean
+          nullable: true
+          description: Whether all active lessons in the module are completed by userId; null when the user is not enrolled.
+        completedLessonCount:
+          type: integer
+          nullable: true
+          description: Number of active lessons completed by userId.
+        totalLessonCount:
+          type: integer
+          description: Total number of active lessons in the module.
         isActive:
           type: boolean
         createdAt:
@@ -214,7 +258,9 @@ components:
         data:
           type: array
           items:
-            $ref: './openapi/common.yaml#/components/schemas/ModuleSummary'
+            oneOf:
+              - $ref: './openapi/common.yaml#/components/schemas/ModuleSummary'
+              - $ref: './openapi/common.yaml#/components/schemas/ModuleProgressSummary'
         page:
           type: integer
         size:
@@ -728,6 +774,18 @@ paths:
           schema:
             type: integer
             format: int64
+        - name: userId
+          in: query
+          description: Required when progress=true; selects which user's module completion details to include.
+          schema:
+            type: integer
+            format: int64
+        - name: progress
+          in: query
+          description: When true, each item is returned in the module-details-plus-progress shape.
+          schema:
+            type: boolean
+            default: false
         - name: active
           in: query
           schema:
@@ -788,6 +846,18 @@ paths:
           schema:
             type: boolean
             default: false
+        - name: userId
+          in: query
+          description: Required when progress=true; selects which user's module completion details to include.
+          schema:
+            type: integer
+            format: int64
+        - name: progress
+          in: query
+          description: When true, the module is returned in the module-details-plus-progress shape.
+          schema:
+            type: boolean
+            default: false
       responses:
         '200':
           description: Module fetched successfully
@@ -800,7 +870,9 @@ paths:
                   message:
                     type: string
                   data:
-                    $ref: '#/components/schemas/ModuleResponse'
+                    oneOf:
+                      - $ref: '#/components/schemas/ModuleResponse'
+                      - $ref: '#/components/schemas/ModuleProgressResponse'
                   timestamp:
                     type: string
                     format: date-time

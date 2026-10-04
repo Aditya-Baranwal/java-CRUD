@@ -1,5 +1,6 @@
 package com.aditya.lms.mapper;
 
+import com.aditya.lms.dto.ModuleView;
 import com.aditya.lms.entity.Course;
 import com.aditya.lms.entity.Lesson;
 import com.aditya.lms.entity.Module;
@@ -11,6 +12,9 @@ import com.lms.model.ModuleCreateResponseDTO;
 import com.lms.model.ModuleDeleteResponseDTO;
 import com.lms.model.ModuleGetResponseDTO;
 import com.lms.model.ModuleListResponseDTO;
+import com.lms.model.ModuleListResponseDataInnerDTO;
+import com.lms.model.ModuleListResponseDataInnerOneOfDTO;
+import com.lms.model.ModuleProgressResponseDTO;
 import com.lms.model.ModuleResponseDTO;
 import com.lms.model.ModuleResponseLessonsInnerDTO;
 import com.lms.model.ModuleUpdateRequestDTO;
@@ -155,6 +159,7 @@ class ModuleMapperTest {
             assertThat(data.getModuleTitle()).isEqualTo(module.getTitle());
             assertThat(data.getModuleDescription()).isEqualTo(module.getDescription());
             assertThat(data.getSequence()).isEqualTo(module.getSequence());
+            assertThat(data.getTotalLessonCount()).isZero();
             assertThat(data.getIsActive()).isEqualTo(module.getIsActive());
             assertThat(data.getCreatedAt()).isEqualTo(module.getCreatedAt());
             assertThat(data.getLessons()).isEmpty();
@@ -178,21 +183,23 @@ class ModuleMapperTest {
         void shouldLeaveLessonsEmptyWhenIncludeLessonsIsFalse() {
             Module module = ModuleTestData.draftModule();
 
-            ModuleGetResponseDTO response = moduleMapper.toGetResponse(module, false);
+            ModuleGetResponseDTO response = moduleMapper.toGetResponse(new ModuleView(module, null, null, null, 0), false);
 
             assertThat(response.getMessage()).isEqualTo("Module fetched successfully");
-            assertThat(response.getData().getLessons()).isEmpty();
+            ModuleResponseDTO data = (ModuleResponseDTO) response.getData();
+            assertThat(data.getLessons()).isEmpty();
         }
 
         @Test
         void shouldLeaveLessonsEmptyWhenIncludeLessonsIsTrueButCollectionIsUninitialized() {
             Module module = ModuleTestData.draftModule();
 
-            ModuleGetResponseDTO response = moduleMapper.toGetResponse(module, true);
+            ModuleGetResponseDTO response = moduleMapper.toGetResponse(new ModuleView(module, null, null, null, 0), true);
 
             // Hibernate lazy collection is a plain ArrayList here (not a proxy) so it IS
             // considered initialized; assert lessons list mirrors the (empty) entity collection.
-            assertThat(response.getData().getLessons()).isEmpty();
+            ModuleResponseDTO data = (ModuleResponseDTO) response.getData();
+            assertThat(data.getLessons()).isEmpty();
         }
 
         @Test
@@ -208,15 +215,34 @@ class ModuleMapperTest {
                     .build();
             module.setLessons(List.of(lesson));
 
-            ModuleGetResponseDTO response = moduleMapper.toGetResponse(module, true);
+            ModuleGetResponseDTO response = moduleMapper.toGetResponse(new ModuleView(module, null, null, null, 1), true);
 
-            assertThat(response.getData().getLessons()).hasSize(1);
-            ModuleResponseLessonsInnerDTO lessonDto = response.getData().getLessons().get(0);
+            ModuleResponseDTO data = (ModuleResponseDTO) response.getData();
+            assertThat(data.getLessons()).hasSize(1);
+            assertThat(data.getTotalLessonCount()).isEqualTo(1);
+            ModuleResponseLessonsInnerDTO lessonDto = data.getLessons().get(0);
             assertThat(lessonDto.getLessonId()).isEqualTo(10L);
             assertThat(lessonDto.getModuleId()).isEqualTo(module.getId());
             assertThat(lessonDto.getContentType()).isEqualTo(ModuleResponseLessonsInnerDTO.ContentTypeEnum.MP4);
             assertThat(lessonDto.getContentLink()).isEqualTo(URI.create("https://example.com/video"));
             assertThat(lessonDto.getSequence()).isEqualTo(1);
+        }
+
+        @Test
+        void shouldMapProgressFieldsIntoGetResponse() {
+            Module module = ModuleTestData.draftModule();
+            ModuleView moduleView = new ModuleView(module, 201L, Boolean.TRUE, 3, 3);
+
+            ModuleGetResponseDTO response = moduleMapper.toGetProgressResponse(moduleView, false);
+
+            assertThat(response.getData()).isInstanceOf(ModuleProgressResponseDTO.class);
+            ModuleProgressResponseDTO data = (ModuleProgressResponseDTO) response.getData();
+            assertThat(data.getModuleId()).isEqualTo(module.getId());
+            assertThat(data.getUserId()).isEqualTo(201L);
+            assertThat(data.getIsModuleCompleted()).isTrue();
+            assertThat(data.getCompletedLessonCount()).isEqualTo(3);
+            assertThat(data.getTotalLessonCount()).isEqualTo(3);
+            assertThat(data.getLessons()).isEmpty();
         }
     }
 
@@ -231,6 +257,7 @@ class ModuleMapperTest {
 
             assertThat(response.getMessage()).isEqualTo("Module updated successfully");
             assertThat(response.getData().getModuleId()).isEqualTo(module.getId());
+            assertThat(response.getData().getTotalLessonCount()).isZero();
         }
     }
 
@@ -253,7 +280,7 @@ class ModuleMapperTest {
         @Test
         void shouldMapPageContentAndPaginationMetadata() {
             Module module = ModuleTestData.draftModule();
-            Page<Module> page = new PageImpl<>(List.of(module), PageRequest.of(0, 10), 1);
+            Page<ModuleView> page = new PageImpl<>(List.of(new ModuleView(module, null, null, null, 2)), PageRequest.of(0, 10), 1);
 
             ModuleListResponseDTO response = moduleMapper.toListResponse(page);
 
@@ -262,16 +289,38 @@ class ModuleMapperTest {
             assertThat(response.getSize()).isEqualTo(10);
             assertThat(response.getTotal()).isEqualTo(1);
             assertThat(response.getData()).hasSize(1);
-            CourseResponseModulesInnerDTO item = response.getData().get(0);
-            assertThat(item.getModuleId()).isEqualTo(module.getId());
-            assertThat(item.getModuleTitle()).isEqualTo(module.getTitle());
-            assertThat(item.getSequence()).isEqualTo(module.getSequence());
-            assertThat(item.getIsActive()).isEqualTo(module.getIsActive());
+            ModuleListResponseDataInnerDTO item = response.getData().get(0);
+            assertThat(item).isInstanceOf(CourseResponseModulesInnerDTO.class);
+            CourseResponseModulesInnerDTO baseItem = (CourseResponseModulesInnerDTO) item;
+            assertThat(baseItem.getModuleId()).isEqualTo(module.getId());
+            assertThat(baseItem.getModuleTitle()).isEqualTo(module.getTitle());
+            assertThat(baseItem.getSequence()).isEqualTo(module.getSequence());
+            assertThat(baseItem.getTotalLessonCount()).isEqualTo(2);
+            assertThat(baseItem.getIsActive()).isEqualTo(module.getIsActive());
+        }
+
+        @Test
+        void shouldMapProgressListItemsWhenRequested() {
+            Module module = ModuleTestData.draftModule();
+            ModuleView moduleView = new ModuleView(module, 201L, Boolean.FALSE, 1, 3);
+            Page<ModuleView> page = new PageImpl<>(List.of(moduleView), PageRequest.of(0, 10), 1);
+
+            ModuleListResponseDTO response = moduleMapper.toListProgressResponse(page);
+
+            assertThat(response.getData()).hasSize(1);
+            ModuleListResponseDataInnerDTO item = response.getData().get(0);
+            assertThat(item).isInstanceOf(ModuleListResponseDataInnerOneOfDTO.class);
+            ModuleListResponseDataInnerOneOfDTO progressItem = (ModuleListResponseDataInnerOneOfDTO) item;
+            assertThat(progressItem.getModuleId()).isEqualTo(module.getId());
+            assertThat(progressItem.getUserId()).isEqualTo(201L);
+            assertThat(progressItem.getIsModuleCompleted()).isFalse();
+            assertThat(progressItem.getCompletedLessonCount()).isEqualTo(1);
+            assertThat(progressItem.getTotalLessonCount()).isEqualTo(3);
         }
 
         @Test
         void shouldReturnEmptyDataListForEmptyPage() {
-            Page<Module> page = new PageImpl<>(List.of());
+            Page<ModuleView> page = new PageImpl<>(List.of());
 
             ModuleListResponseDTO response = moduleMapper.toListResponse(page);
 
@@ -289,11 +338,11 @@ class ModuleMapperTest {
         void shouldMapNullCourseIdInListItemWhenCourseIsNull() {
             Module module = ModuleTestData.draftModule();
             module.setCourse(null);
-            Page<Module> page = new PageImpl<>(List.of(module));
+            Page<ModuleView> page = new PageImpl<>(List.of(new ModuleView(module, null, null, null, 0)));
 
             ModuleListResponseDTO response = moduleMapper.toListResponse(page);
 
-            assertThat(response.getData().get(0).getCourseId()).isNull();
+            assertThat(((CourseResponseModulesInnerDTO) response.getData().get(0)).getCourseId()).isNull();
         }
     }
 }

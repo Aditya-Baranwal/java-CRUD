@@ -111,6 +111,8 @@ public final class ErrorMessages {
         return new Error("MODULE_014", "Module cannot be deleted while course is in " + courseStatus + " state");
     }
 
+    public static final Error MODULE_USER_ID_MANDATORY = new Error("MODULE_015", "userId is mandatory when progress=true");
+
     // ── Enrollment ──────────────────────────────────────────────────────────
 
     public static final Error ENROLLMENT_PAYLOAD_REQUIRED       = new Error("ENROLLMENT_001", "Enrollment payload is required");

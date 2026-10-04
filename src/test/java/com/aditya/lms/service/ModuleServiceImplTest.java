@@ -1,15 +1,23 @@
 package com.aditya.lms.service;
 
+import com.aditya.lms.dto.ModuleView;
 import com.aditya.lms.entity.Course;
+import com.aditya.lms.entity.Lesson;
 import com.aditya.lms.entity.Module;
+import com.aditya.lms.entity.Progress;
 import com.aditya.lms.enums.CourseStatus;
+import com.aditya.lms.enums.LessonStatus;
 import com.aditya.lms.exception.ErrorMessages;
 import com.aditya.lms.exception.ModuleConflictException;
 import com.aditya.lms.exception.ModuleForbiddenException;
 import com.aditya.lms.exception.ModuleNotFoundException;
 import com.aditya.lms.exception.ModuleValidationException;
 import com.aditya.lms.repository.CourseRepository;
+import com.aditya.lms.repository.EnrollmentRepository;
+import com.aditya.lms.repository.LessonRepository;
 import com.aditya.lms.repository.ModuleRepository;
+import com.aditya.lms.repository.ProgressRepository;
+import com.aditya.lms.testdata.EnrollmentTestData;
 import com.aditya.lms.testdata.ModuleTestData;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
@@ -27,6 +35,7 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 
+import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -44,12 +53,22 @@ class ModuleServiceImplTest {
     private static final Long ADMIN_ID = 1L;
     private static final Long INSTRUCTOR_ID = 101L;
     private static final Long OTHER_INSTRUCTOR_ID = 202L;
+    private static final Long USER_ID = 201L;
 
     @Mock
     private ModuleRepository moduleRepository;
 
     @Mock
     private CourseRepository courseRepository;
+
+    @Mock
+    private EnrollmentRepository enrollmentRepository;
+
+    @Mock
+    private LessonRepository lessonRepository;
+
+    @Mock
+    private ProgressRepository progressRepository;
 
     @InjectMocks
     private ModuleServiceImpl moduleService;
@@ -254,9 +273,10 @@ class ModuleServiceImplTest {
         void shouldReturnModuleWhenFound() {
             when(moduleRepository.findByIdAndIsActiveTrue(1L)).thenReturn(Optional.of(draftModule));
 
-            Module result = moduleService.getModule(1L);
+            ModuleView result = moduleService.getModule(1L);
 
-            assertThat(result).isEqualTo(draftModule);
+            assertThat(result.module()).isEqualTo(draftModule);
+            assertThat(result.totalLessonCount()).isZero();
         }
 
         @Test
@@ -267,16 +287,72 @@ class ModuleServiceImplTest {
                     .isInstanceOf(ModuleNotFoundException.class)
                     .hasMessage(ErrorMessages.moduleNotFound(99L).message());
         }
+
+        @Test
+        void shouldReturnModuleWithProgressWhenUserIsEnrolled() {
+            Module module = ModuleTestData.draftModule();
+            Lesson finishedLesson = Lesson.builder().id(10L).module(module).isActive(Boolean.TRUE).build();
+            Lesson unfinishedLesson = Lesson.builder().id(11L).module(module).isActive(Boolean.TRUE).build();
+            module.setLessons(List.of(finishedLesson, unfinishedLesson));
+            Progress finishedProgress = EnrollmentTestData.progress(USER_ID, finishedLesson, LessonStatus.FINISHED);
+            when(moduleRepository.findByIdAndIsActiveTrue(1L)).thenReturn(Optional.of(module));
+            when(enrollmentRepository.existsByUserIdAndCourse_Id(USER_ID, module.getCourse().getId())).thenReturn(true);
+            when(progressRepository.findByUserIdAndLesson_Module_Id(USER_ID, 1L)).thenReturn(List.of(finishedProgress));
+
+            ModuleView result = moduleService.getModuleWithProgress(1L, USER_ID);
+
+            assertThat(result.module()).isEqualTo(module);
+            assertThat(result.userId()).isEqualTo(USER_ID);
+            assertThat(result.isModuleCompleted()).isFalse();
+            assertThat(result.completedLessonCount()).isEqualTo(1);
+            assertThat(result.totalLessonCount()).isEqualTo(2);
+        }
+
+        @Test
+        void shouldTreatZeroActiveLessonsAsIncompleteForEnrolledUser() {
+            Module module = ModuleTestData.draftModule();
+            module.setLessons(List.of());
+            when(moduleRepository.findByIdAndIsActiveTrue(1L)).thenReturn(Optional.of(module));
+            when(enrollmentRepository.existsByUserIdAndCourse_Id(USER_ID, module.getCourse().getId())).thenReturn(true);
+            when(progressRepository.findByUserIdAndLesson_Module_Id(USER_ID, 1L)).thenReturn(List.of());
+
+            ModuleView result = moduleService.getModuleWithProgress(1L, USER_ID);
+
+            assertThat(result.isModuleCompleted()).isFalse();
+            assertThat(result.completedLessonCount()).isZero();
+            assertThat(result.totalLessonCount()).isZero();
+        }
+
+        @Test
+        void shouldReturnNullProgressFieldsWhenUserIsNotEnrolled() {
+            when(moduleRepository.findByIdAndIsActiveTrue(1L)).thenReturn(Optional.of(draftModule));
+            when(enrollmentRepository.existsByUserIdAndCourse_Id(USER_ID, draftModule.getCourse().getId())).thenReturn(false);
+
+            ModuleView result = moduleService.getModuleWithProgress(1L, USER_ID);
+
+            assertThat(result.userId()).isEqualTo(USER_ID);
+            assertThat(result.isModuleCompleted()).isNull();
+            assertThat(result.completedLessonCount()).isNull();
+            assertThat(result.totalLessonCount()).isZero();
+            verify(progressRepository, never()).findByUserIdAndLesson_Module_Id(anyLong(), anyLong());
+        }
+
+        @Test
+        void shouldRequireUserIdWhenProgressIsRequested() {
+            assertThatThrownBy(() -> moduleService.getModuleWithProgress(1L, null))
+                    .isInstanceOf(ModuleValidationException.class)
+                    .hasMessage(ErrorMessages.MODULE_USER_ID_MANDATORY.message());
+        }
     }
 
-    // ── listModulesForAdmin / ForInstructor / ForStudent ────────────────────
+    // ── listModules / ForInstructor / ForStudent ────────────────────────────
 
     @Nested
     class ListModules {
 
         @Test
         void shouldThrowWhenCourseIdIsNullForAdmin() {
-            assertThatThrownBy(() -> moduleService.listModulesForAdmin(null, 1, 10, null, null, null))
+            assertThatThrownBy(() -> moduleService.listModules(null, 1, 10, null, null, null))
                     .isInstanceOf(ModuleValidationException.class)
                     .hasMessage(ErrorMessages.MODULE_COURSE_ID_MANDATORY.message());
         }
@@ -285,7 +361,7 @@ class ModuleServiceImplTest {
         void shouldThrowConflictWhenCourseDoesNotExist() {
             when(courseRepository.findById(1L)).thenReturn(Optional.empty());
 
-            assertThatThrownBy(() -> moduleService.listModulesForAdmin(1L, 1, 10, null, null, null))
+            assertThatThrownBy(() -> moduleService.listModules(1L, 1, 10, null, null, null))
                     .isInstanceOf(ModuleConflictException.class)
                     .hasMessage(ErrorMessages.moduleCourseNotFound(1L).message());
         }
@@ -296,9 +372,10 @@ class ModuleServiceImplTest {
             when(moduleRepository.findByCourse_Id(eq(1L), any(Pageable.class)))
                     .thenReturn(new PageImpl<>(java.util.List.of(draftModule)));
 
-            Page<Module> result = moduleService.listModulesForAdmin(1L, 1, 10, null, null, null);
+            when(lessonRepository.findByModule_Course_Id(1L)).thenReturn(List.of());
+            Page<ModuleView> result = moduleService.listModules(1L, 1, 10, null, null, null);
 
-            assertThat(result.getContent()).containsExactly(draftModule);
+            assertThat(result.getContent()).extracting(ModuleView::module).containsExactly(draftModule);
             verify(moduleRepository).findByCourse_Id(eq(1L), any(Pageable.class));
             verify(moduleRepository, never()).findByCourse_IdAndIsActive(anyLong(), any(), any());
         }
@@ -310,9 +387,10 @@ class ModuleServiceImplTest {
             when(moduleRepository.findByCourse_IdAndIsActive(eq(1L), eq(true), any(Pageable.class)))
                     .thenReturn(new PageImpl<>(java.util.List.of(draftModule)));
 
-            Page<Module> result = moduleService.listModulesForAdmin(1L, 1, 10, null, null, null);
+            when(lessonRepository.findByModule_Course_Id(1L)).thenReturn(List.of());
+            Page<ModuleView> result = moduleService.listModules(1L, 1, 10, null, null, null);
 
-            assertThat(result.getContent()).containsExactly(draftModule);
+            assertThat(result.getContent()).extracting(ModuleView::module).containsExactly(draftModule);
             verify(moduleRepository).findByCourse_IdAndIsActive(eq(1L), eq(true), any(Pageable.class));
         }
 
@@ -323,7 +401,8 @@ class ModuleServiceImplTest {
             when(moduleRepository.findByCourse_IdAndIsActive(eq(1L), eq(false), any(Pageable.class)))
                     .thenReturn(new PageImpl<>(java.util.List.of()));
 
-            moduleService.listModulesForAdmin(1L, 1, 10, Boolean.FALSE, null, null);
+            when(lessonRepository.findByModule_Course_Id(1L)).thenReturn(List.of());
+            moduleService.listModules(1L, 1, 10, Boolean.FALSE, null, null);
 
             verify(moduleRepository).findByCourse_IdAndIsActive(eq(1L), eq(false), any(Pageable.class));
         }
@@ -341,9 +420,10 @@ class ModuleServiceImplTest {
             when(moduleRepository.findByCourse_Id(eq(1L), any(Pageable.class)))
                     .thenReturn(new PageImpl<>(java.util.List.of(draftModule)));
 
-            Page<Module> result = moduleService.listModulesForInstructor(1L, INSTRUCTOR_ID, 1, 10, null, null, null);
+            when(lessonRepository.findByModule_Course_Id(1L)).thenReturn(List.of());
+            Page<ModuleView> result = moduleService.listModulesForInstructor(1L, INSTRUCTOR_ID, 1, 10, null, null, null);
 
-            assertThat(result.getContent()).containsExactly(draftModule);
+            assertThat(result.getContent()).extracting(ModuleView::module).containsExactly(draftModule);
         }
 
         @Test
@@ -352,9 +432,10 @@ class ModuleServiceImplTest {
             when(moduleRepository.findByCourse_IdAndIsActive(eq(1L), eq(true), any(Pageable.class)))
                     .thenReturn(new PageImpl<>(java.util.List.of(draftModule)));
 
-            Page<Module> result = moduleService.listModulesForStudent(1L, 1, 10, null, null);
+            when(lessonRepository.findByModule_Course_Id(1L)).thenReturn(List.of());
+            Page<ModuleView> result = moduleService.listModulesForStudent(1L, 1, 10, null, null);
 
-            assertThat(result.getContent()).containsExactly(draftModule);
+            assertThat(result.getContent()).extracting(ModuleView::module).containsExactly(draftModule);
             verify(moduleRepository).findByCourse_IdAndIsActive(eq(1L), eq(true), any(Pageable.class));
             verify(moduleRepository, never()).findByCourse_Id(anyLong(), any());
         }
@@ -365,7 +446,8 @@ class ModuleServiceImplTest {
             when(moduleRepository.findByCourse_Id(eq(1L), any(Pageable.class)))
                     .thenReturn(new PageImpl<>(java.util.List.of()));
 
-            moduleService.listModulesForAdmin(1L, null, null, null, null, null);
+            when(lessonRepository.findByModule_Course_Id(1L)).thenReturn(List.of());
+            moduleService.listModules(1L, null, null, null, null, null);
 
             verify(moduleRepository).findByCourse_Id(eq(1L), pageableCaptor.capture());
             Pageable pageable = pageableCaptor.getValue();
@@ -381,7 +463,8 @@ class ModuleServiceImplTest {
             when(moduleRepository.findByCourse_Id(eq(1L), any(Pageable.class)))
                     .thenReturn(new PageImpl<>(java.util.List.of()));
 
-            moduleService.listModulesForAdmin(1L, 1, 500, null, null, null);
+            when(lessonRepository.findByModule_Course_Id(1L)).thenReturn(List.of());
+            moduleService.listModules(1L, 1, 500, null, null, null);
 
             verify(moduleRepository).findByCourse_Id(eq(1L), pageableCaptor.capture());
             assertThat(pageableCaptor.getValue().getPageSize()).isEqualTo(100);
@@ -393,12 +476,80 @@ class ModuleServiceImplTest {
             when(moduleRepository.findByCourse_Id(eq(1L), any(Pageable.class)))
                     .thenReturn(new PageImpl<>(java.util.List.of()));
 
-            moduleService.listModulesForAdmin(1L, 2, 20, null, "title", "asc");
+            when(lessonRepository.findByModule_Course_Id(1L)).thenReturn(List.of());
+            moduleService.listModules(1L, 2, 20, null, "title", "asc");
 
             verify(moduleRepository).findByCourse_Id(eq(1L), pageableCaptor.capture());
             Pageable pageable = pageableCaptor.getValue();
             assertThat(pageable.getPageNumber()).isEqualTo(1);
             assertThat(pageable.getSort().getOrderFor("title").getDirection()).isEqualTo(Sort.Direction.ASC);
+        }
+
+        @Test
+        void shouldAttachModuleCompletionForProgressListing() {
+            Lesson finishedLesson = Lesson.builder().id(10L).module(draftModule).isActive(Boolean.TRUE).build();
+            Lesson unfinishedLesson = Lesson.builder().id(11L).module(draftModule).isActive(Boolean.TRUE).build();
+            Lesson inactiveLesson = Lesson.builder().id(12L).module(draftModule).isActive(Boolean.FALSE).build();
+            Progress finishedProgress = EnrollmentTestData.progress(USER_ID, finishedLesson, LessonStatus.FINISHED);
+            when(courseRepository.findById(1L)).thenReturn(Optional.of(draftCourse));
+            when(moduleRepository.findByCourse_Id(eq(1L), any(Pageable.class)))
+                    .thenReturn(new PageImpl<>(List.of(draftModule)));
+            when(enrollmentRepository.existsByUserIdAndCourse_Id(USER_ID, draftCourse.getId())).thenReturn(true);
+            when(lessonRepository.findByModule_Course_Id(1L)).thenReturn(List.of(finishedLesson, unfinishedLesson, inactiveLesson));
+            when(progressRepository.findByUserIdAndLesson_Module_Course_Id(USER_ID, 1L)).thenReturn(List.of(finishedProgress));
+
+            Page<ModuleView> result = moduleService.listModulesWithProgress(1L, USER_ID, 1, 10, null, null, null);
+
+            assertThat(result.getContent()).singleElement().satisfies(view -> {
+                assertThat(view.module()).isEqualTo(draftModule);
+                assertThat(view.userId()).isEqualTo(USER_ID);
+                assertThat(view.isModuleCompleted()).isFalse();
+                assertThat(view.completedLessonCount()).isEqualTo(1);
+                assertThat(view.totalLessonCount()).isEqualTo(2);
+            });
+        }
+
+        @Test
+        void shouldIncludeTotalActiveLessonsInPlainListing() {
+            Lesson activeLesson = Lesson.builder().id(10L).module(draftModule).isActive(Boolean.TRUE).build();
+            Lesson inactiveLesson = Lesson.builder().id(11L).module(draftModule).isActive(Boolean.FALSE).build();
+            when(courseRepository.findById(1L)).thenReturn(Optional.of(draftCourse));
+            when(moduleRepository.findByCourse_Id(eq(1L), any(Pageable.class)))
+                    .thenReturn(new PageImpl<>(List.of(draftModule)));
+            when(lessonRepository.findByModule_Course_Id(1L)).thenReturn(List.of(activeLesson, inactiveLesson));
+
+            Page<ModuleView> result = moduleService.listModules(1L, 1, 10, null, null, null);
+
+            assertThat(result.getContent()).singleElement().satisfies(view -> {
+                assertThat(view.totalLessonCount()).isEqualTo(1);
+                assertThat(view.isModuleCompleted()).isNull();
+            });
+        }
+
+        @Test
+        void shouldReturnNullProgressFieldsInListingWhenUserIsNotEnrolled() {
+            when(courseRepository.findById(1L)).thenReturn(Optional.of(draftCourse));
+            when(moduleRepository.findByCourse_Id(eq(1L), any(Pageable.class)))
+                    .thenReturn(new PageImpl<>(List.of(draftModule)));
+            when(enrollmentRepository.existsByUserIdAndCourse_Id(USER_ID, draftCourse.getId())).thenReturn(false);
+            when(lessonRepository.findByModule_Course_Id(1L)).thenReturn(List.of());
+
+            Page<ModuleView> result = moduleService.listModulesWithProgress(1L, USER_ID, 1, 10, null, null, null);
+
+            assertThat(result.getContent()).singleElement().satisfies(view -> {
+                assertThat(view.userId()).isEqualTo(USER_ID);
+                assertThat(view.isModuleCompleted()).isNull();
+                assertThat(view.completedLessonCount()).isNull();
+                assertThat(view.totalLessonCount()).isZero();
+            });
+            verify(progressRepository, never()).findByUserIdAndLesson_Module_Course_Id(anyLong(), anyLong());
+        }
+
+        @Test
+        void shouldRequireUserIdForProgressListing() {
+            assertThatThrownBy(() -> moduleService.listModulesWithProgress(1L, null, 1, 10, null, null, null))
+                    .isInstanceOf(ModuleValidationException.class)
+                    .hasMessage(ErrorMessages.MODULE_USER_ID_MANDATORY.message());
         }
     }
 

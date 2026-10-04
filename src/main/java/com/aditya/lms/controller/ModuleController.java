@@ -1,5 +1,6 @@
 package com.aditya.lms.controller;
 
+import com.aditya.lms.dto.ModuleView;
 import com.aditya.lms.entity.Module;
 import com.aditya.lms.mapper.ModuleMapper;
 import com.aditya.lms.service.interfaces.ModuleService;
@@ -42,14 +43,23 @@ public class ModuleController implements ModulesApi {
     }
 
     @Override
-    public ResponseEntity<ModuleGetResponseDTO> getModule(Long moduleId, Boolean includeLessons) {
-        Module module = moduleService.getModule(moduleId);
-        return ResponseEntity.ok(moduleMapper.toGetResponse(module, Boolean.TRUE.equals(includeLessons)));
+    public ResponseEntity<ModuleGetResponseDTO> getModule(Long moduleId, Boolean includeLessons, Long userId, Boolean progress) {
+        if (Boolean.TRUE.equals(progress)) {
+            ModuleView moduleView = moduleService.getModuleWithProgress(moduleId, userId);
+            return ResponseEntity.ok(moduleMapper.toGetProgressResponse(moduleView, Boolean.TRUE.equals(includeLessons)));
+        }
+        ModuleView moduleView = moduleService.getModule(moduleId);
+        return ResponseEntity.ok(moduleMapper.toGetResponse(moduleView, Boolean.TRUE.equals(includeLessons)));
     }
 
     @Override
-    public ResponseEntity<ModuleListResponseDTO> listModules(Long courseId, Integer pageNo, Integer pageSize, Boolean active, String sortBy, String sortOrder) {
-        return ResponseEntity.ok(moduleMapper.toListResponse(moduleService.listModulesForAdmin(courseId, pageNo, pageSize, active, sortBy, sortOrder)));
+    public ResponseEntity<ModuleListResponseDTO> listModules(Long courseId, Integer pageNo, Integer pageSize, Long userId, Boolean progress, Boolean active, String sortBy, String sortOrder) {
+        if (Boolean.TRUE.equals(progress)) {
+            return ResponseEntity.ok(moduleMapper.toListProgressResponse(
+                    moduleService.listModulesWithProgress(courseId, userId, pageNo, pageSize, active, sortBy, sortOrder)
+            ));
+        }
+        return ResponseEntity.ok(moduleMapper.toListResponse(moduleService.listModules(courseId, pageNo, pageSize, active, sortBy, sortOrder)));
     }
 
     @Override
