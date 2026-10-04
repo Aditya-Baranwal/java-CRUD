@@ -8,6 +8,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Optional;
+import java.util.List;
 
 public interface EnrollmentRepository extends JpaRepository<Enrollment, Long> {
 
@@ -23,4 +24,6 @@ public interface EnrollmentRepository extends JpaRepository<Enrollment, Long> {
     Page<Enrollment> findByUserIdAndCourseCompletionStatus(Long userId, CourseCompletionStatus status, Pageable pageable);
 
     Optional<Enrollment> findByUserIdAndCourse_Id(Long userId, Long courseId);
+
+    List<Enrollment> findByUserIdAndCourse_IdIn(Long userId, List<Long> courseIds);
 }

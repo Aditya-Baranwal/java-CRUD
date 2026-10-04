@@ -1,5 +1,6 @@
 package com.aditya.lms.service.interfaces;
 
+import com.aditya.lms.dto.CourseView;
 import com.aditya.lms.entity.Course;
 import com.aditya.lms.enums.CourseStatus;
 import org.springframework.data.domain.Page;
@@ -8,9 +9,13 @@ public interface CourseService {
 
     Course createCourse(Course course);
 
-    Course getCourse(Long courseId);
+    CourseView getCourse(Long courseId);
 
-    Page<Course> listCourses(Integer pageNo, Integer pageSize, CourseStatus courseStatus, String sortBy, String sortOrder);
+    CourseView getCourseWithProgress(Long courseId, Long userId);
+
+    Page<CourseView> listCourses(Integer pageNo, Integer pageSize, CourseStatus courseStatus, String sortBy, String sortOrder);
+
+    Page<CourseView> listCoursesWithProgress(Long userId, Integer pageNo, Integer pageSize, CourseStatus courseStatus, String sortBy, String sortOrder);
 
     Course updateCourse(Long courseId, Course course);
 

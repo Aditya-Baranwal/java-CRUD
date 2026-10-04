@@ -1,12 +1,23 @@
 package com.aditya.lms.service;
 
+import com.aditya.lms.dto.CourseView;
 import com.aditya.lms.entity.Course;
+import com.aditya.lms.entity.Enrollment;
+import com.aditya.lms.entity.Lesson;
+import com.aditya.lms.entity.Module;
+import com.aditya.lms.entity.Progress;
+import com.aditya.lms.enums.CourseCompletionStatus;
 import com.aditya.lms.enums.CourseStatus;
+import com.aditya.lms.enums.LessonStatus;
 import com.aditya.lms.exception.CourseConflictException;
 import com.aditya.lms.exception.CourseNotFoundException;
 import com.aditya.lms.exception.CourseValidationException;
 import com.aditya.lms.exception.ErrorMessages;
 import com.aditya.lms.repository.CourseRepository;
+import com.aditya.lms.repository.EnrollmentRepository;
+import com.aditya.lms.repository.LessonRepository;
+import com.aditya.lms.repository.ModuleRepository;
+import com.aditya.lms.repository.ProgressRepository;
 import com.aditya.lms.testdata.CourseTestData;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
@@ -32,16 +43,30 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.lenient;
 
 @ExtendWith(MockitoExtension.class)
 class CourseServiceImplTest {
 
     @Mock
     private CourseRepository courseRepository;
+
+    @Mock
+    private EnrollmentRepository enrollmentRepository;
+
+    @Mock
+    private ModuleRepository moduleRepository;
+
+    @Mock
+    private LessonRepository lessonRepository;
+
+    @Mock
+    private ProgressRepository progressRepository;
 
     @InjectMocks
     private CourseServiceImpl courseService;
@@ -57,6 +82,7 @@ class CourseServiceImplTest {
     @BeforeEach
     void setUp() {
         draftCourse = CourseTestData.draftCourse();
+        lenient().when(moduleRepository.findByCourse_IdInAndIsActiveTrue(anyList())).thenReturn(List.of());
     }
 
     // ── createCourse ────────────────────────────────────────────────────────
@@ -158,9 +184,10 @@ class CourseServiceImplTest {
         void shouldReturnCourseWhenFound() {
             when(courseRepository.findById(1L)).thenReturn(Optional.of(draftCourse));
 
-            Course result = courseService.getCourse(1L);
+            CourseView result = courseService.getCourse(1L);
 
-            assertThat(result).isEqualTo(draftCourse);
+            assertThat(result.course()).isEqualTo(draftCourse);
+            assertThat(result.totalModuleCount()).isZero();
         }
 
         @Test
@@ -424,9 +451,9 @@ class CourseServiceImplTest {
             Page<Course> page = new PageImpl<>(List.of(draftCourse));
             when(courseRepository.findAll(any(Pageable.class))).thenReturn(page);
 
-            Page<Course> result = courseService.listCourses(1, 10, null, null, null);
+            Page<CourseView> result = courseService.listCourses(1, 10, null, null, null);
 
-            assertThat(result.getContent()).containsExactly(draftCourse);
+            assertThat(result.getContent()).extracting(CourseView::course).containsExactly(draftCourse);
             verify(courseRepository).findAll(any(Pageable.class));
             verify(courseRepository, never()).findByCourseStatus(any(), any());
         }
@@ -436,9 +463,9 @@ class CourseServiceImplTest {
             Page<Course> page = new PageImpl<>(List.of(draftCourse));
             when(courseRepository.findByCourseStatus(eq(CourseStatus.PUBLISHED), any(Pageable.class))).thenReturn(page);
 
-            Page<Course> result = courseService.listCourses(1, 10, CourseStatus.PUBLISHED, null, null);
+            Page<CourseView> result = courseService.listCourses(1, 10, CourseStatus.PUBLISHED, null, null);
 
-            assertThat(result.getContent()).containsExactly(draftCourse);
+            assertThat(result.getContent()).extracting(CourseView::course).containsExactly(draftCourse);
             verify(courseRepository).findByCourseStatus(eq(CourseStatus.PUBLISHED), any(Pageable.class));
         }
 
@@ -486,9 +513,9 @@ class CourseServiceImplTest {
         void shouldListAllCoursesWhenStatusFilterIsNull() {
             when(courseRepository.findAll(any(Pageable.class))).thenReturn(new PageImpl<>(List.of(draftCourse)));
 
-            Page<Course> result = courseService.listCoursesForAdmin(1, 10, null, null, null);
+            Page<CourseView> result = courseService.listCoursesForAdmin(1, 10, null, null, null);
 
-            assertThat(result.getContent()).containsExactly(draftCourse);
+            assertThat(result.getContent()).extracting(CourseView::course).containsExactly(draftCourse);
             verify(courseRepository).findAll(any(Pageable.class));
         }
 
@@ -497,9 +524,9 @@ class CourseServiceImplTest {
             when(courseRepository.findByCourseStatus(eq(CourseStatus.DRAFT), any(Pageable.class)))
                     .thenReturn(new PageImpl<>(List.of(draftCourse)));
 
-            Page<Course> result = courseService.listCoursesForAdmin(1, 10, CourseStatus.DRAFT, null, null);
+            Page<CourseView> result = courseService.listCoursesForAdmin(1, 10, CourseStatus.DRAFT, null, null);
 
-            assertThat(result.getContent()).containsExactly(draftCourse);
+            assertThat(result.getContent()).extracting(CourseView::course).containsExactly(draftCourse);
         }
     }
 
@@ -518,9 +545,9 @@ class CourseServiceImplTest {
             when(courseRepository.findByInstructorId(eq(101L), any(Pageable.class)))
                     .thenReturn(new PageImpl<>(List.of(draftCourse)));
 
-            Page<Course> result = courseService.listCoursesForInstructor(101L, 1, 10, null, null, null);
+            Page<CourseView> result = courseService.listCoursesForInstructor(101L, 1, 10, null, null, null);
 
-            assertThat(result.getContent()).containsExactly(draftCourse);
+            assertThat(result.getContent()).extracting(CourseView::course).containsExactly(draftCourse);
             verify(courseRepository).findByInstructorId(eq(101L), any(Pageable.class));
             verify(courseRepository, never()).findByInstructorIdAndCourseStatus(anyLong(), any(), any());
         }
@@ -530,9 +557,9 @@ class CourseServiceImplTest {
             when(courseRepository.findByInstructorIdAndCourseStatus(eq(101L), eq(CourseStatus.PUBLISHED), any(Pageable.class)))
                     .thenReturn(new PageImpl<>(List.of(draftCourse)));
 
-            Page<Course> result = courseService.listCoursesForInstructor(101L, 1, 10, CourseStatus.PUBLISHED, null, null);
+            Page<CourseView> result = courseService.listCoursesForInstructor(101L, 1, 10, CourseStatus.PUBLISHED, null, null);
 
-            assertThat(result.getContent()).containsExactly(draftCourse);
+            assertThat(result.getContent()).extracting(CourseView::course).containsExactly(draftCourse);
             verify(courseRepository).findByInstructorIdAndCourseStatus(eq(101L), eq(CourseStatus.PUBLISHED), any(Pageable.class));
         }
     }
@@ -546,9 +573,9 @@ class CourseServiceImplTest {
                     eq(Set.of(CourseStatus.PUBLISHED, CourseStatus.PLANNED_TO_UNPUBLISH)), any(Pageable.class)))
                     .thenReturn(new PageImpl<>(List.of(draftCourse)));
 
-            Page<Course> result = courseService.listCoursesForStudent(55L, 1, 10, null, null);
+            Page<CourseView> result = courseService.listCoursesForStudent(55L, 1, 10, null, null);
 
-            assertThat(result.getContent()).containsExactly(draftCourse);
+            assertThat(result.getContent()).extracting(CourseView::course).containsExactly(draftCourse);
             verify(courseRepository).findByCourseStatusIn(
                     eq(Set.of(CourseStatus.PUBLISHED, CourseStatus.PLANNED_TO_UNPUBLISH)), any(Pageable.class));
         }
@@ -562,6 +589,62 @@ class CourseServiceImplTest {
 
             verify(courseRepository, never()).findByInstructorId(anyLong(), any());
             verify(courseRepository, never()).findAll(any(Pageable.class));
+        }
+
+        @Nested
+        class CourseProgress {
+
+            @Test
+            void shouldRequireUserIdWhenGettingCourseWithProgress() {
+                assertThatThrownBy(() -> courseService.getCourseWithProgress(1L, null))
+                        .isInstanceOf(CourseValidationException.class)
+                        .hasMessage(ErrorMessages.COURSE_USER_ID_MANDATORY.message());
+            }
+
+            @Test
+            void shouldReturnNullProgressFieldsWhenUserNotEnrolled() {
+                when(courseRepository.findById(1L)).thenReturn(Optional.of(draftCourse));
+                when(enrollmentRepository.findByUserIdAndCourse_Id(201L, 1L)).thenReturn(Optional.empty());
+
+                CourseView view = courseService.getCourseWithProgress(1L, 201L);
+
+                assertThat(view.userId()).isEqualTo(201L);
+                assertThat(view.isCourseCompleted()).isNull();
+                assertThat(view.completedModuleCount()).isNull();
+                assertThat(view.totalModuleCount()).isZero();
+            }
+
+            @Test
+            void shouldReturnCompletionFromEnrollmentStatusAndModuleCounts() {
+                when(courseRepository.findById(1L)).thenReturn(Optional.of(draftCourse));
+                Enrollment enrollment = Enrollment.builder()
+                        .userId(201L)
+                        .course(draftCourse)
+                        .courseCompletionStatus(CourseCompletionStatus.COMPLETE)
+                        .build();
+                when(enrollmentRepository.findByUserIdAndCourse_Id(201L, 1L)).thenReturn(Optional.of(enrollment));
+
+                Module activeModule1 = Module.builder().id(10L).course(draftCourse).isActive(Boolean.TRUE).build();
+                Module activeModule2 = Module.builder().id(11L).course(draftCourse).isActive(Boolean.TRUE).build();
+                when(moduleRepository.findByCourse_IdInAndIsActiveTrue(List.of(1L))).thenReturn(List.of(activeModule1, activeModule2));
+
+                Lesson m1l1 = Lesson.builder().id(100L).module(activeModule1).isActive(Boolean.TRUE).build();
+                Lesson m1l2 = Lesson.builder().id(101L).module(activeModule1).isActive(Boolean.TRUE).build();
+                Lesson m2l1 = Lesson.builder().id(102L).module(activeModule2).isActive(Boolean.TRUE).build();
+                when(lessonRepository.findByModule_Course_Id(1L)).thenReturn(List.of(m1l1, m1l2, m2l1));
+
+                Progress p1 = Progress.builder().lesson(m1l1).lessonStatus(LessonStatus.FINISHED).build();
+                Progress p2 = Progress.builder().lesson(m1l2).lessonStatus(LessonStatus.FINISHED).build();
+                Progress p3 = Progress.builder().lesson(m2l1).lessonStatus(LessonStatus.STARTED).build();
+                when(progressRepository.findByUserIdAndLesson_Module_Course_Id(201L, 1L)).thenReturn(List.of(p1, p2, p3));
+
+                CourseView view = courseService.getCourseWithProgress(1L, 201L);
+
+                assertThat(view.userId()).isEqualTo(201L);
+                assertThat(view.isCourseCompleted()).isTrue();
+                assertThat(view.totalModuleCount()).isEqualTo(2);
+                assertThat(view.completedModuleCount()).isEqualTo(1);
+            }
         }
     }
 }

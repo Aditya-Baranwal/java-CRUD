@@ -1,5 +1,6 @@
 package com.aditya.lms.mapper;
 
+import com.aditya.lms.dto.CourseView;
 import com.aditya.lms.entity.Course;
 import com.aditya.lms.enums.CourseStatus;
 import com.aditya.lms.testdata.CourseTestData;
@@ -9,6 +10,9 @@ import com.lms.model.CourseDeleteResponseDTO;
 import com.lms.model.CourseGetResponseDTO;
 import com.lms.model.CourseListResponseDTO;
 import com.lms.model.CourseListResponseDataInnerDTO;
+import com.lms.model.CourseListResponseDataInnerOneOfDTO;
+import com.lms.model.CourseListResponseDataInnerOneOf1DTO;
+import com.lms.model.CourseProgressResponseDTO;
 import com.lms.model.CourseResponseDTO;
 import com.lms.model.CourseUpdateRequestDTO;
 import com.lms.model.CourseUpdateResponseDTO;
@@ -165,6 +169,7 @@ class CourseMapperTest {
             assertThat(data.getCourseStatus()).isEqualTo(CourseResponseDTO.CourseStatusEnum.DRAFT);
             assertThat(data.getInstructorId()).isEqualTo(course.getInstructorId());
             assertThat(data.getCanEnrollment()).isEqualTo(course.getCanEnrollment());
+            assertThat(data.getTotalModuleCount()).isZero();
             assertThat(data.getCreatedAt()).isEqualTo(course.getCreatedAt());
             assertThat(data.getModules()).isEmpty();
         }
@@ -177,19 +182,21 @@ class CourseMapperTest {
         void shouldLeaveModulesEmptyWhenIncludeModulesIsFalse() {
             Course course = CourseTestData.draftCourse();
 
-            CourseGetResponseDTO response = courseMapper.toGetResponse(course, false);
+            CourseGetResponseDTO response = courseMapper.toGetResponse(new CourseView(course, null, null, null, 0), false);
 
             assertThat(response.getMessage()).isEqualTo("Course fetched successfully");
-            assertThat(response.getData().getModules()).isEmpty();
+            CourseResponseDTO data = (CourseResponseDTO) response.getData();
+            assertThat(data.getModules()).isEmpty();
         }
 
         @Test
         void shouldIncludeEmptyModulesListWhenIncludeModulesIsTrue() {
             Course course = CourseTestData.draftCourse();
 
-            CourseGetResponseDTO response = courseMapper.toGetResponse(course, true);
+            CourseGetResponseDTO response = courseMapper.toGetResponse(new CourseView(course, null, null, null, 0), true);
 
-            assertThat(response.getData().getModules()).isEmpty();
+            CourseResponseDTO data = (CourseResponseDTO) response.getData();
+            assertThat(data.getModules()).isEmpty();
         }
 
         @Test
@@ -197,9 +204,10 @@ class CourseMapperTest {
             Course course = CourseTestData.draftCourse();
             course.setCourseStatus(null);
 
-            CourseGetResponseDTO response = courseMapper.toGetResponse(course, false);
+            CourseGetResponseDTO response = courseMapper.toGetResponse(new CourseView(course, null, null, null, 0), false);
 
-            assertThat(response.getData().getCourseStatus()).isNull();
+            CourseResponseDTO data = (CourseResponseDTO) response.getData();
+            assertThat(data.getCourseStatus()).isNull();
         }
 
         @Test
@@ -207,9 +215,25 @@ class CourseMapperTest {
             Course course = CourseTestData.draftCourse();
             course.setTags(null);
 
-            CourseGetResponseDTO response = courseMapper.toGetResponse(course, false);
+            CourseGetResponseDTO response = courseMapper.toGetResponse(new CourseView(course, null, null, null, 0), false);
 
-            assertThat(response.getData().getCourseTags()).isEmpty();
+            CourseResponseDTO data = (CourseResponseDTO) response.getData();
+            assertThat(data.getCourseTags()).isEmpty();
+        }
+
+        @Test
+        void shouldMapProgressFieldsIntoGetResponse() {
+            Course course = CourseTestData.draftCourse();
+
+            CourseGetResponseDTO response = courseMapper.toGetProgressResponse(
+                    new CourseView(course, 201L, Boolean.TRUE, 2, 3), false);
+
+            assertThat(response.getData()).isInstanceOf(CourseProgressResponseDTO.class);
+            CourseProgressResponseDTO data = (CourseProgressResponseDTO) response.getData();
+            assertThat(data.getUserId()).isEqualTo(201L);
+            assertThat(data.getIsCourseCompleted()).isTrue();
+            assertThat(data.getCompletedModuleCount()).isEqualTo(2);
+            assertThat(data.getTotalModuleCount()).isEqualTo(3);
         }
     }
 
@@ -246,7 +270,7 @@ class CourseMapperTest {
         @Test
         void shouldMapPageContentAndPaginationMetadata() {
             Course course = CourseTestData.draftCourse();
-            Page<Course> page = new PageImpl<>(List.of(course), PageRequest.of(0, 10), 1);
+            Page<CourseView> page = new PageImpl<>(List.of(new CourseView(course, null, null, null, 4)), PageRequest.of(0, 10), 1);
 
             CourseListResponseDTO response = courseMapper.toListResponse(page);
 
@@ -256,15 +280,35 @@ class CourseMapperTest {
             assertThat(response.getTotal()).isEqualTo(1);
             assertThat(response.getData()).hasSize(1);
             CourseListResponseDataInnerDTO item = response.getData().get(0);
-            assertThat(item.getCourseId()).isEqualTo(course.getId());
-            assertThat(item.getCourseTitle()).isEqualTo(course.getTitle());
-            assertThat(item.getCourseStatus()).isEqualTo(CourseListResponseDataInnerDTO.CourseStatusEnum.DRAFT);
-            assertThat(item.getCanEnrollment()).isEqualTo(course.getCanEnrollment());
+            assertThat(item).isInstanceOf(CourseListResponseDataInnerOneOfDTO.class);
+            CourseListResponseDataInnerOneOfDTO base = (CourseListResponseDataInnerOneOfDTO) item;
+            assertThat(base.getCourseId()).isEqualTo(course.getId());
+            assertThat(base.getCourseTitle()).isEqualTo(course.getTitle());
+            assertThat(base.getCourseStatus()).isEqualTo(CourseListResponseDataInnerOneOfDTO.CourseStatusEnum.DRAFT);
+            assertThat(base.getCanEnrollment()).isEqualTo(course.getCanEnrollment());
+            assertThat(base.getTotalModuleCount()).isEqualTo(4);
+        }
+
+        @Test
+        void shouldMapProgressListItemsWhenRequested() {
+            Course course = CourseTestData.draftCourse();
+            Page<CourseView> page = new PageImpl<>(List.of(new CourseView(course, 201L, Boolean.FALSE, 1, 3)), PageRequest.of(0, 10), 1);
+
+            CourseListResponseDTO response = courseMapper.toListProgressResponse(page);
+
+            assertThat(response.getData()).hasSize(1);
+            CourseListResponseDataInnerDTO item = response.getData().get(0);
+            assertThat(item).isInstanceOf(CourseListResponseDataInnerOneOf1DTO.class);
+            CourseListResponseDataInnerOneOf1DTO progressItem = (CourseListResponseDataInnerOneOf1DTO) item;
+            assertThat(progressItem.getUserId()).isEqualTo(201L);
+            assertThat(progressItem.getIsCourseCompleted()).isFalse();
+            assertThat(progressItem.getCompletedModuleCount()).isEqualTo(1);
+            assertThat(progressItem.getTotalModuleCount()).isEqualTo(3);
         }
 
         @Test
         void shouldReturnEmptyDataListForEmptyPage() {
-            Page<Course> page = new PageImpl<>(List.of());
+            Page<CourseView> page = new PageImpl<>(List.of());
 
             CourseListResponseDTO response = courseMapper.toListResponse(page);
 

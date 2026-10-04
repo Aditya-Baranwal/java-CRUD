@@ -1,12 +1,23 @@
 package com.aditya.lms.service;
 
+import com.aditya.lms.dto.CourseView;
 import com.aditya.lms.entity.Course;
+import com.aditya.lms.entity.Enrollment;
+import com.aditya.lms.entity.Lesson;
+import com.aditya.lms.entity.Module;
+import com.aditya.lms.entity.Progress;
+import com.aditya.lms.enums.CourseCompletionStatus;
 import com.aditya.lms.enums.CourseStatus;
+import com.aditya.lms.enums.LessonStatus;
 import com.aditya.lms.exception.CourseConflictException;
 import com.aditya.lms.exception.CourseNotFoundException;
 import com.aditya.lms.exception.CourseValidationException;
 import com.aditya.lms.exception.ErrorMessages;
 import com.aditya.lms.repository.CourseRepository;
+import com.aditya.lms.repository.EnrollmentRepository;
+import com.aditya.lms.repository.LessonRepository;
+import com.aditya.lms.repository.ModuleRepository;
+import com.aditya.lms.repository.ProgressRepository;
 import com.aditya.lms.service.interfaces.CourseQueryService;
 import com.aditya.lms.service.interfaces.CourseService;
 import lombok.RequiredArgsConstructor;
@@ -18,7 +29,11 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 
 @Slf4j
@@ -49,6 +64,10 @@ public class CourseServiceImpl implements CourseService, CourseQueryService {
     );
 
     private final CourseRepository courseRepository;
+    private final EnrollmentRepository enrollmentRepository;
+    private final ModuleRepository moduleRepository;
+    private final LessonRepository lessonRepository;
+    private final ProgressRepository progressRepository;
 
     @Override
     @Transactional
@@ -62,49 +81,115 @@ public class CourseServiceImpl implements CourseService, CourseQueryService {
 
     @Override
     @Transactional(readOnly = true)
-    public Course getCourse(Long courseId) {
-        return courseRepository.findById(courseId)
+    public CourseView getCourse(Long courseId) {
+        Course course = courseRepository.findById(courseId)
                 .orElseThrow(() -> new CourseNotFoundException(courseId));
+        return new CourseView(course, null, null, null, countActiveModules(course.getId()));
     }
 
     @Override
     @Transactional(readOnly = true)
-    public Page<Course> listCourses(Integer pageNo, Integer pageSize, CourseStatus courseStatus, String sortBy, String sortOrder) {
-        Pageable pageable = buildPageable(pageNo, pageSize, sortBy, sortOrder);
-        if (courseStatus == null) {
-            return courseRepository.findAll(pageable);
+    public CourseView getCourseWithProgress(Long courseId, Long userId) {
+        validateProgressUserId(userId);
+        Course course = courseRepository.findById(courseId)
+                .orElseThrow(() -> new CourseNotFoundException(courseId));
+        int totalModuleCount = countActiveModules(courseId);
+        Enrollment enrollment = enrollmentRepository.findByUserIdAndCourse_Id(userId, courseId).orElse(null);
+        if (enrollment == null) {
+            return new CourseView(course, userId, null, null, totalModuleCount);
         }
-        return courseRepository.findByCourseStatus(courseStatus, pageable);
+        int completedModuleCount = completedModuleCount(userId, courseId);
+        boolean isCourseCompleted = enrollment.getCourseCompletionStatus() == CourseCompletionStatus.COMPLETE;
+        return new CourseView(course, userId, isCourseCompleted, completedModuleCount, totalModuleCount);
     }
 
     @Override
     @Transactional(readOnly = true)
-    public Page<Course> listCoursesForAdmin(Integer pageNo, Integer pageSize, CourseStatus courseStatus, String sortBy, String sortOrder) {
+    public Page<CourseView> listCourses(Integer pageNo, Integer pageSize, CourseStatus courseStatus, String sortBy, String sortOrder) {
         Pageable pageable = buildPageable(pageNo, pageSize, sortBy, sortOrder);
+        Page<Course> page;
         if (courseStatus == null) {
-            return courseRepository.findAll(pageable);
+            page = courseRepository.findAll(pageable);
+        } else {
+            page = courseRepository.findByCourseStatus(courseStatus, pageable);
         }
-        return courseRepository.findByCourseStatus(courseStatus, pageable);
+        return attachCounts(page);
     }
 
     @Override
     @Transactional(readOnly = true)
-    public Page<Course> listCoursesForInstructor(Long instructorId, Integer pageNo, Integer pageSize, CourseStatus courseStatus, String sortBy, String sortOrder) {
+    public Page<CourseView> listCoursesWithProgress(Long userId, Integer pageNo, Integer pageSize, CourseStatus courseStatus, String sortBy, String sortOrder) {
+        validateProgressUserId(userId);
+        Pageable pageable = buildPageable(pageNo, pageSize, sortBy, sortOrder);
+        Page<Course> page;
+        if (courseStatus == null) {
+            page = courseRepository.findAll(pageable);
+        } else {
+            page = courseRepository.findByCourseStatus(courseStatus, pageable);
+        }
+        return attachProgress(userId, page);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Page<CourseView> listCoursesForAdmin(Integer pageNo, Integer pageSize, CourseStatus courseStatus, String sortBy, String sortOrder) {
+        return listCourses(pageNo, pageSize, courseStatus, sortBy, sortOrder);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Page<CourseView> listCoursesForAdminWithProgress(Long userId, Integer pageNo, Integer pageSize, CourseStatus courseStatus, String sortBy, String sortOrder) {
+        return listCoursesWithProgress(userId, pageNo, pageSize, courseStatus, sortBy, sortOrder);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Page<CourseView> listCoursesForInstructor(Long instructorId, Integer pageNo, Integer pageSize, CourseStatus courseStatus, String sortBy, String sortOrder) {
         if (instructorId == null) {
             throw new CourseValidationException(ErrorMessages.COURSE_INSTRUCTOR_ID_MANDATORY);
         }
         Pageable pageable = buildPageable(pageNo, pageSize, sortBy, sortOrder);
+        Page<Course> page;
         if (courseStatus == null) {
-            return courseRepository.findByInstructorId(instructorId, pageable);
+            page = courseRepository.findByInstructorId(instructorId, pageable);
+        } else {
+            page = courseRepository.findByInstructorIdAndCourseStatus(instructorId, courseStatus, pageable);
         }
-        return courseRepository.findByInstructorIdAndCourseStatus(instructorId, courseStatus, pageable);
+        return attachCounts(page);
     }
 
     @Override
     @Transactional(readOnly = true)
-    public Page<Course> listCoursesForStudent(Long studentId, Integer pageNo, Integer pageSize, String sortBy, String sortOrder) {
+    public Page<CourseView> listCoursesForInstructorWithProgress(Long instructorId, Long userId, Integer pageNo, Integer pageSize, CourseStatus courseStatus, String sortBy, String sortOrder) {
+        if (instructorId == null) {
+            throw new CourseValidationException(ErrorMessages.COURSE_INSTRUCTOR_ID_MANDATORY);
+        }
+        validateProgressUserId(userId);
         Pageable pageable = buildPageable(pageNo, pageSize, sortBy, sortOrder);
-        return courseRepository.findByCourseStatusIn(STUDENT_VISIBLE_STATUSES, pageable);
+        Page<Course> page;
+        if (courseStatus == null) {
+            page = courseRepository.findByInstructorId(instructorId, pageable);
+        } else {
+            page = courseRepository.findByInstructorIdAndCourseStatus(instructorId, courseStatus, pageable);
+        }
+        return attachProgress(userId, page);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Page<CourseView> listCoursesForStudent(Long studentId, Integer pageNo, Integer pageSize, String sortBy, String sortOrder) {
+        Pageable pageable = buildPageable(pageNo, pageSize, sortBy, sortOrder);
+        Page<Course> page = courseRepository.findByCourseStatusIn(STUDENT_VISIBLE_STATUSES, pageable);
+        return attachCounts(page);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Page<CourseView> listCoursesForStudentWithProgress(Long studentId, Long userId, Integer pageNo, Integer pageSize, String sortBy, String sortOrder) {
+        validateProgressUserId(userId);
+        Pageable pageable = buildPageable(pageNo, pageSize, sortBy, sortOrder);
+        Page<Course> page = courseRepository.findByCourseStatusIn(STUDENT_VISIBLE_STATUSES, pageable);
+        return attachProgress(userId, page);
     }
 
     @Override
@@ -256,6 +341,102 @@ public class CourseServiceImpl implements CourseService, CourseQueryService {
         if (duplicateExists) {
             throw new CourseConflictException(ErrorMessages.COURSE_DUPLICATE_TITLE);
         }
+    }
+
+    private void validateProgressUserId(Long userId) {
+        if (userId == null) {
+            throw new CourseValidationException(ErrorMessages.COURSE_USER_ID_MANDATORY);
+        }
+    }
+
+    private Page<CourseView> attachCounts(Page<Course> courses) {
+        Map<Long, Integer> totalModulesByCourseId = activeModuleCountsByCourse(courses.getContent());
+        return courses.map(course -> new CourseView(
+                course,
+                null,
+                null,
+                null,
+                totalModulesByCourseId.getOrDefault(course.getId(), 0)
+        ));
+    }
+
+    private Page<CourseView> attachProgress(Long userId, Page<Course> courses) {
+        Map<Long, Integer> totalModulesByCourseId = activeModuleCountsByCourse(courses.getContent());
+        List<Long> courseIds = courses.getContent().stream().map(Course::getId).filter(Objects::nonNull).toList();
+        Map<Long, Enrollment> enrollmentByCourseId = new HashMap<>();
+        if (!courseIds.isEmpty()) {
+            enrollmentRepository.findByUserIdAndCourse_IdIn(userId, courseIds)
+                    .forEach(enrollment -> enrollmentByCourseId.put(enrollment.getCourse().getId(), enrollment));
+        }
+
+        return courses.map(course -> {
+            Integer totalModuleCount = totalModulesByCourseId.getOrDefault(course.getId(), 0);
+            Enrollment enrollment = enrollmentByCourseId.get(course.getId());
+            if (enrollment == null) {
+                return new CourseView(course, userId, null, null, totalModuleCount);
+            }
+            int completedModules = completedModuleCount(userId, course.getId());
+            boolean completed = enrollment.getCourseCompletionStatus() == CourseCompletionStatus.COMPLETE;
+            return new CourseView(course, userId, completed, completedModules, totalModuleCount);
+        });
+    }
+
+    private Map<Long, Integer> activeModuleCountsByCourse(List<Course> courses) {
+        List<Long> courseIds = courses.stream().map(Course::getId).filter(Objects::nonNull).toList();
+        Map<Long, Integer> counts = new HashMap<>();
+        if (courseIds.isEmpty()) {
+            return counts;
+        }
+        List<Module> activeModules = moduleRepository.findByCourse_IdInAndIsActiveTrue(courseIds);
+        for (Module module : activeModules) {
+            if (module.getCourse() == null || module.getCourse().getId() == null) {
+                continue;
+            }
+            counts.merge(module.getCourse().getId(), 1, Integer::sum);
+        }
+        return counts;
+    }
+
+    private int countActiveModules(Long courseId) {
+        if (courseId == null) {
+            return 0;
+        }
+        return (int) moduleRepository.findByCourse_IdInAndIsActiveTrue(List.of(courseId)).stream()
+                .filter(module -> module.getCourse() != null)
+                .filter(module -> courseId.equals(module.getCourse().getId()))
+                .count();
+    }
+
+    private int completedModuleCount(Long userId, Long courseId) {
+        List<Lesson> activeLessons = lessonRepository.findByModule_Course_Id(courseId).stream()
+                .filter(lesson -> Boolean.TRUE.equals(lesson.getIsActive()))
+                .toList();
+
+        Map<Long, Integer> totalLessonsByModuleId = new HashMap<>();
+        for (Lesson lesson : activeLessons) {
+            totalLessonsByModuleId.merge(lesson.getModule().getId(), 1, Integer::sum);
+        }
+
+        Map<Long, Set<Long>> finishedLessonsByModuleId = new HashMap<>();
+        List<Progress> progressRecords = progressRepository.findByUserIdAndLesson_Module_Course_Id(userId, courseId);
+        for (Progress progress : progressRecords) {
+            Lesson lesson = progress.getLesson();
+            if (progress.getLessonStatus() != LessonStatus.FINISHED || !Boolean.TRUE.equals(lesson.getIsActive())) {
+                continue;
+            }
+            finishedLessonsByModuleId.computeIfAbsent(lesson.getModule().getId(), ignored -> new HashSet<>())
+                    .add(lesson.getId());
+        }
+
+        int completed = 0;
+        for (Map.Entry<Long, Integer> moduleEntry : totalLessonsByModuleId.entrySet()) {
+            int totalLessons = moduleEntry.getValue();
+            int finished = finishedLessonsByModuleId.getOrDefault(moduleEntry.getKey(), Set.of()).size();
+            if (totalLessons > 0 && finished == totalLessons) {
+                completed++;
+            }
+        }
+        return completed;
     }
 
     private Pageable buildPageable(Integer pageNo, Integer pageSize, String sortBy, String sortOrder) {

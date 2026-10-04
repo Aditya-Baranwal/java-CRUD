@@ -70,6 +70,50 @@ components:
           format: int64
         canEnrollment:
           type: boolean
+        totalModuleCount:
+          type: integer
+          description: Total number of active modules in the course.
+        createdAt:
+          type: string
+          format: date-time
+
+    CourseProgressSummary:
+      type: object
+      properties:
+        courseId:
+          type: integer
+          format: int64
+        courseTitle:
+          type: string
+        courseDescription:
+          type: string
+        courseTags:
+          type: array
+          items:
+            type: string
+          default: []
+        courseStatus:
+          $ref: './common.yaml#/components/schemas/CourseStatus'
+        instructorId:
+          type: integer
+          format: int64
+        canEnrollment:
+          type: boolean
+        userId:
+          type: integer
+          format: int64
+          description: Echoes back the queried userId.
+        isCourseCompleted:
+          type: boolean
+          nullable: true
+          description: Whether enrollment for userId in this course is marked COMPLETE; null when the user is not enrolled.
+        completedModuleCount:
+          type: integer
+          nullable: true
+          description: Number of active modules completed by userId.
+        totalModuleCount:
+          type: integer
+          description: Total number of active modules in the course.
         createdAt:
           type: string
           format: date-time

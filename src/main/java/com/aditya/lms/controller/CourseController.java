@@ -1,5 +1,6 @@
 package com.aditya.lms.controller;
 
+import com.aditya.lms.dto.CourseView;
 import com.aditya.lms.entity.Course;
 import com.aditya.lms.mapper.CourseMapper;
 import com.aditya.lms.service.interfaces.CourseService;
@@ -38,15 +39,24 @@ public class CourseController implements CoursesApi {
     }
 
     @Override
-    public ResponseEntity<CourseGetResponseDTO> getCourse(Long courseId, Boolean includeModules) {
-        Course course = courseService.getCourse(courseId);
-        return ResponseEntity.ok(courseMapper.toGetResponse(course, Boolean.TRUE.equals(includeModules)));
+    public ResponseEntity<CourseGetResponseDTO> getCourse(Long courseId, Boolean includeModules, Long userId, Boolean progress) {
+        if (Boolean.TRUE.equals(progress)) {
+            CourseView courseView = courseService.getCourseWithProgress(courseId, userId);
+            return ResponseEntity.ok(courseMapper.toGetProgressResponse(courseView, Boolean.TRUE.equals(includeModules)));
+        }
+        CourseView courseView = courseService.getCourse(courseId);
+        return ResponseEntity.ok(courseMapper.toGetResponse(courseView, Boolean.TRUE.equals(includeModules)));
     }
 
     @Override
-    public ResponseEntity<CourseListResponseDTO> listCourses(Integer pageNo, Integer pageSize, String courseStatus, String sortBy, String sortOrder) {
-        return ResponseEntity.ok(
-                courseMapper.toListResponse(courseService.listCourses(pageNo, pageSize, courseMapper.toDomainStatus(courseStatus), sortBy, sortOrder)));
+    public ResponseEntity<CourseListResponseDTO> listCourses(Integer pageNo, Integer pageSize, String courseStatus, Long userId, Boolean progress, String sortBy, String sortOrder) {
+        if (Boolean.TRUE.equals(progress)) {
+            return ResponseEntity.ok(courseMapper.toListProgressResponse(
+                    courseService.listCoursesWithProgress(userId, pageNo, pageSize, courseMapper.toDomainStatus(courseStatus), sortBy, sortOrder)
+            ));
+        }
+        return ResponseEntity.ok(courseMapper.toListResponse(
+                courseService.listCourses(pageNo, pageSize, courseMapper.toDomainStatus(courseStatus), sortBy, sortOrder)));
     }
 
     @Override

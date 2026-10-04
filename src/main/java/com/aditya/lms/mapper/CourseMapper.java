@@ -1,5 +1,6 @@
 package com.aditya.lms.mapper;
 
+import com.aditya.lms.dto.CourseView;
 import com.aditya.lms.entity.Course;
 import com.aditya.lms.enums.CourseStatus;
 import com.lms.model.CourseCreateRequestDTO;
@@ -8,6 +9,9 @@ import com.lms.model.CourseDeleteResponseDTO;
 import com.lms.model.CourseGetResponseDTO;
 import com.lms.model.CourseListResponseDTO;
 import com.lms.model.CourseListResponseDataInnerDTO;
+import com.lms.model.CourseListResponseDataInnerOneOfDTO;
+import com.lms.model.CourseListResponseDataInnerOneOf1DTO;
+import com.lms.model.CourseProgressResponseDTO;
 import com.lms.model.CourseResponseDTO;
 import com.lms.model.CourseUpdateRequestDTO;
 import com.lms.model.CourseUpdateResponseDTO;
@@ -53,21 +57,28 @@ public class CourseMapper {
     public CourseCreateResponseDTO toCreateResponse(Course course) {
         return new CourseCreateResponseDTO()
                 .message("Course created successfully")
-                .data(toCourseResponse(course, false))
+                .data(toCourseResponse(new CourseView(course, null, null, null, 0), false))
                 .timestamp(OffsetDateTime.now());
     }
 
-    public CourseGetResponseDTO toGetResponse(Course course, boolean includeModules) {
+    public CourseGetResponseDTO toGetResponse(CourseView courseView, boolean includeModules) {
         return new CourseGetResponseDTO()
                 .message("Course fetched successfully")
-                .data(toCourseResponse(course, includeModules))
+                .data(toCourseResponse(courseView, includeModules))
+                .timestamp(OffsetDateTime.now());
+    }
+
+    public CourseGetResponseDTO toGetProgressResponse(CourseView courseView, boolean includeModules) {
+        return new CourseGetResponseDTO()
+                .message("Course fetched successfully")
+                .data(toProgressResponse(courseView, includeModules))
                 .timestamp(OffsetDateTime.now());
     }
 
     public CourseUpdateResponseDTO toUpdateResponse(Course course) {
         return new CourseUpdateResponseDTO()
                 .message("Course updated successfully")
-                .data(toCourseResponse(course, false))
+                .data(toCourseResponse(new CourseView(course, null, null, null, 0), false))
                 .timestamp(OffsetDateTime.now());
     }
 
@@ -78,7 +89,7 @@ public class CourseMapper {
                 .timestamp(OffsetDateTime.now());
     }
 
-    public CourseListResponseDTO toListResponse(Page<Course> page) {
+    public CourseListResponseDTO toListResponse(Page<CourseView> page) {
         return new CourseListResponseDTO()
                 .message("Courses fetched successfully")
                 .data(page.getContent().stream().map(this::toListItemResponse).toList())
@@ -88,7 +99,18 @@ public class CourseMapper {
                 .timestamp(OffsetDateTime.now());
     }
 
-    private CourseResponseDTO toCourseResponse(Course course, boolean includeModules) {
+    public CourseListResponseDTO toListProgressResponse(Page<CourseView> page) {
+        return new CourseListResponseDTO()
+                .message("Courses fetched successfully")
+                .data(page.getContent().stream().map(this::toProgressListItemResponse).toList())
+                .page(page.getNumber() + 1)
+                .size(page.getSize())
+                .total(Math.toIntExact(page.getTotalElements()))
+                .timestamp(OffsetDateTime.now());
+    }
+
+    private CourseResponseDTO toCourseResponse(CourseView courseView, boolean includeModules) {
+        Course course = courseView.course();
         CourseResponseDTO response = new CourseResponseDTO()
                 .courseId(course.getId())
                 .courseTitle(course.getTitle())
@@ -97,6 +119,7 @@ public class CourseMapper {
                 .courseStatus(course.getCourseStatus() == null ? null : toApiStatus(course.getCourseStatus()))
                 .instructorId(course.getInstructorId())
                 .canEnrollment(course.getCanEnrollment())
+                .totalModuleCount(courseView.totalModuleCount())
                 .createdAt(course.getCreatedAt());
 
         if (includeModules) {
@@ -105,15 +128,56 @@ public class CourseMapper {
         return response;
     }
 
-    private CourseListResponseDataInnerDTO toListItemResponse(Course course) {
-        return new CourseListResponseDataInnerDTO()
+    private CourseProgressResponseDTO toProgressResponse(CourseView courseView, boolean includeModules) {
+        Course course = courseView.course();
+        CourseProgressResponseDTO response = new CourseProgressResponseDTO()
                 .courseId(course.getId())
                 .courseTitle(course.getTitle())
                 .courseDescription(course.getDescription())
                 .courseTags(course.getTags() == null ? List.of() : course.getTags())
-                .courseStatus(course.getCourseStatus() == null ? null : toListApiStatus(course.getCourseStatus()))
+                .courseStatus(course.getCourseStatus() == null ? null : CourseProgressResponseDTO.CourseStatusEnum.valueOf(course.getCourseStatus().name()))
                 .instructorId(course.getInstructorId())
                 .canEnrollment(course.getCanEnrollment())
+                .userId(courseView.userId())
+                .isCourseCompleted(courseView.isCourseCompleted())
+                .completedModuleCount(courseView.completedModuleCount())
+                .totalModuleCount(courseView.totalModuleCount())
+                .createdAt(course.getCreatedAt());
+
+        if (includeModules) {
+            response.setModules(List.of());
+        }
+        return response;
+    }
+
+    private CourseListResponseDataInnerDTO toListItemResponse(CourseView courseView) {
+        Course course = courseView.course();
+        return new CourseListResponseDataInnerOneOfDTO()
+                .courseId(course.getId())
+                .courseTitle(course.getTitle())
+                .courseDescription(course.getDescription())
+                .courseTags(course.getTags() == null ? List.of() : course.getTags())
+                .courseStatus(course.getCourseStatus() == null ? null : CourseListResponseDataInnerOneOfDTO.CourseStatusEnum.valueOf(course.getCourseStatus().name()))
+                .instructorId(course.getInstructorId())
+                .canEnrollment(course.getCanEnrollment())
+                .totalModuleCount(courseView.totalModuleCount())
+                .createdAt(course.getCreatedAt());
+    }
+
+    private CourseListResponseDataInnerDTO toProgressListItemResponse(CourseView courseView) {
+        Course course = courseView.course();
+        return new CourseListResponseDataInnerOneOf1DTO()
+                .courseId(course.getId())
+                .courseTitle(course.getTitle())
+                .courseDescription(course.getDescription())
+                .courseTags(course.getTags() == null ? List.of() : course.getTags())
+                .courseStatus(course.getCourseStatus() == null ? null : CourseListResponseDataInnerOneOf1DTO.CourseStatusEnum.valueOf(course.getCourseStatus().name()))
+                .instructorId(course.getInstructorId())
+                .canEnrollment(course.getCanEnrollment())
+                .userId(courseView.userId())
+                .isCourseCompleted(courseView.isCourseCompleted())
+                .completedModuleCount(courseView.completedModuleCount())
+                .totalModuleCount(courseView.totalModuleCount())
                 .createdAt(course.getCreatedAt());
     }
 
@@ -138,10 +202,4 @@ public class CourseMapper {
         return CourseResponseDTO.CourseStatusEnum.valueOf(status.name());
     }
 
-    private CourseListResponseDataInnerDTO.CourseStatusEnum toListApiStatus(CourseStatus status) {
-        if (status == null) {
-            return null;
-        }
-        return CourseListResponseDataInnerDTO.CourseStatusEnum.valueOf(status.name());
-    }
 }

@@ -7,6 +7,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Optional;
+import java.util.List;
 
 public interface ModuleRepository extends JpaRepository<Module, Long> {
 
@@ -20,4 +21,6 @@ public interface ModuleRepository extends JpaRepository<Module, Long> {
     Page<Module> findByCourse_IdAndIsActive(Long courseId, Boolean isActive, Pageable pageable);
 
     Page<Module> findByCourse_Id(Long courseId, Pageable pageable);
+
+    List<Module> findByCourse_IdInAndIsActiveTrue(List<Long> courseIds);
 }

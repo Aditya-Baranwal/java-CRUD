@@ -40,6 +40,8 @@ public final class ErrorMessages {
         return new Error("COURSE_012", "Only courseStatus and canEnrollment are editable when course is in " + status + " state");
     }
 
+    public static final Error COURSE_USER_ID_MANDATORY = new Error("COURSE_013", "userId is mandatory when progress=true");
+
     // ── Lesson ──────────────────────────────────────────────────────────────
 
     public static final Error LESSON_PAYLOAD_REQUIRED       = new Error("LESSON_001", "Lesson payload is required");

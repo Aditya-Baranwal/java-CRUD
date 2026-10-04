@@ -1,4 +1,4 @@
-lets implement lesson completition tracking
+lets implement lesson competition tracking
 
 I have updated lesson.decisions.md file with rule that helps us to keep a track on lessons compleltion. use it to implement feature.
 

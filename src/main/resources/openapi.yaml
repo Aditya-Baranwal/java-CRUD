@@ -112,6 +112,55 @@ components:
           format: int64
         canEnrollment:
           type: boolean
+        totalModuleCount:
+          type: integer
+          description: Total number of active modules in the course.
+        createdAt:
+          type: string
+          format: date-time
+        modules:
+          type: array
+          items:
+            $ref: './openapi/common.yaml#/components/schemas/ModuleSummary'
+          default: []
+
+    CourseProgressResponse:
+      type: object
+      properties:
+        courseId:
+          type: integer
+          format: int64
+        courseTitle:
+          type: string
+        courseDescription:
+          type: string
+        courseTags:
+          type: array
+          items:
+            type: string
+          default: []
+        courseStatus:
+          $ref: './openapi/common.yaml#/components/schemas/CourseStatus'
+        instructorId:
+          type: integer
+          format: int64
+        canEnrollment:
+          type: boolean
+        userId:
+          type: integer
+          format: int64
+          description: Echoes back the queried userId.
+        isCourseCompleted:
+          type: boolean
+          nullable: true
+          description: Whether enrollment for userId in this course is marked COMPLETE; null when the user is not enrolled.
+        completedModuleCount:
+          type: integer
+          nullable: true
+          description: Number of active modules completed by userId.
+        totalModuleCount:
+          type: integer
+          description: Total number of active modules in the course.
         createdAt:
           type: string
           format: date-time
@@ -129,7 +178,9 @@ components:
         data:
           type: array
           items:
-            $ref: './openapi/common.yaml#/components/schemas/CourseSummary'
+            oneOf:
+              - $ref: './openapi/common.yaml#/components/schemas/CourseSummary'
+              - $ref: './openapi/common.yaml#/components/schemas/CourseProgressSummary'
         page:
           type: integer
         size:
@@ -575,6 +626,18 @@ paths:
           description: Filter courses by lifecycle status. If omitted, all statuses are returned.
           schema:
             $ref: './openapi/common.yaml#/components/schemas/CourseStatus'
+        - name: userId
+          in: query
+          description: Required when progress=true; selects which user's completion details to include.
+          schema:
+            type: integer
+            format: int64
+        - name: progress
+          in: query
+          description: When true, each item is returned in the course-details-plus-progress shape.
+          schema:
+            type: boolean
+            default: false
         - name: pageNo
           in: query
           required: true
@@ -630,6 +693,18 @@ paths:
           schema:
             type: boolean
             default: false
+        - name: userId
+          in: query
+          description: Required when progress=true; selects which user's completion details to include.
+          schema:
+            type: integer
+            format: int64
+        - name: progress
+          in: query
+          description: When true, the course is returned in the course-details-plus-progress shape.
+          schema:
+            type: boolean
+            default: false
       responses:
         '200':
           description: Course fetched successfully
@@ -642,7 +717,9 @@ paths:
                   message:
                     type: string
                   data:
-                    $ref: '#/components/schemas/CourseResponse'
+                    oneOf:
+                      - $ref: '#/components/schemas/CourseResponse'
+                      - $ref: '#/components/schemas/CourseProgressResponse'
                   timestamp:
                     type: string
                     format: date-time

@@ -1,12 +1,12 @@
 # Courses API
 
-This document defines all Course-related APIs exposed by the Learning Management System (LMS).
+This document describes the current API contract for course endpoints.
 
 ---
 
 # Resource
 
-```
+```text
 /api/v1/courses
 ```
 
@@ -24,6 +24,69 @@ This document defines all Course-related APIs exposed by the Learning Management
 
 ---
 
+# Shared course response shapes
+
+## Plain course shape
+
+Used by:
+- create course
+- update course
+- get course when `progress=false` or omitted
+- list courses when `progress=false` or omitted
+
+```json
+{
+  "courseId": 1,
+  "courseTitle": "Java Spring Boot",
+  "courseDescription": "Complete Spring Boot course",
+  "courseTags": ["java", "spring"],
+  "courseStatus": "PUBLISHED",
+  "instructorId": 101,
+  "canEnrollment": true,
+  "totalModuleCount": 4,
+  "modules": [],
+  "createdAt": "2026-08-02T10:30:00Z"
+}
+```
+
+## Course + progress shape
+
+Used only when `progress=true`.
+
+```json
+{
+  "courseId": 1,
+  "courseTitle": "Java Spring Boot",
+  "courseDescription": "Complete Spring Boot course",
+  "courseTags": ["java", "spring"],
+  "courseStatus": "PUBLISHED",
+  "instructorId": 101,
+  "canEnrollment": true,
+  "userId": 25,
+  "isCourseCompleted": false,
+  "completedModuleCount": 2,
+  "totalModuleCount": 4,
+  "modules": [],
+  "createdAt": "2026-08-02T10:30:00Z"
+}
+```
+
+### Progress field semantics
+
+- `userId`: echoes the queried user id.
+- `totalModuleCount`: total number of **active** modules in the course.
+- `completedModuleCount`: number of active modules completed by `userId`.
+- `isCourseCompleted`: derived from enrollment source of truth: `enrollments.course_completion_status == COMPLETE`.
+- If the user is not enrolled:
+  - `isCourseCompleted: null`
+  - `completedModuleCount: null`
+  - `totalModuleCount`: still populated
+- If the user is enrolled and the course has zero active modules:
+  - `isCourseCompleted: false`
+- When `includeModules=true`, nested modules remain in the plain module summary shape.
+
+---
+
 # Create Course
 
 Creates a new course.
@@ -34,36 +97,14 @@ Creates a new course.
 POST /courses
 ```
 
-## Request Headers
-
-```http
-Authorization: Bearer <JWT_TOKEN>
-Content-Type: application/json
-```
-
-## Validation
-
-| Field             | Validation                       |
-|-------------------|----------------------------------|
-| courseTitle       | Required, Maximum 100 characters |
-| courseDescription | Optional, Maximum 200 characters |
-| instructorId      | Required, Instructor must exist  |
-| courseTags        | Optional                         |
-| canEnrollment     | Optional, defaults to false      |
-
 ## Request Body
 
 ```json
 {
-    "courseTitle": "Java Spring Boot",
-    "courseDescription": "Complete Spring Boot course",
-    "courseTags": [
-        "java",
-        "spring",
-        "backend"
-    ],
-    "instructorId": 101,
-    "canEnrollment": true
+  "courseTitle": "Java Spring Boot",
+  "courseDescription": "Complete Spring Boot course",
+  "courseTags": ["java", "spring"],
+  "instructorId": 101
 }
 ```
 
@@ -71,39 +112,9 @@ Content-Type: application/json
 
 **HTTP Status**
 
-```
+```text
 201 Created
 ```
-
-```json
-{
-    "message": "Course created successfully",
-    "data": {
-        "courseId": 1,
-        "courseTitle": "Java Spring Boot",
-        "courseDescription": "Complete Spring Boot course",
-        "courseTags": [
-            "java",
-            "spring",
-            "backend"
-        ],
-        "courseStatus": "DRAFT",
-        "instructorId": 101,
-        "instructorName": "John Doe",
-        "canEnrollment": true,
-        "createdAt": "2026-08-02T10:30:00Z"
-    }
-}
-```
-
-## Possible Errors
-
-| Status | Error Code | Description               |
-|--------|------------|---------------------------|
-| 400    | COURSE_001 | Invalid request payload   |
-| 400    | COURSE_002 | Course title is mandatory |
-| 404    | USER_001   | Instructor not found      |
-| 403    | AUTH_001   | Unauthorized              |
 
 ---
 
@@ -117,77 +128,19 @@ Updates an existing course.
 PUT /courses/{courseId}
 ```
 
-## Path Parameters
-
-| Name     | Type | Description       |
-|----------|------|-------------------|
-| courseId | Long | Course Identifier |
-
-## Validation
-
-| Field             | Validation                       |
-|-------------------|----------------------------------|
-| courseTitle       | Optional, Maximum 100 characters |
-| courseDescription | Optional, Maximum 200 characters |
-| courseTags        | Optional                         |
-| canEnrollment     | Optional                         |
-
-## Request Body
-
-```json
-{
-    "courseTitle": "Advanced Spring Boot",
-    "courseDescription": "Advanced concepts",
-    "courseTags": [
-        "spring",
-        "java"
-    ],
-    "courseStatus": "DRAFT",
-    "canEnrollment": true
-}
-```
-
 ## Success Response
 
 **HTTP Status**
 
-```
+```text
 200 OK
 ```
-
-```json
-{
-    "message": "Course updated successfully",
-    "data": {
-        "courseId": 1,
-        "courseTitle": "Advanced Spring Boot",
-        "courseDescription": "Advanced concepts",
-        "courseTags": [
-            "spring",
-            "java"
-        ],
-        "courseStatus": "DRAFT",
-        "instructorId": 101,
-        "instructorName": "John Doe",
-        "canEnrollment": true,
-        "createdAt": "2026-08-02T10:30:00Z"
-    }
-}
-```
-
-## Possible Errors
-
-| Status | Error Code | Description      |
-|--------|------------|------------------|
-| 400    | COURSE_001 | Invalid request  |
-| 404    | COURSE_003 | Course not found |
-| 403    | AUTH_001   | Unauthorized     |
 
 ---
 
 # Get Course
 
-Returns a course by its identifier.
+Returns a course by identifier.
 
 ## Endpoint
 
@@ -195,52 +148,36 @@ Returns a course by its identifier.
 GET /courses/{courseId}
 ```
 
-## Path Parameters
-
-| Name     | Type | Description       |
-|----------|------|-------------------|
-| courseId | Long | Course Identifier |
-
 ## Query Parameters
 
-| Parameter      | Type    | Required | Default | Description            |
-|----------------|---------|----------|---------|------------------------|
-| includeModules | Boolean | No       | false   | Include course modules |
+| Parameter | Type | Required | Default | Description |
+|-----------|------|----------|---------|-------------|
+| includeModules | Boolean | No | false | Include course modules |
+| userId | Long | No* | - | Required when `progress=true`; selects which user's completion details to include |
+| progress | Boolean | No | false | When `true`, returns the course + progress shape |
 
-## Success Response
+\* `userId` is mandatory whenever `progress=true`.
 
-**HTTP Status**
+## Example
 
+Plain course:
+
+```http
+GET /courses/1
 ```
-200 OK
-```
 
-```json
-{
-    "message": "Course fetched successfully",
-    "data": {
-        "courseId": 1,
-        "courseTitle": "Java Spring Boot",
-        "courseDescription": "Complete Spring Boot course",
-        "courseTags": [
-            "java",
-            "spring"
-        ],
-        "courseStatus": "DRAFT",
-        "instructorId": 101,
-        "instructorName": "John Doe",
-        "modules": [],
-        "canEnrollment": true,
-        "createdAt": "2026-08-02T10:30:00Z"
-    }
-}
+Course with progress:
+
+```http
+GET /courses/1?progress=true&userId=25
 ```
 
 ## Possible Errors
 
-| Status | Error Code | Description      |
-|--------|------------|------------------|
-| 404    | COURSE_003 | Course not found |
+| Status | Error Code | Description |
+|--------|------------|-------------|
+| 400 | COURSE_013 | userId is mandatory when progress=true |
+| 404 | COURSE_404 | Course not found |
 
 ---
 
@@ -256,57 +193,45 @@ GET /courses
 
 ## Query Parameters
 
-| Parameter    | Type    | Required | Default   | Description                |
-|--------------|---------|----------|-----------|----------------------------|
-| courseStatus | String  | No       | published | Filter by lifecycle status |
-| pageNo       | Integer | Yes      | 1         | Page number                |
-| pageSize     | Integer | Yes      | 10        | Page size                  |
-| sortBy       | String  | No       | createdAt | Sort field                 |
-| sortOrder    | String  | No       | desc      | asc / desc                 |
+| Parameter | Type | Required | Default | Description |
+|-----------|------|----------|---------|-------------|
+| pageNo | Integer | Yes | 1 | Page number |
+| pageSize | Integer | Yes | 10 | Page size |
+| courseStatus | String | No | - | Filter by lifecycle status |
+| userId | Long | No* | - | Required when `progress=true`; selects which user's completion details to include |
+| progress | Boolean | No | false | When `true`, returns each item in the course + progress shape |
+| sortBy | String | No | createdAt | Sort field |
+| sortOrder | String | No | desc | `asc` / `desc` |
+
+\* `userId` is mandatory whenever `progress=true`.
 
 ## Example
 
+Plain course list:
+
 ```http
-GET /courses?courseStatus=PUBLISHED&pageNo=1&pageSize=10&sortBy=createdAt&sortOrder=desc
+GET /courses?pageNo=1&pageSize=10
 ```
 
-## Success Response
+Course list with progress:
 
-**HTTP Status**
-
-```
-200 OK
+```http
+GET /courses?pageNo=1&pageSize=10&progress=true&userId=25
 ```
 
-```json
-{
-    "message": "Courses fetched successfully",
-    "data": [
-        {
-            "courseId": 1,
-            "courseTitle": "Java",
-            "courseDescription": "Java Fundamentals",
-            "courseTags": [
-                "java"
-            ],
-            "courseStatus": "DRAFT",
-            "instructorId": 101,
-            "instructorName": "John Doe",
-            "canEnrollment": true,
-            "createdAt": "2026-08-02T10:30:00Z"
-        }
-    ],
-    "page": 1,
-    "size": 10,
-    "total": 150
-}
-```
+## Possible Errors
+
+| Status | Error Code | Description |
+|--------|------------|-------------|
+| 400 | COURSE_013 | userId is mandatory when progress=true |
 
 ---
 
 # Delete Course
 
-Performs a soft delete by closing course enrollment.
+Performs a soft delete by setting:
+- `courseStatus = MANUAL_UNPUBLISHED`
+- `canEnrollment = false`
 
 ## Endpoint
 
@@ -314,66 +239,10 @@ Performs a soft delete by closing course enrollment.
 DELETE /courses/{courseId}
 ```
 
-## Path Parameters
-
-| Name     | Type | Description       |
-|----------|------|-------------------|
-| courseId | Long | Course Identifier |
-
-## Behavior
-
-- Course is **not physically deleted**.
-- Sets `canEnrollment = false` and marks the course as `MANUAL_UNPUBLISHED`.
-- Existing enrollments remain unchanged.
-- Existing modules and lessons are retained.
-
-## Success Response
-
-**HTTP Status**
-
-```
-200 OK
-```
-
-```json
-{
-    "message": "Course enrollment closed successfully",
-    "data": {}
-}
-```
-
-## Possible Errors
-
-| Status | Error Code | Description              |
-|--------|------------|--------------------------|
-| 404    | COURSE_003 | Course not found         |
-| 409    | COURSE_004 | Course cannot be deleted |
-| 403    | AUTH_001   | Unauthorized             |
-
----
-
-# Error Codes
-
-| Code       | Description               |
-|------------|---------------------------|
-| COURSE_001 | Invalid request           |
-| COURSE_002 | Course title is mandatory |
-| COURSE_003 | Course not found          |
-| COURSE_004 | Course cannot be deleted  |
-| USER_001   | Instructor not found      |
-| AUTH_001   | Unauthorized              |
-
 ---
 
 # Design Decisions
 
-- Resource-oriented REST APIs.
-- Soft delete is implemented by setting `canEnrollment = false` and moving the course to `MANUAL_UNPUBLISHED`.
-- A `courseStatus` field manages the lifecycle; `canEnrollment` is only meaningful when the status is `PUBLISHED`.
-- Pagination is supported for all list operations.
-- Sorting is supported using `sortBy` and `sortOrder`.
-- Filtering is implemented using query parameters.
-- Responses follow a consistent response structure.
-- Authentication is JWT based.
-- Only ADMIN users can delete courses.
-- Instructors can manage only the courses they own.
+- Plain read responses always include `totalModuleCount` (active modules only).
+- Progress read responses are enabled with `progress=true` and require `userId`.
+- `isCourseCompleted` uses enrollment completion status as source of truth.
