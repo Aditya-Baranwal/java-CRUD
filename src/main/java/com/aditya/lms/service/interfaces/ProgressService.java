@@ -10,5 +10,7 @@ public interface ProgressService {
 
     Page<Progress> listProgress(Long userId, Integer pageNo, Integer pageSize, Long courseId, Long moduleId, LessonStatus lessonStatus, String sortBy, String sortOrder);
 
-    Progress updateProgress(Long progressId, Progress progress);
+    Progress updateProgressAsStudent(Long progressId, Progress progress, Long studentId);
+
+    Progress updateProgressAsAdmin(Long progressId, Progress progress, Long adminId);
 }

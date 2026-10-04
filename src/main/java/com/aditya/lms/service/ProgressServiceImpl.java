@@ -2,8 +2,12 @@ package com.aditya.lms.service;
 
 import com.aditya.lms.entity.Progress;
 import com.aditya.lms.enums.LessonStatus;
+import com.aditya.lms.exception.ErrorMessages;
+import com.aditya.lms.exception.ProgressConflictException;
+import com.aditya.lms.exception.ProgressForbiddenException;
 import com.aditya.lms.exception.ProgressNotFoundException;
 import com.aditya.lms.exception.ProgressValidationException;
+import com.aditya.lms.repository.EnrollmentRepository;
 import com.aditya.lms.repository.ProgressRepository;
 import com.aditya.lms.service.interfaces.EnrollmentService;
 import com.aditya.lms.service.interfaces.ProgressService;
@@ -24,6 +28,7 @@ import java.time.OffsetDateTime;
 public class ProgressServiceImpl implements ProgressService {
 
     private final ProgressRepository progressRepository;
+    private final EnrollmentRepository enrollmentRepository;
     private final EnrollmentService enrollmentService;
 
     @Override
@@ -39,7 +44,7 @@ public class ProgressServiceImpl implements ProgressService {
                                       Long courseId, Long moduleId, LessonStatus lessonStatus,
                                       String sortBy, String sortOrder) {
         if (userId == null) {
-            throw new ProgressValidationException("userId is mandatory");
+            throw new ProgressValidationException(ErrorMessages.PROGRESS_USER_ID_MANDATORY);
         }
 
         Pageable pageable = buildPageable(pageNo, pageSize, sortBy, sortOrder);
@@ -74,22 +79,49 @@ public class ProgressServiceImpl implements ProgressService {
 
     @Override
     @Transactional
-    public Progress updateProgress(Long progressId, Progress progress) {
+    public Progress updateProgressAsStudent(Long progressId, Progress progress, Long studentId) {
+        if (studentId == null) {
+            throw new ProgressValidationException(ErrorMessages.PROGRESS_REQUESTER_ID_MANDATORY);
+        }
+        Progress updated = updateProgress(progressId, progress);
+        if (!studentId.equals(updated.getUserId())) {
+            throw new ProgressForbiddenException(ErrorMessages.PROGRESS_STUDENT_OWN_ONLY);
+        }
+        return updated;
+    }
+
+    @Override
+    @Transactional
+    public Progress updateProgressAsAdmin(Long progressId, Progress progress, Long adminId) {
+        if (adminId == null) {
+            throw new ProgressValidationException(ErrorMessages.PROGRESS_REQUESTER_ID_MANDATORY);
+        }
+        return updateProgress(progressId, progress);
+    }
+
+    private Progress updateProgress(Long progressId, Progress progress) {
         Progress existing = progressRepository.findById(progressId)
                 .orElseThrow(() -> new ProgressNotFoundException(progressId));
 
         if (progress == null) {
-            throw new ProgressValidationException("Progress payload is required");
+            throw new ProgressValidationException(ErrorMessages.PROGRESS_PAYLOAD_REQUIRED);
         }
 
-        if (progress.getLessonStatus() != null) {
-            existing.setLessonStatus(progress.getLessonStatus());
+        Long courseId = existing.getLesson().getModule().getCourse().getId();
+        boolean enrolled = enrollmentRepository.existsByUserIdAndCourse_Id(existing.getUserId(), courseId);
+        if (!enrolled) {
+            throw new ProgressConflictException(ErrorMessages.PROGRESS_USER_NOT_ENROLLED);
+        }
 
-            if (progress.getLessonStatus() == LessonStatus.STARTED && existing.getStartedAt() == null) {
+        LessonStatus requestedStatus = progress.getLessonStatus();
+        if (requestedStatus != null) {
+            existing.setLessonStatus(requestedStatus);
+
+            if (requestedStatus == LessonStatus.STARTED && existing.getStartedAt() == null) {
                 existing.setStartedAt(OffsetDateTime.now());
             }
 
-            if (progress.getLessonStatus() == LessonStatus.FINISHED) {
+            if (requestedStatus == LessonStatus.FINISHED) {
                 if (existing.getStartedAt() == null) {
                     existing.setStartedAt(OffsetDateTime.now());
                 }
@@ -98,25 +130,14 @@ public class ProgressServiceImpl implements ProgressService {
                 }
             }
 
-            if (progress.getLessonStatus() == LessonStatus.UNSTARTED) {
+            if (requestedStatus == LessonStatus.UNSTARTED) {
                 existing.setCompletedAt(null);
             }
         }
 
-        if (progress.getStartedAt() != null) {
-            existing.setStartedAt(progress.getStartedAt());
-        }
-
-        if (progress.getCompletedAt() != null) {
-            existing.setCompletedAt(progress.getCompletedAt());
-        }
-
         Progress updated = progressRepository.save(existing);
         log.info("Progress updated successfully progressId={}, lessonStatus={}", updated.getId(), updated.getLessonStatus());
-
-        Long courseId = updated.getLesson().getModule().getCourse().getId();
         enrollmentService.refreshCompletionStatus(updated.getUserId(), courseId);
-
         return updated;
     }
 

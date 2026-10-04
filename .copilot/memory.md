@@ -50,6 +50,12 @@
   - only `PUBLISHED` and `PLANNED_TO_UNPUBLISH` are student-visible
   - student lists are filtered by `course_status`, not enrollment or `can_enrollment`
   - soft delete sets `canEnrollment=false` and moves the course to `MANUAL_UNPUBLISHED`
+  - course read APIs now use service-owned `CourseView` for derived fields on read paths:
+    - plain read/list includes `totalModuleCount` (active modules only)
+    - progress read/list (`progress=true` + `userId`) includes `userId`, `isCourseCompleted`, `completedModuleCount`, `totalModuleCount`
+    - `isCourseCompleted` uses enrollment source of truth (`Enrollment.courseCompletionStatus == COMPLETE`)
+    - if user is not enrolled, `isCourseCompleted` and `completedModuleCount` are `null` while `totalModuleCount` is still populated
+  - `COURSE_013` (`userId is mandatory when progress=true`) is enforced for course progress reads
 
 - `LessonService` / `LessonServiceImpl` enforce the rules in `docs/decisions/module.decisions.md`, applied one level deeper via `Lesson -> Module -> Course`:
   - Lesson create/update/delete is only allowed while the owning course's `courseStatus` is `DRAFT` or `READY_TO_PUBLISH`; blocked once `PUBLISHED` or higher (this single gate also covers toggling `isActive`, since that's a subset of "edit").
@@ -75,14 +81,20 @@
 
 - `EnrollmentService` / `EnrollmentServiceImpl` enforce the rules in `docs/decisions/enrollment.decisions.md`, again using the per-role-method convention, but with only **two** roles (instructors have zero enrollment capability — no method exists for them at all, enforced at compile time):
   - `createEnrollmentAsStudent(enrollment, studentId)`: requires `enrollment.userId == studentId` (else `EnrollmentForbiddenException` / `ENROLLMENT_SELF_ENROLL_ONLY`), course must be `PUBLISHED` **and** `canEnrollment == true` (else `EnrollmentConflictException`).
-  - `createEnrollmentAsAdmin(enrollment, adminId)`: the admin can enroll themselves or any student on their behalf; course must be `PUBLISHED` only — `canEnrollment` is **not** checked (asymmetric with the student path, per the decision doc).
+  - `createEnrollmentAsAdmin(enrollment, adminId)`: the admin can enroll themselves or any student on their behalf; course must be `PUBLISHED` **and** `canEnrollment == true` (same gate as student path).
   - Both create paths share a private `saveEnrollment` helper: duplicate-enrollment check (`existsByUserIdAndCourse_Id`), sets `courseCompletionStatus=INCOMPLETE` and `isActive=true`, saves, then seeds one `Progress` row per course lesson (`UNSTARTED`) via `LessonRepository.findByModule_Course_Id` + `ProgressRepository.saveAll`.
   - `cancelEnrollment(id)`: hard-deletes the enrollment and all its `Progress` rows for that user/course; no-ops if already inactive.
-  - `refreshCompletionStatus(userId, courseId)`: recomputes `CourseCompletionStatus` (COMPLETE only when **every** `Progress` row for that user/course is `FINISHED`) and saves only if the value actually changed (idempotent). No-ops when no enrollment or no progress rows exist. This is the "mark complete when all lessons finished" rule, and it lives in `EnrollmentService` (not `ProgressService`) since it's an enrollment-level concern — `ProgressServiceImpl.updateProgress` calls `enrollmentService.refreshCompletionStatus(...)` after every progress save (cross-service wiring, constructor-injected).
+  - `refreshCompletionStatus(userId, courseId)`: recomputes `CourseCompletionStatus` (COMPLETE only when **every** `Progress` row for that user/course is `FINISHED`) and saves only if the value actually changed (idempotent). No-ops when no enrollment or no progress rows exist. This is the "mark complete when all lessons finished" rule, and it lives in `EnrollmentService` (not `ProgressService`) since it's an enrollment-level concern — `ProgressServiceImpl` triggers `enrollmentService.refreshCompletionStatus(...)` after every progress update save.
   - Service-layer derived fields: `EnrollmentServiceImpl` keeps two private helper methods (`canEnrolledStudentViewCourseContent` and `courseAccessMessage`) and wraps the entity in a `com.aditya.lms.dto.EnrollmentView` record. That record is the actual return type for `createEnrollmentAsStudent`, `createEnrollmentAsAdmin`, `getEnrollment`, and `listEnrollments` because the `Enrollment` entity itself has no columns for the derived API fields. `EnrollmentView` is defined as `Enrollment enrollment, boolean canEnrolledStudentViewCourseContent, String courseAccessMessage`.
   - `EnrollmentMapper.toCreateResponse(EnrollmentView)` / `toGetResponse(EnrollmentView)` / `toListResponse(Page<EnrollmentView>)` take the service DTO directly — no extra boolean/resolver-function parameters are passed in, and the mapper remains a presentation-only layer.
   - `EnrollmentController` wires `createEnrollment` to `createEnrollmentAsAdmin` with the same `TEMP_REQUESTER_ID = 0L` stopgap (no HTTP entry point yet for student self-enroll, same known gap as Module/Lesson).
   - `EnrollmentResponse` DTO (OpenAPI) gained two fields to support this: `canEnrolledStudentViewCourseContent` (boolean) and `courseAccessMessage` (string, nullable) — named `courseAccessMessage` rather than bare `message` to avoid colliding with the wrapper response's own top-level `message` field.
+
+- `ProgressService` / `ProgressServiceImpl` now follow per-role mutation methods (no instructor mutation method):
+  - `updateProgressAsStudent(progressId, progress, studentId)`: validates requester id, enforces "student can only update own progress", and updates only when the progress owner is enrolled in the owning course.
+  - `updateProgressAsAdmin(progressId, progress, adminId)`: validates requester id and can update any enrolled user's progress.
+  - Progress update path enforces enrollment existence (`EnrollmentRepository.existsByUserIdAndCourse_Id`) before saving and refreshes enrollment completion status after save.
+  - `ProgressController` currently exposes only `PUT /progress/{progressId}` and wires to `updateProgressAsAdmin(..., TEMP_REQUESTER_ID)` as a stopgap pending real authentication/role wiring.
 
 
 - Added base domain exception: `BaseException` with `errorCode` and `HttpStatus`.
@@ -105,7 +117,7 @@
   - `EnrollmentConflictException` (`ENROLLMENT_409`) — duplicate enrollment, course-closed, course-not-published
   - `EnrollmentValidationException` (`ENROLLMENT_400`)
   - `EnrollmentForbiddenException` (`ENROLLMENT_403`) — new, for the "student can only self-enroll" rule.
-- Centralized all reusable error codes/messages in `com.aditya.lms.exception.ErrorMessages` using a shared `Error` record; Lesson-specific codes are `LESSON_001`-`LESSON_015` plus `LESSON_404`; Module-specific codes are `MODULE_001`-`MODULE_014` plus `MODULE_404`; Enrollment-specific codes are `ENROLLMENT_001`-`ENROLLMENT_008` plus `ENROLLMENT_404`.
+- Centralized all reusable error codes/messages in `com.aditya.lms.exception.ErrorMessages` using a shared `Error` record; Course-specific codes are `COURSE_001`-`COURSE_013` plus `COURSE_404`; Lesson-specific codes are `LESSON_001`-`LESSON_015` plus `LESSON_404`; Module-specific codes are `MODULE_001`-`MODULE_015` plus `MODULE_404`; Enrollment-specific codes are `ENROLLMENT_001`-`ENROLLMENT_008` plus `ENROLLMENT_404`.
 - Added `GlobalExceptionHandler` (`@RestControllerAdvice`) returning `ErrorResponseDTO`.
 
 ## Unit Test Conventions (`.copilot/prompts/unit.test.prompt.md`)
@@ -122,9 +134,10 @@
 - The course enrollment gate is named `canEnrollment` in the API and `can_enrollment` in the database; it is only meaningful when `courseStatus = PUBLISHED`.
 - `CourseCreateRequest` and `CourseUpdateRequest` default to `DRAFT` on creation; `canEnrollment` defaults to `false` in the domain model.
 - `CourseResponse` and `CourseSummary` include `courseStatus` and `canEnrollment` to reflect lifecycle state and enrollment availability in create/get/list payloads.
+- `CourseResponse` and `CourseSummary` include `totalModuleCount` (active modules only), and course get/list support split plain/progress responses behind `progress=true` + `userId`.
 - The shared enum values follow the schema contract: `DRAFT`, `READY_TO_PUBLISH`, `PUBLISHED`, `PLANNED_TO_UNPUBLISH`, `READY_TO_UNPUBLISH`, `UNPUBLISHED`, `MANUAL_UNPUBLISHED`.
 - `Course.tags` is represented as `courseTags` array with default `[]` in all API schema variants.
-- Generated OpenAPI DTOs use enum wrappers like `CourseResponse.CourseStatusEnum` and `CourseListResponseDataInnerDTO.CourseStatusEnum`; mapper code must convert domain enum values to these generated enum types.
+- Generated OpenAPI DTOs use enum wrappers like `CourseResponse.CourseStatusEnum`; for `oneOf` list payloads, concrete generated classes (e.g. `CourseListResponseDataInnerOneOfDTO` / `CourseListResponseDataInnerOneOf1DTO`) must be used instead of the interface type.
 
 ## Database Migration
 - Liquibase changelog is configured at `classpath:db/changelog/db.changelog-master.yaml`
@@ -155,6 +168,9 @@
 - Array response fields define `default: []` to reflect empty-array semantics in the API contract and match PostgreSQL array defaults.
 - Common enums and summary schemas such as `ContentType`, `LessonStatus`, `CourseCompletionStatus`, `ModuleSummary`, `LessonSummary`, `LessonProgressSummary`, `ErrorResponse`, and list wrappers should be shared rather than redefined inline.
 - Lesson read APIs use two response shapes: plain `LessonResponse` / `LessonSummary` by default, and `LessonProgressResponse` / `LessonProgressSummary` when `progress=true`. `GET /lessons` and `GET /lessons/{lessonId}` both accept `progress` plus `userId`, and progress-mode responses include `progressId`.
+- Module read APIs use two response shapes: plain `ModuleResponse` / `ModuleSummary` by default, and `ModuleProgressResponse` / `ModuleProgressSummary` when `progress=true`; plain reads also include `totalLessonCount`.
+- Course read APIs use two response shapes: plain `CourseResponse` / `CourseSummary` by default, and `CourseProgressResponse` / `CourseProgressSummary` when `progress=true`; plain reads also include `totalModuleCount`.
+- Progress API currently exposes update-only endpoint in OpenAPI/controller (`PUT /progress/{progressId}`); progress read/list endpoints were intentionally removed from the public contract.
 
 ## Entity Layer
 

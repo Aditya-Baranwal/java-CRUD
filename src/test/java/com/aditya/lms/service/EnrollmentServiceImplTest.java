@@ -221,19 +221,15 @@ class EnrollmentServiceImplTest {
     class CreateEnrollmentAsAdmin {
 
         @Test
-        void shouldEnrollStudentWhenCoursePublishedRegardlessOfCanEnrollmentFlag() {
+        void shouldThrowConflictWhenCourseClosedForEnrollment() {
             Enrollment newEnrollment = EnrollmentTestData.newUnsavedEnrollment(STUDENT_ID, COURSE_ID);
             Course closedCourse = EnrollmentTestData.courseWithStatus(CourseStatus.PUBLISHED, Boolean.FALSE);
             when(courseRepository.findById(COURSE_ID)).thenReturn(Optional.of(closedCourse));
-            when(enrollmentRepository.existsByUserIdAndCourse_Id(STUDENT_ID, COURSE_ID)).thenReturn(false);
-            when(enrollmentRepository.save(any(Enrollment.class))).thenAnswer(invocation -> invocation.getArgument(0));
-            when(lessonRepository.findByModule_Course_Id(COURSE_ID)).thenReturn(List.of());
 
-            EnrollmentView view = enrollmentService.createEnrollmentAsAdmin(newEnrollment, ADMIN_ID);
-
-            assertThat(view).isNotNull();
-            assertThat(view.enrollment().getIsActive()).isTrue();
-            assertThat(view.courseAccessMessage()).isEqualTo("Course is closed for enrollment.");
+            assertThatThrownBy(() -> enrollmentService.createEnrollmentAsAdmin(newEnrollment, ADMIN_ID))
+                    .isInstanceOf(EnrollmentConflictException.class)
+                    .hasMessage(ErrorMessages.ENROLLMENT_COURSE_CLOSED.message());
+            verify(enrollmentRepository, never()).save(any());
         }
 
         @Test

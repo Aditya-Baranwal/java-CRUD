@@ -132,4 +132,12 @@ public final class ErrorMessages {
     public static Error enrollmentCourseNotPublished(Object courseStatus) {
         return new Error("ENROLLMENT_008", "Enrollment is not allowed while course is in " + courseStatus + " state");
     }
+
+    // ── Progress ──────────────────────────────────────────────────────────────
+
+    public static final Error PROGRESS_USER_ID_MANDATORY = new Error("PROGRESS_001", "userId is mandatory");
+    public static final Error PROGRESS_PAYLOAD_REQUIRED = new Error("PROGRESS_001", "Progress payload is required");
+    public static final Error PROGRESS_REQUESTER_ID_MANDATORY = new Error("PROGRESS_001", "requesterId is mandatory");
+    public static final Error PROGRESS_STUDENT_OWN_ONLY = new Error("PROGRESS_005", "Students can update only their own progress");
+    public static final Error PROGRESS_USER_NOT_ENROLLED = new Error("PROGRESS_003", "User is not enrolled in the course");
 }

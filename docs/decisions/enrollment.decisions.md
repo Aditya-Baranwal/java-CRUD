@@ -24,4 +24,9 @@
 ## progress creation on enrollment:
 - when ever a enrollment in a course is done, progress for all lessons of all modules of the course should be created for that user with `NOT_STARTED` state.
 
-## emrollment status transition rules:
+## enrollment status transition rules:
+
+| enrollment_status | meaning                                                                                     |
+|-------------------|---------------------------------------------------------------------------------------------|
+| INCOMPLETE        | user has enrolled in the course but not completed all lessons of all modules of the course. |
+| COMPLETE          | user has completed all lessons of all modules of the course.                                |

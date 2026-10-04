@@ -18,9 +18,9 @@ import org.springframework.data.domain.Page;
  *   <li>Students may only enroll themselves in a course; a student cannot create an enrollment
  *       for another user.</li>
  *   <li>Enrollment is allowed only when the course is {@code PUBLISHED} and, for the student
- *       path, {@code canEnrollment} is {@code true}.</li>
+ *       and admin paths, {@code canEnrollment} is {@code true}.</li>
  *   <li>Admins may enroll any student on behalf of that student, and may also enroll themselves,
- *       but only when the course is {@code PUBLISHED}.</li>
+ *       when the course is {@code PUBLISHED} and open for enrollment.</li>
  *   <li>Derived course-lifecycle values (content visibility and access message) are computed in
  *       this service and returned via {@link EnrollmentView}.</li>
  * </ul>

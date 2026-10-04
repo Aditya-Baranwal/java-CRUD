@@ -82,6 +82,9 @@ public class EnrollmentServiceImpl implements EnrollmentService {
 
         Course course = findCourseForEnrollment(enrollment.getCourse().getId());
         validateCoursePublished(course);
+        if (Boolean.FALSE.equals(course.getCanEnrollment())) {
+            throw new EnrollmentConflictException(ErrorMessages.ENROLLMENT_COURSE_CLOSED);
+        }
 
         return toView(saveEnrollment(enrollment, course));
     }
