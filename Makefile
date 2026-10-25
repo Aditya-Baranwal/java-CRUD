@@ -2,7 +2,8 @@
 
 help:
 	@echo "Available commands:"
-	@echo "  make generate-open-spec     - Generate DTOs and controller interfaces from OpenAPI spec"
+	@echo "  make generate-openap1     - Generate DTOs and controller interfaces from OpenAPI spec"
+	@echo "  make validate-openap1     - Validate OpenAPI spec"
 	@echo "  make build             - Build the project"
 	@echo "  make test              - Run tests"
 	@echo "  make unit-test [TEST=ClassName] - Run unit test cases (optionally a single test class)"
@@ -16,10 +17,14 @@ help:
 	@echo "  make liquibase-rollback [COUNT=n] - Roll back last n Liquibase changeSets (default 1)"
 	@echo "  make all               - Clean, install, generate, and build"
 
-generate-open-spec:
+generate-openapi:
 	@echo "Generating DTOs and controller interfaces from OpenAPI spec..."
 	./mvnw clean generate-sources
 
+validate-openapi:
+	@echo "Validating OpenAPI specification..."
+	./mvnw validate
+	# ./mvnw -e org.openapitools:openapi-generator-maven-plugin:7.4.0:validate
 build:
 	@echo "Building project..."
 	./mvnw clean package -DskipTests

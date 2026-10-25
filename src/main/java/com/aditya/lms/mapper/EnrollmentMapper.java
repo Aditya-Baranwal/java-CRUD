@@ -4,12 +4,7 @@ import com.aditya.lms.dto.EnrollmentView;
 import com.aditya.lms.entity.Course;
 import com.aditya.lms.entity.Enrollment;
 import com.aditya.lms.enums.CourseCompletionStatus;
-import com.lms.model.EnrollmentCreateRequestDTO;
-import com.lms.model.EnrollmentCreateResponseDTO;
-import com.lms.model.EnrollmentDeleteResponseDTO;
-import com.lms.model.EnrollmentGetResponseDTO;
-import com.lms.model.EnrollmentListResponseDTO;
-import com.lms.model.EnrollmentResponseDTO;
+import com.lms.model.*;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Component;
 
@@ -68,7 +63,7 @@ public class EnrollmentMapper {
                 .userId(enrollment.getUserId())
                 .courseId(enrollment.getCourse() == null ? null : enrollment.getCourse().getId())
                 .courseTitle(enrollment.getCourse() == null ? null : enrollment.getCourse().getTitle())
-                .courseCompletionStatus(enrollment.getCourseCompletionStatus() == null ? null : EnrollmentResponseDTO.CourseCompletionStatusEnum.valueOf(enrollment.getCourseCompletionStatus().name()))
+                .courseCompletionStatus(enrollment.getCourseCompletionStatus() == null ? null : CourseCompletionStatusDTO.valueOf(enrollment.getCourseCompletionStatus().name()))
                 .enrolledAt(enrollment.getEnrolledAt())
                 .canEnrolledStudentViewCourseContent(view.canEnrolledStudentViewCourseContent())
                 .courseAccessMessage(view.courseAccessMessage());

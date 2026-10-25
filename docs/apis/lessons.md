@@ -14,13 +14,13 @@ This document describes the current API contract for lesson endpoints.
 
 # Authorization
 
-| Operation     | ADMIN |   INSTRUCTOR    | USER |
-|---------------|:-----:|:---------------:|:----:|
-| Create Lesson |  ✅   | ✅ (Own Course) |  ❌  |
-| Update Lesson |  ✅   | ✅ (Own Course) |  ❌  |
-| Get Lesson    |  ✅   |       ✅        |  ✅  |
-| List Lessons  |  ✅   |       ✅        |  ✅  |
-| Delete Lesson |  ✅   | ✅ (Own Course) |  ❌  |
+| Operation     | ADMIN |   INSTRUCTOR    | STUDENT |
+|---------------|:-----:|:---------------:|:-------:|
+| Create Lesson |  ✅   | ✅ (Own Course) |   ❌    |
+| Update Lesson |  ✅   | ✅ (Own Course) |   ❌    |
+| Get Lesson    |  ✅   |       ✅        |   ✅    |
+| List Lessons  |  ✅   |       ✅        |   ✅    |
+| Delete Lesson |  ✅   | ✅ (Own Course) |   ❌    |
 
 ---
 

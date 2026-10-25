@@ -3,18 +3,7 @@ package com.aditya.lms.mapper;
 import com.aditya.lms.dto.CourseView;
 import com.aditya.lms.entity.Course;
 import com.aditya.lms.enums.CourseStatus;
-import com.lms.model.CourseCreateRequestDTO;
-import com.lms.model.CourseCreateResponseDTO;
-import com.lms.model.CourseDeleteResponseDTO;
-import com.lms.model.CourseGetResponseDTO;
-import com.lms.model.CourseListResponseDTO;
-import com.lms.model.CourseListResponseDataInnerDTO;
-import com.lms.model.CourseListResponseDataInnerOneOfDTO;
-import com.lms.model.CourseListResponseDataInnerOneOf1DTO;
-import com.lms.model.CourseProgressResponseDTO;
-import com.lms.model.CourseResponseDTO;
-import com.lms.model.CourseUpdateRequestDTO;
-import com.lms.model.CourseUpdateResponseDTO;
+import com.lms.model.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Component;
@@ -135,7 +124,7 @@ public class CourseMapper {
                 .courseTitle(course.getTitle())
                 .courseDescription(course.getDescription())
                 .courseTags(course.getTags() == null ? List.of() : course.getTags())
-                .courseStatus(course.getCourseStatus() == null ? null : CourseProgressResponseDTO.CourseStatusEnum.valueOf(course.getCourseStatus().name()))
+                .courseStatus(course.getCourseStatus() == null ? null : CourseStatusDTO.valueOf(course.getCourseStatus().name()))
                 .instructorId(course.getInstructorId())
                 .canEnrollment(course.getCanEnrollment())
                 .userId(courseView.userId())
@@ -152,12 +141,12 @@ public class CourseMapper {
 
     private CourseListResponseDataInnerDTO toListItemResponse(CourseView courseView) {
         Course course = courseView.course();
-        return new CourseListResponseDataInnerOneOfDTO()
+        return new CourseSummaryDTO()
                 .courseId(course.getId())
                 .courseTitle(course.getTitle())
                 .courseDescription(course.getDescription())
                 .courseTags(course.getTags() == null ? List.of() : course.getTags())
-                .courseStatus(course.getCourseStatus() == null ? null : CourseListResponseDataInnerOneOfDTO.CourseStatusEnum.valueOf(course.getCourseStatus().name()))
+                .courseStatus(course.getCourseStatus() == null ? null : CourseStatusDTO.valueOf(course.getCourseStatus().name()))
                 .instructorId(course.getInstructorId())
                 .canEnrollment(course.getCanEnrollment())
                 .totalModuleCount(courseView.totalModuleCount())
@@ -166,12 +155,12 @@ public class CourseMapper {
 
     private CourseListResponseDataInnerDTO toProgressListItemResponse(CourseView courseView) {
         Course course = courseView.course();
-        return new CourseListResponseDataInnerOneOf1DTO()
+        return new CourseProgressSummaryDTO()
                 .courseId(course.getId())
                 .courseTitle(course.getTitle())
                 .courseDescription(course.getDescription())
                 .courseTags(course.getTags() == null ? List.of() : course.getTags())
-                .courseStatus(course.getCourseStatus() == null ? null : CourseListResponseDataInnerOneOf1DTO.CourseStatusEnum.valueOf(course.getCourseStatus().name()))
+                .courseStatus(course.getCourseStatus() == null ? null : CourseStatusDTO.valueOf(course.getCourseStatus().name()))
                 .instructorId(course.getInstructorId())
                 .canEnrollment(course.getCanEnrollment())
                 .userId(courseView.userId())
@@ -181,7 +170,7 @@ public class CourseMapper {
                 .createdAt(course.getCreatedAt());
     }
 
-    private CourseStatus toDomainStatus(CourseUpdateRequestDTO.CourseStatusEnum status) {
+    public CourseStatus toDomainStatus(CourseStatusDTO status) {
         if (status == null) {
             return null;
         }
@@ -195,11 +184,11 @@ public class CourseMapper {
         return CourseStatus.valueOf(courseStatus.toUpperCase());
     }
 
-    private CourseResponseDTO.CourseStatusEnum toApiStatus(CourseStatus status) {
+    private CourseStatusDTO toApiStatus(CourseStatus status) {
         if (status == null) {
             return null;
         }
-        return CourseResponseDTO.CourseStatusEnum.valueOf(status.name());
+        return CourseStatusDTO.valueOf(status.name());
     }
 
 }

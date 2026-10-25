@@ -140,4 +140,33 @@ public final class ErrorMessages {
     public static final Error PROGRESS_REQUESTER_ID_MANDATORY = new Error("PROGRESS_001", "requesterId is mandatory");
     public static final Error PROGRESS_STUDENT_OWN_ONLY = new Error("PROGRESS_005", "Students can update only their own progress");
     public static final Error PROGRESS_USER_NOT_ENROLLED = new Error("PROGRESS_003", "User is not enrolled in the course");
+
+    // ── User ─────────────────────────────────────────────────────────────────
+
+    public static final Error USER_PAYLOAD_REQUIRED = new Error("USER_001", "User payload is required");
+    public static final Error USER_ID_MANDATORY = new Error("USER_002", "userId is mandatory");
+    public static final Error USER_NAME_MANDATORY = new Error("USER_003", "name is mandatory");
+    public static final Error USER_NAME_BLANK = new Error("USER_004", "name cannot be blank");
+    public static final Error USER_DOB_MANDATORY = new Error("USER_005", "dob is mandatory");
+    public static final Error USER_MOBILE_NO_MANDATORY = new Error("USER_006", "mobileNo is mandatory");
+    public static final Error USER_MOBILE_NO_INVALID = new Error("USER_007", "mobileNo must be exactly 10 digits");
+    public static final Error USER_EMAIL_ID_MANDATORY = new Error("USER_008", "emailId is mandatory");
+    public static final Error USER_EMAIL_ID_INVALID = new Error("USER_009", "emailId is invalid");
+    public static final Error USER_PASSWORD_HASH_MANDATORY = new Error("USER_010", "passwordHash is mandatory");
+    public static final Error USER_PASSWORD_HASH_BLANK = new Error("USER_011", "passwordHash cannot be blank");
+    public static final Error USER_ROLE_MANDATORY = new Error("USER_012", "role is mandatory");
+    public static final Error USER_DUPLICATE_EMAIL = new Error("USER_013", "User with the same emailId already exists");
+    public static final Error USER_DUPLICATE_MOBILE = new Error("USER_014", "User with the same mobileNo already exists");
+
+    public static Error userNotFound(Long userId) {
+        return new Error("USER_404", "User not found for id: " + userId);
+    }
+
+    public static Error userNotFoundByEmail(String emailId) {
+        return new Error("USER_405", "User not found for emailId: " + emailId);
+    }
+
+    public static Error userNotFoundByMobileNo(String mobileNo) {
+        return new Error("USER_406", "User not found for mobileNo: " + mobileNo);
+    }
 }

@@ -14,4 +14,4 @@ spring:
       port: 6379
 logging:
   pattern:
-    console: "%d{yyyy-MM-dd HH:mm:ss.SSS} %magenta(%-5level) [%thread] %logger{36} : %msg%n"
+    console: "%d{yyyy-MM-dd HH:mm:ss.SSS} %magenta(%-5level) %cyan([%thread]) %logger{36} : %msg%n"

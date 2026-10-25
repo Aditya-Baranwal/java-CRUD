@@ -5,7 +5,7 @@
 	<parent>
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
-		<version>3.1.4</version>
+		<version>4.0.1</version>
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>com.spring.data</groupId>
@@ -27,6 +27,12 @@
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-web</artifactId>
+		</dependency>
+
+		<!-- Spring Boot Security - Authentication and authorization -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-security</artifactId>
 		</dependency>
 
 		<!-- PostgreSQL Driver - Database driver for PostgreSQL -->
@@ -110,12 +116,32 @@
 			<version>0.2.6</version>
 		</dependency>
 
-		<!-- SpringDoc OpenAPI UI - Interactive Swagger UI for API documentation v2.1.0 -->
+		<!-- SpringDoc OpenAPI UI - Interactive Swagger UI for API documentation v3.1.1 -->
 		<dependency>
 			<groupId>org.springdoc</groupId>
 			<artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
-			<version>2.1.0</version>
+			<version>3.1.1</version>
 		</dependency>
+
+		<!-- JSON Web Token (JWT) API - Java JWT library v0.12.6 -->
+		<dependency>
+			<groupId>io.jsonwebtoken</groupId>
+			<artifactId>jjwt-api</artifactId>
+			<version>0.12.6</version>
+		</dependency>
+		<dependency>
+			<groupId>io.jsonwebtoken</groupId>
+			<artifactId>jjwt-impl</artifactId>
+			<version>0.12.6</version>
+			<scope>runtime</scope>
+		</dependency>
+		<dependency>
+			<groupId>io.jsonwebtoken</groupId>
+			<artifactId>jjwt-jackson</artifactId>
+			<version>0.12.6</version>
+			<scope>runtime</scope>
+		</dependency>
+
 
 	</dependencies>
 
@@ -133,6 +159,7 @@
 					</excludes>
 				</configuration>
 			</plugin>
+			<!-- OpenAPI Generator Maven Plugin - Generates API and model classes from OpenAPI spec -->
 			<plugin>
 				<groupId>org.openapitools</groupId>
 				<artifactId>openapi-generator-maven-plugin</artifactId>
@@ -143,7 +170,7 @@
 							<goal>generate</goal>
 						</goals>
 						<configuration>
-							<inputSpec>${project.basedir}/src/main/resources/openapi.yaml</inputSpec>
+							<inputSpec>${project.basedir}/src/main/resources/openapi/openapi.yaml</inputSpec>
 							<generatorName>spring</generatorName>
 							<apiPackage>com.lms.api</apiPackage>
 							<modelPackage>com.lms.model</modelPackage>
@@ -157,10 +184,12 @@
 								<skipDefaultInterface>true</skipDefaultInterface>
 								<useLombokAnnotations>true</useLombokAnnotations>
 								<dateLibrary>java8</dateLibrary>
-								<generateApis>true</generateApis>
-								<generateModels>true</generateModels>
-								<generateModelTests>false</generateModelTests>
-								<generateApiTests>false</generateApiTests>
+								<generate>
+									<api>true</api>
+									<model>true</model>
+									<modelTests>false</modelTests>
+									<apiTests>false</apiTests>
+								</generate>
 								<useJakarta>true</useJakarta>
 							</configOptions>
 						</configuration>

@@ -11,7 +11,7 @@ import java.util.Set;
 
 public interface CourseRepository extends JpaRepository<Course, Long> {
 
-    Optional<Course> findByIdAndIsActiveTrue(Long id);
+    // Optional<Course> findByIdAndIsActiveTrue(Long id);
 
     boolean existsByTitleIgnoreCaseAndInstructorIdAndCanEnrollmentTrue(String title, Long instructorId);
 

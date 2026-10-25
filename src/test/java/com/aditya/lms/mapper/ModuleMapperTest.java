@@ -1,24 +1,11 @@
 package com.aditya.lms.mapper;
 
 import com.aditya.lms.dto.ModuleView;
-import com.aditya.lms.entity.Course;
 import com.aditya.lms.entity.Lesson;
 import com.aditya.lms.entity.Module;
 import com.aditya.lms.enums.ContentType;
 import com.aditya.lms.testdata.ModuleTestData;
-import com.lms.model.CourseResponseModulesInnerDTO;
-import com.lms.model.ModuleCreateRequestDTO;
-import com.lms.model.ModuleCreateResponseDTO;
-import com.lms.model.ModuleDeleteResponseDTO;
-import com.lms.model.ModuleGetResponseDTO;
-import com.lms.model.ModuleListResponseDTO;
-import com.lms.model.ModuleListResponseDataInnerDTO;
-import com.lms.model.ModuleListResponseDataInnerOneOfDTO;
-import com.lms.model.ModuleProgressResponseDTO;
-import com.lms.model.ModuleResponseDTO;
-import com.lms.model.ModuleResponseLessonsInnerDTO;
-import com.lms.model.ModuleUpdateRequestDTO;
-import com.lms.model.ModuleUpdateResponseDTO;
+import com.lms.model.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -220,10 +207,10 @@ class ModuleMapperTest {
             ModuleResponseDTO data = (ModuleResponseDTO) response.getData();
             assertThat(data.getLessons()).hasSize(1);
             assertThat(data.getTotalLessonCount()).isEqualTo(1);
-            ModuleResponseLessonsInnerDTO lessonDto = data.getLessons().get(0);
+            LessonSummaryDTO lessonDto = data.getLessons().get(0);
             assertThat(lessonDto.getLessonId()).isEqualTo(10L);
             assertThat(lessonDto.getModuleId()).isEqualTo(module.getId());
-            assertThat(lessonDto.getContentType()).isEqualTo(ModuleResponseLessonsInnerDTO.ContentTypeEnum.MP4);
+            assertThat(lessonDto.getContentType()).isEqualTo(ContentTypeDTO.MP4);
             assertThat(lessonDto.getContentLink()).isEqualTo(URI.create("https://example.com/video"));
             assertThat(lessonDto.getSequence()).isEqualTo(1);
         }
@@ -239,8 +226,8 @@ class ModuleMapperTest {
             ModuleProgressResponseDTO data = (ModuleProgressResponseDTO) response.getData();
             assertThat(data.getModuleId()).isEqualTo(module.getId());
             assertThat(data.getUserId()).isEqualTo(201L);
-            assertThat(data.getIsModuleCompleted()).isTrue();
-            assertThat(data.getCompletedLessonCount()).isEqualTo(3);
+            assertThat(data.getIsModuleCompleted().get()).isTrue();
+            assertThat(data.getCompletedLessonCount().get()).isEqualTo(3);
             assertThat(data.getTotalLessonCount()).isEqualTo(3);
             assertThat(data.getLessons()).isEmpty();
         }
@@ -290,8 +277,8 @@ class ModuleMapperTest {
             assertThat(response.getTotal()).isEqualTo(1);
             assertThat(response.getData()).hasSize(1);
             ModuleListResponseDataInnerDTO item = response.getData().get(0);
-            assertThat(item).isInstanceOf(CourseResponseModulesInnerDTO.class);
-            CourseResponseModulesInnerDTO baseItem = (CourseResponseModulesInnerDTO) item;
+            assertThat(item).isInstanceOf(ModuleSummaryDTO.class);
+            ModuleSummaryDTO baseItem = (ModuleSummaryDTO) item;
             assertThat(baseItem.getModuleId()).isEqualTo(module.getId());
             assertThat(baseItem.getModuleTitle()).isEqualTo(module.getTitle());
             assertThat(baseItem.getSequence()).isEqualTo(module.getSequence());
@@ -309,12 +296,12 @@ class ModuleMapperTest {
 
             assertThat(response.getData()).hasSize(1);
             ModuleListResponseDataInnerDTO item = response.getData().get(0);
-            assertThat(item).isInstanceOf(ModuleListResponseDataInnerOneOfDTO.class);
-            ModuleListResponseDataInnerOneOfDTO progressItem = (ModuleListResponseDataInnerOneOfDTO) item;
+            assertThat(item).isInstanceOf(ModuleProgressSummaryDTO.class);
+            ModuleProgressSummaryDTO progressItem = (ModuleProgressSummaryDTO) item;
             assertThat(progressItem.getModuleId()).isEqualTo(module.getId());
             assertThat(progressItem.getUserId()).isEqualTo(201L);
-            assertThat(progressItem.getIsModuleCompleted()).isFalse();
-            assertThat(progressItem.getCompletedLessonCount()).isEqualTo(1);
+            assertThat(progressItem.getIsModuleCompleted().get()).isFalse();
+            assertThat(progressItem.getCompletedLessonCount().get()).isEqualTo(1);
             assertThat(progressItem.getTotalLessonCount()).isEqualTo(3);
         }
 
@@ -342,7 +329,7 @@ class ModuleMapperTest {
 
             ModuleListResponseDTO response = moduleMapper.toListResponse(page);
 
-            assertThat(((CourseResponseModulesInnerDTO) response.getData().get(0)).getCourseId()).isNull();
+            assertThat(((ModuleSummaryDTO) response.getData().get(0)).getCourseId()).isNull();
         }
     }
 }

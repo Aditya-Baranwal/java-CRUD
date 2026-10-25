@@ -1,19 +1,13 @@
-openapi: 3.1.0
+openapi: 3.0.3
 info:
   title: Learning Management System API
   description: LMS API for managing courses, modules, lessons, enrollments and progress tracking
   version: 1.0.0
   contact:
     name: LMS Team
-  license:
-    name: MIT
-    identifier: MIT
 
-servers:
-  - url: http://localhost:8081/api/v1
-    description: Development
-  - url: /api/v1
-    description: Production
+security:
+  - BearerAuth: []
 
 tags:
   - name: Courses
@@ -26,10 +20,12 @@ tags:
     description: Enrollment management operations
   - name: Progress
     description: Progress tracking operations
+  - name: Auth
+    description: Authentication operations
 
 components:
   securitySchemes:
-    bearerAuth:
+    BearerAuth:
       type: http
       scheme: bearer
       bearerFormat: JWT
@@ -55,7 +51,7 @@ components:
           type: array
           items:
             type: string
-          default: []
+          default: [ ]
           example:
             - java
             - spring
@@ -84,9 +80,10 @@ components:
           type: array
           items:
             type: string
-          default: []
+          default: [ ]
         courseStatus:
-          $ref: './openapi/common.yaml#/components/schemas/CourseStatus'
+          allOf:
+            - $ref: 'common.yaml#/components/schemas/CourseStatus'
         canEnrollment:
           type: boolean
 
@@ -104,9 +101,10 @@ components:
           type: array
           items:
             type: string
-          default: []
+          default: [ ]
         courseStatus:
-          $ref: './openapi/common.yaml#/components/schemas/CourseStatus'
+          allOf:
+            - $ref: 'common.yaml#/components/schemas/CourseStatus'
         instructorId:
           type: integer
           format: int64
@@ -121,8 +119,8 @@ components:
         modules:
           type: array
           items:
-            $ref: './openapi/common.yaml#/components/schemas/ModuleSummary'
-          default: []
+            $ref: 'common.yaml#/components/schemas/ModuleSummary'
+          default: [ ]
 
     CourseProgressResponse:
       type: object
@@ -138,9 +136,9 @@ components:
           type: array
           items:
             type: string
-          default: []
+          default: [ ]
         courseStatus:
-          $ref: './openapi/common.yaml#/components/schemas/CourseStatus'
+          $ref: 'common.yaml#/components/schemas/CourseStatus'
         instructorId:
           type: integer
           format: int64
@@ -167,8 +165,8 @@ components:
         modules:
           type: array
           items:
-            $ref: './openapi/common.yaml#/components/schemas/ModuleSummary'
-          default: []
+            $ref: 'common.yaml#/components/schemas/ModuleSummary'
+          default: [ ]
 
     CourseListResponse:
       type: object
@@ -179,8 +177,8 @@ components:
           type: array
           items:
             oneOf:
-              - $ref: './openapi/common.yaml#/components/schemas/CourseSummary'
-              - $ref: './openapi/common.yaml#/components/schemas/CourseProgressSummary'
+              - $ref: 'common.yaml#/components/schemas/CourseSummary'
+              - $ref: 'common.yaml#/components/schemas/CourseProgressSummary'
         page:
           type: integer
         size:
@@ -252,8 +250,8 @@ components:
         lessons:
           type: array
           items:
-            $ref: './openapi/common.yaml#/components/schemas/LessonSummary'
-          default: []
+            $ref: 'common.yaml#/components/schemas/LessonSummary'
+          default: [ ]
         isActive:
           type: boolean
         createdAt:
@@ -278,8 +276,8 @@ components:
         lessons:
           type: array
           items:
-            $ref: './openapi/common.yaml#/components/schemas/LessonSummary'
-          default: []
+            $ref: 'common.yaml#/components/schemas/LessonSummary'
+          default: [ ]
         userId:
           type: integer
           format: int64
@@ -310,8 +308,8 @@ components:
           type: array
           items:
             oneOf:
-              - $ref: './openapi/common.yaml#/components/schemas/ModuleSummary'
-              - $ref: './openapi/common.yaml#/components/schemas/ModuleProgressSummary'
+              - $ref: 'common.yaml#/components/schemas/ModuleSummary'
+              - $ref: 'common.yaml#/components/schemas/ModuleProgressSummary'
         page:
           type: integer
         size:
@@ -335,7 +333,8 @@ components:
           format: int64
           example: 10
         contentType:
-          $ref: './openapi/common.yaml#/components/schemas/ContentType'
+          allOf:
+            - $ref: 'common.yaml#/components/schemas/ContentType'
           example: MP4
         contentLink:
           type: string
@@ -350,7 +349,8 @@ components:
       type: object
       properties:
         contentType:
-          $ref: './openapi/common.yaml#/components/schemas/ContentType'
+          allOf:
+            - $ref: 'common.yaml#/components/schemas/ContentType'
         contentLink:
           type: string
           format: uri
@@ -370,7 +370,8 @@ components:
           type: integer
           format: int64
         contentType:
-          $ref: './openapi/common.yaml#/components/schemas/ContentType'
+          allOf:
+            - $ref: 'common.yaml#/components/schemas/ContentType'
         contentLink:
           type: string
           format: uri
@@ -392,7 +393,8 @@ components:
           type: integer
           format: int64
         contentType:
-          $ref: './openapi/common.yaml#/components/schemas/ContentType'
+          allOf:
+            - $ref: 'common.yaml#/components/schemas/ContentType'
         contentLink:
           type: string
           format: uri
@@ -408,7 +410,8 @@ components:
           nullable: true
           description: Progress record id for userId and this lesson, when present.
         lessonStatus:
-          $ref: './openapi/common.yaml#/components/schemas/LessonStatus'
+          allOf:
+            - $ref: 'common.yaml#/components/schemas/LessonStatus'
           nullable: true
           description: Raw progress status for userId, when enrolled; null otherwise.
         isLessonCompleted:
@@ -438,8 +441,8 @@ components:
           type: array
           items:
             oneOf:
-              - $ref: './openapi/common.yaml#/components/schemas/LessonSummary'
-              - $ref: './openapi/common.yaml#/components/schemas/LessonProgressSummary'
+              - $ref: 'common.yaml#/components/schemas/LessonSummary'
+              - $ref: 'common.yaml#/components/schemas/LessonProgressSummary'
         page:
           type: integer
         size:
@@ -480,7 +483,8 @@ components:
         courseTitle:
           type: string
         courseCompletionStatus:
-          $ref: './openapi/common.yaml#/components/schemas/CourseCompletionStatus'
+          allOf:
+            - $ref: 'common.yaml#/components/schemas/CourseCompletionStatus'
         enrolledAt:
           type: string
           format: date-time
@@ -517,7 +521,8 @@ components:
         - lessonStatus
       properties:
         lessonStatus:
-          $ref: './openapi/common.yaml#/components/schemas/LessonStatus'
+          allOf:
+            -  $ref: 'common.yaml#/components/schemas/LessonStatus'
           example: STARTED
 
     ProgressResponse:
@@ -541,7 +546,8 @@ components:
           type: integer
           format: int64
         lessonStatus:
-          $ref: './openapi/common.yaml#/components/schemas/LessonStatus'
+          allOf:
+            - $ref: 'common.yaml#/components/schemas/LessonStatus'
         startedAt:
           type: string
           format: date-time
@@ -570,10 +576,191 @@ components:
           type: string
           format: date-time
 
-security:
-  - bearerAuth: []
+    AuthSignUpRole:
+      type: string
+      enum:
+        - STUDENT
+        - INSTRUCTOR
+
+    AuthSignUpRequest:
+      type: object
+      required:
+        - name
+        - dob
+        - mobileNo
+        - emailId
+        - password
+        - userRole
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 100
+        dob:
+          type: string
+          format: date
+        mobileNo:
+          type: string
+          pattern: '^\d{10}$'
+          example: "9876543210"
+        emailId:
+          type: string
+          format: email
+        password:
+          type: string
+          minLength: 1
+          maxLength: 255
+        userRole:
+          $ref: '#/components/schemas/AuthSignUpRole'
+
+    AuthUserResponse:
+      type: object
+      properties:
+        userId:
+          type: integer
+          format: int64
+        emailId:
+          type: string
+        mobileNo:
+          type: string
+        userRole:
+          $ref: '#/components/schemas/AuthSignUpRole'
+
+    AuthSignUpResponse:
+      type: object
+      properties:
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/AuthUserResponse'
+        timestamp:
+          type: string
+          format: date-time
+
+    AuthLoginRequest:
+      type: object
+      required:
+        - loginId
+        - password
+      properties:
+        loginId:
+          type: string
+          description: emailId or phoneNumber
+          minLength: 1
+        password:
+          type: string
+          minLength: 1
+          maxLength: 255
+
+    AuthLoginPayload:
+      type: object
+      properties:
+        token:
+          type: string
+        tokenType:
+          type: string
+          example: Bearer
+        expiresInSeconds:
+          type: integer
+          format: int64
+        userId:
+          type: integer
+          format: int64
+        authorities:
+          type: array
+          items:
+            type: string
+
+    AuthLoginResponse:
+      type: object
+      properties:
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/AuthLoginPayload'
+        timestamp:
+          type: string
+          format: date-time
+
+    AuthLogoutResponse:
+      type: object
+      properties:
+        message:
+          type: string
+        data:
+          type: object
+          additionalProperties: true
+        timestamp:
+          type: string
+          format: date-time
 
 paths:
+  /auth/sign-up:
+    post:
+      tags:
+        - Auth
+      summary: Register a new user account
+      operationId: signUp
+      security: [ ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AuthSignUpRequest'
+      responses:
+        '201':
+          description: Account created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthSignUpResponse'
+        '400':
+          description: Bad request
+        '409':
+          description: Conflict
+
+  /auth/login:
+    post:
+      tags:
+        - Auth
+      summary: Login with emailId or phoneNumber
+      operationId: login
+      security: [ ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AuthLoginRequest'
+      responses:
+        '200':
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthLoginResponse'
+        '400':
+          description: Bad request
+        '401':
+          description: Unauthorized
+
+  /auth/logout:
+    post:
+      tags:
+        - Auth
+      summary: Logout from current account
+      operationId: logout
+      responses:
+        '200':
+          description: Logout successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthLogoutResponse'
+        '401':
+          description: Unauthorized
+
   /courses:
     post:
       tags:
@@ -607,7 +794,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: './openapi/common.yaml#/components/schemas/ErrorResponse'
+                $ref: 'common.yaml#/components/schemas/ErrorResponse'
         '401':
           description: Unauthorized
         '403':
@@ -625,7 +812,7 @@ paths:
           in: query
           description: Filter courses by lifecycle status. If omitted, all statuses are returned.
           schema:
-            $ref: './openapi/common.yaml#/components/schemas/CourseStatus'
+            $ref: 'common.yaml#/components/schemas/CourseStatus'
         - name: userId
           in: query
           description: Required when progress=true; selects which user's completion details to include.

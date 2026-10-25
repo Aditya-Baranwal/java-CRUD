@@ -14,13 +14,13 @@ This document describes the current API contract for course endpoints.
 
 # Authorization
 
-| Operation     | ADMIN |   INSTRUCTOR    | USER |
-|---------------|:-----:|:---------------:|:----:|
-| Create Course |  ✅   |       ✅        |  ❌  |
-| Update Course |  ✅   | ✅ (Own Course) |  ❌  |
-| Get Course    |  ✅   |       ✅        |  ✅  |
-| List Courses  |  ✅   |       ✅        |  ✅  |
-| Delete Course |  ✅   |       ❌        |  ❌  |
+| Operation     | ADMIN |   INSTRUCTOR    | STUDENT |
+|---------------|:-----:|:---------------:|:-------:|
+| Create Course |  ✅   |       ✅        |   ❌    |
+| Update Course |  ✅   | ✅ (Own Course) |   ❌    |
+| Get Course    |  ✅   |       ✅        |   ✅    |
+| List Courses  |  ✅   |       ✅        |   ✅    |
+| Delete Course |  ✅   |       ❌        |   ❌    |
 
 ---
 

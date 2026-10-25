@@ -4,18 +4,7 @@ import com.aditya.lms.dto.CourseView;
 import com.aditya.lms.entity.Course;
 import com.aditya.lms.enums.CourseStatus;
 import com.aditya.lms.testdata.CourseTestData;
-import com.lms.model.CourseCreateRequestDTO;
-import com.lms.model.CourseCreateResponseDTO;
-import com.lms.model.CourseDeleteResponseDTO;
-import com.lms.model.CourseGetResponseDTO;
-import com.lms.model.CourseListResponseDTO;
-import com.lms.model.CourseListResponseDataInnerDTO;
-import com.lms.model.CourseListResponseDataInnerOneOfDTO;
-import com.lms.model.CourseListResponseDataInnerOneOf1DTO;
-import com.lms.model.CourseProgressResponseDTO;
-import com.lms.model.CourseResponseDTO;
-import com.lms.model.CourseUpdateRequestDTO;
-import com.lms.model.CourseUpdateResponseDTO;
+import com.lms.model.*;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
@@ -118,7 +107,7 @@ class CourseMapperTest {
         void shouldMapCourseStatusFromApiEnumToDomainEnum() {
             Course course = CourseTestData.draftCourse();
             CourseUpdateRequestDTO request = new CourseUpdateRequestDTO()
-                    .courseStatus(CourseUpdateRequestDTO.CourseStatusEnum.PUBLISHED);
+                    .courseStatus(CourseStatusDTO.PUBLISHED);
 
             courseMapper.applyUpdates(course, request);
 
@@ -166,7 +155,7 @@ class CourseMapperTest {
             assertThat(data.getCourseTitle()).isEqualTo(course.getTitle());
             assertThat(data.getCourseDescription()).isEqualTo(course.getDescription());
             assertThat(data.getCourseTags()).containsExactlyElementsOf(course.getTags());
-            assertThat(data.getCourseStatus()).isEqualTo(CourseResponseDTO.CourseStatusEnum.DRAFT);
+            assertThat(data.getCourseStatus()).isEqualTo(CourseStatusDTO.DRAFT);
             assertThat(data.getInstructorId()).isEqualTo(course.getInstructorId());
             assertThat(data.getCanEnrollment()).isEqualTo(course.getCanEnrollment());
             assertThat(data.getTotalModuleCount()).isZero();
@@ -231,8 +220,8 @@ class CourseMapperTest {
             assertThat(response.getData()).isInstanceOf(CourseProgressResponseDTO.class);
             CourseProgressResponseDTO data = (CourseProgressResponseDTO) response.getData();
             assertThat(data.getUserId()).isEqualTo(201L);
-            assertThat(data.getIsCourseCompleted()).isTrue();
-            assertThat(data.getCompletedModuleCount()).isEqualTo(2);
+            assertThat(data.getIsCourseCompleted().get()).isTrue();
+            assertThat(data.getCompletedModuleCount().get()).isEqualTo(2);
             assertThat(data.getTotalModuleCount()).isEqualTo(3);
         }
     }
@@ -280,11 +269,11 @@ class CourseMapperTest {
             assertThat(response.getTotal()).isEqualTo(1);
             assertThat(response.getData()).hasSize(1);
             CourseListResponseDataInnerDTO item = response.getData().get(0);
-            assertThat(item).isInstanceOf(CourseListResponseDataInnerOneOfDTO.class);
-            CourseListResponseDataInnerOneOfDTO base = (CourseListResponseDataInnerOneOfDTO) item;
+            assertThat(item).isInstanceOf(CourseSummaryDTO.class);
+            CourseSummaryDTO base = (CourseSummaryDTO) item;
             assertThat(base.getCourseId()).isEqualTo(course.getId());
             assertThat(base.getCourseTitle()).isEqualTo(course.getTitle());
-            assertThat(base.getCourseStatus()).isEqualTo(CourseListResponseDataInnerOneOfDTO.CourseStatusEnum.DRAFT);
+            assertThat(base.getCourseStatus()).isEqualTo(CourseStatusDTO.DRAFT);
             assertThat(base.getCanEnrollment()).isEqualTo(course.getCanEnrollment());
             assertThat(base.getTotalModuleCount()).isEqualTo(4);
         }
@@ -298,11 +287,11 @@ class CourseMapperTest {
 
             assertThat(response.getData()).hasSize(1);
             CourseListResponseDataInnerDTO item = response.getData().get(0);
-            assertThat(item).isInstanceOf(CourseListResponseDataInnerOneOf1DTO.class);
-            CourseListResponseDataInnerOneOf1DTO progressItem = (CourseListResponseDataInnerOneOf1DTO) item;
+            assertThat(item).isInstanceOf(CourseProgressSummaryDTO.class);
+            CourseProgressSummaryDTO progressItem = (CourseProgressSummaryDTO) item;
             assertThat(progressItem.getUserId()).isEqualTo(201L);
-            assertThat(progressItem.getIsCourseCompleted()).isFalse();
-            assertThat(progressItem.getCompletedModuleCount()).isEqualTo(1);
+            assertThat(progressItem.getIsCourseCompleted().get()).isFalse();
+            assertThat(progressItem.getCompletedModuleCount().get()).isEqualTo(1);
             assertThat(progressItem.getTotalModuleCount()).isEqualTo(3);
         }
 

@@ -4,20 +4,7 @@ import com.aditya.lms.dto.ModuleView;
 import com.aditya.lms.entity.Course;
 import com.aditya.lms.entity.Lesson;
 import com.aditya.lms.entity.Module;
-import com.aditya.lms.enums.ContentType;
-import com.lms.model.CourseResponseModulesInnerDTO;
-import com.lms.model.ModuleCreateRequestDTO;
-import com.lms.model.ModuleCreateResponseDTO;
-import com.lms.model.ModuleDeleteResponseDTO;
-import com.lms.model.ModuleGetResponseDTO;
-import com.lms.model.ModuleListResponseDTO;
-import com.lms.model.ModuleListResponseDataInnerDTO;
-import com.lms.model.ModuleListResponseDataInnerOneOfDTO;
-import com.lms.model.ModuleProgressResponseDTO;
-import com.lms.model.ModuleResponseDTO;
-import com.lms.model.ModuleResponseLessonsInnerDTO;
-import com.lms.model.ModuleUpdateRequestDTO;
-import com.lms.model.ModuleUpdateResponseDTO;
+import com.lms.model.*;
 import org.hibernate.Hibernate;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Component;
@@ -25,7 +12,6 @@ import org.springframework.stereotype.Component;
 import java.net.URI;
 import java.time.OffsetDateTime;
 import java.util.Collections;
-import java.util.List;
 
 @Component
 public class ModuleMapper {
@@ -159,7 +145,7 @@ public class ModuleMapper {
 
     private ModuleListResponseDataInnerDTO toListItem(ModuleView moduleView) {
         Module module = moduleView.module();
-        return new CourseResponseModulesInnerDTO()
+        return new ModuleSummaryDTO()
                 .moduleId(module.getId())
                 .courseId(module.getCourse() == null ? null : module.getCourse().getId())
                 .moduleTitle(module.getTitle())
@@ -172,7 +158,7 @@ public class ModuleMapper {
 
     private ModuleListResponseDataInnerDTO toProgressListItem(ModuleView moduleView) {
         Module module = moduleView.module();
-        return new ModuleListResponseDataInnerOneOfDTO()
+        return new ModuleProgressSummaryDTO()
                 .moduleId(module.getId())
                 .courseId(module.getCourse() == null ? null : module.getCourse().getId())
                 .moduleTitle(module.getTitle())
@@ -186,11 +172,11 @@ public class ModuleMapper {
                 .totalLessonCount(moduleView.totalLessonCount());
     }
 
-    private ModuleResponseLessonsInnerDTO toLessonInner(Lesson lesson) {
-        return new ModuleResponseLessonsInnerDTO()
+    private LessonSummaryDTO toLessonInner(Lesson lesson) {
+        return new LessonSummaryDTO()
                 .lessonId(lesson.getId())
                 .moduleId(lesson.getModule() == null ? null : lesson.getModule().getId())
-                .contentType(lesson.getContentType() == null ? null : ModuleResponseLessonsInnerDTO.ContentTypeEnum.valueOf(lesson.getContentType().name()))
+                .contentType(lesson.getContentType() == null ? null : ContentTypeDTO.valueOf(lesson.getContentType().name()))
                 .contentLink(lesson.getContentLink() == null ? null : URI.create(lesson.getContentLink()))
                 .sequence(lesson.getSequence())
                 .isActive(lesson.getIsActive())

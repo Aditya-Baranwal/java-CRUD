@@ -21,9 +21,11 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.JdbcType;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import com.aditya.lms.enums.ContentType;
+import org.hibernate.dialect.type.PostgreSQLEnumJdbcType;
 
 import java.time.OffsetDateTime;
 
@@ -55,8 +57,9 @@ public class Lesson {
     @JoinColumn(name = "module_id", nullable = false)
     private Module module;
 
-    @Column(name = "content_type", nullable = false, length = 20)
     @Enumerated(EnumType.STRING)
+    @JdbcType(PostgreSQLEnumJdbcType.class)
+    @Column(name = "content_type", nullable = false, length = 20)
     private ContentType contentType;
 
     @Column(name = "content_link", nullable = false, length = 255)

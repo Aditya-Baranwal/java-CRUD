@@ -5,16 +5,11 @@ import com.aditya.lms.entity.Course;
 import com.aditya.lms.mapper.CourseMapper;
 import com.aditya.lms.service.interfaces.CourseService;
 import com.lms.api.CoursesApi;
-import com.lms.model.CourseCreateRequestDTO;
-import com.lms.model.CourseCreateResponseDTO;
-import com.lms.model.CourseDeleteResponseDTO;
-import com.lms.model.CourseGetResponseDTO;
-import com.lms.model.CourseListResponseDTO;
-import com.lms.model.CourseUpdateRequestDTO;
-import com.lms.model.CourseUpdateResponseDTO;
+import com.lms.model.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -27,8 +22,11 @@ public class CourseController implements CoursesApi {
     private final CourseMapper courseMapper;
 
     @Override
+    @PreAuthorize("hasRole('ADMIN') " + "or (hasRole('INSTRUCTOR') and #courseCreateRequestDTO.instructorId == principal.getId())")
     public ResponseEntity<CourseCreateResponseDTO> createCourse(CourseCreateRequestDTO courseCreateRequestDTO) {
-        Course created = courseService.createCourse(courseMapper.toEntity(courseCreateRequestDTO));
+        Course created = courseService.createCourse(
+                courseMapper.toEntity(courseCreateRequestDTO)
+        );
         return ResponseEntity.status(HttpStatus.CREATED).body(courseMapper.toCreateResponse(created));
     }
 
@@ -49,7 +47,7 @@ public class CourseController implements CoursesApi {
     }
 
     @Override
-    public ResponseEntity<CourseListResponseDTO> listCourses(Integer pageNo, Integer pageSize, String courseStatus, Long userId, Boolean progress, String sortBy, String sortOrder) {
+    public ResponseEntity<CourseListResponseDTO> listCourses(Integer pageNo, Integer pageSize, CourseStatusDTO courseStatus, Long userId, Boolean progress, String sortBy, String sortOrder) {
         if (Boolean.TRUE.equals(progress)) {
             return ResponseEntity.ok(courseMapper.toListProgressResponse(
                     courseService.listCoursesWithProgress(userId, pageNo, pageSize, courseMapper.toDomainStatus(courseStatus), sortBy, sortOrder)

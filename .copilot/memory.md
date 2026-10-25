@@ -199,7 +199,7 @@
 
 
 ✅ **COMPLETED** - Production-ready OpenAPI 3.1 spec generated
-- Location: `src/main/resources/openapi.yaml`
+- Location: `../src/main/resources/openapi/openapi.yaml`
 - Format: OpenAPI 3.1 (compatible with OpenAPI Generator v7.4.0)
 - All 5 resources fully documented: Courses, Modules, Lessons, Enrollments, Progress
 - DTOs: 30 generated classes (CreateXRequest, UpdateXRequest, XResponse)

@@ -23,6 +23,8 @@ import lombok.Builder;
 import org.hibernate.annotations.CreationTimestamp;
 
 import com.aditya.lms.enums.LessonStatus;
+import org.hibernate.annotations.JdbcType;
+import org.hibernate.dialect.type.PostgreSQLEnumJdbcType;
 
 import java.time.OffsetDateTime;
 
@@ -51,8 +53,9 @@ public class Progress {
     @Column(name = "user_id", nullable = false)
     private Long userId;
 
-    @Column(name = "lesson_status", length = 20)
     @Enumerated(EnumType.STRING)
+    @JdbcType(PostgreSQLEnumJdbcType.class)
+    @Column(name = "lesson_status", length = 20)
     private LessonStatus lessonStatus;
 
     @CreationTimestamp

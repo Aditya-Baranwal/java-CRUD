@@ -14,13 +14,13 @@ This document describes the current API contract for module endpoints.
 
 # Authorization
 
-| Operation     | ADMIN |   INSTRUCTOR    | USER |
-|---------------|:-----:|:---------------:|:----:|
-| Create Module |  ✅   | ✅ (Own Course) |  ❌  |
-| Update Module |  ✅   | ✅ (Own Course) |  ❌  |
-| Get Module    |  ✅   |       ✅        |  ✅  |
-| List Modules  |  ✅   |       ✅        |  ✅  |
-| Delete Module |  ✅   | ✅ (Own Course) |  ❌  |
+| Operation     | ADMIN |   INSTRUCTOR    | STUDENT |
+|---------------|:-----:|:---------------:|:-------:|
+| Create Module |  ✅   | ✅ (Own Course) |   ❌    |
+| Update Module |  ✅   | ✅ (Own Course) |   ❌    |
+| Get Module    |  ✅   |       ✅        |   ✅    |
+| List Modules  |  ✅   |       ✅        |   ✅    |
+| Delete Module |  ✅   | ✅ (Own Course) |   ❌    |
 
 ---
 

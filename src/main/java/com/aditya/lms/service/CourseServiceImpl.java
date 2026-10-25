@@ -1,11 +1,8 @@
 package com.aditya.lms.service;
 
 import com.aditya.lms.dto.CourseView;
-import com.aditya.lms.entity.Course;
-import com.aditya.lms.entity.Enrollment;
-import com.aditya.lms.entity.Lesson;
+import com.aditya.lms.entity.*;
 import com.aditya.lms.entity.Module;
-import com.aditya.lms.entity.Progress;
 import com.aditya.lms.enums.CourseCompletionStatus;
 import com.aditya.lms.enums.CourseStatus;
 import com.aditya.lms.enums.LessonStatus;
@@ -20,6 +17,7 @@ import com.aditya.lms.repository.ModuleRepository;
 import com.aditya.lms.repository.ProgressRepository;
 import com.aditya.lms.service.interfaces.CourseQueryService;
 import com.aditya.lms.service.interfaces.CourseService;
+import com.aditya.lms.util.SecurityUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -74,6 +72,7 @@ public class CourseServiceImpl implements CourseService, CourseQueryService {
     public Course createCourse(Course course) {
         validateCourseForCreate(course);
         applyCreateDefaults(course);
+        course.setCreatedBy(SecurityUtil.getRequesterUserDetails().getId());
         Course created = courseRepository.save(course);
         log.info("Course created successfully courseId={}, instructorId={}", created.getId(), created.getInstructorId());
         return created;

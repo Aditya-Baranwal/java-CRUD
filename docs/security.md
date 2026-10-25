@@ -99,23 +99,23 @@ Each request is authenticated before authorization.
 
 # User Roles
 
-| Role | Description |
-|------|-------------|
-| ADMIN | Full system access |
+| Role       | Description                             |
+|------------|-----------------------------------------|
+| ADMIN      | Full system access                      |
 | INSTRUCTOR | Manage own courses, modules and lessons |
-| USER | Consume courses and update own progress |
+| STUDENT    | Consume courses and update own progress |
 
 ---
 
 # Permission Matrix
 
-| Resource | ADMIN | INSTRUCTOR | USER |
-|----------|:-----:|:----------:|:----:|
-| Courses | CRUD | CRUD (Own) | Read |
-| Modules | CRUD | CRUD (Own) | Read |
-| Lessons | CRUD | CRUD (Own) | Read |
-| Enrollments | Read | Read | Create, Read Own |
-| Progress | Read | Read | Update Own |
+| Resource    | ADMIN | INSTRUCTOR |     STUDENT      |
+|-------------|:-----:|:----------:|:----------------:|
+| Courses     | CRUD  | CRUD (Own) |       Read       |
+| Modules     | CRUD  | CRUD (Own) |       Read       |
+| Lessons     | CRUD  | CRUD (Own) |       Read       |
+| Enrollments | Read  |    Read    | Create, Read Own |
+| Progress    | Read  |    Read    |    Update Own    |
 
 ---
 
@@ -154,7 +154,7 @@ Example payload
 {
     "sub": "25",
     "email": "user@example.com",
-    "role": "USER",
+    "role": "STUDENT",
     "iat": 1722600000,
     "exp": 1722603600
 }
@@ -164,10 +164,10 @@ Example payload
 
 ## Token Expiration
 
-| Token | Expiry |
-|--------|---------|
-| Access Token | 1 Hour |
-| Refresh Token| 30 Days |
+| Token         | Expiry  |
+|---------------|---------|
+| Access Token  | 1 Hour  |
+| Refresh Token | 30 Days |
 
 ---
 
@@ -344,11 +344,11 @@ CSRF Protection Disabled
 
 Recommended
 
-| Endpoint | Limit |
-|----------|-------|
-| Login | 5 requests/minute |
-| Register | 3 requests/minute |
-| APIs | 100 requests/minute |
+| Endpoint | Limit               |
+|----------|---------------------|
+| Login    | 5 requests/minute   |
+| Register | 3 requests/minute   |
+| APIs     | 100 requests/minute |
 
 Possible implementations
 

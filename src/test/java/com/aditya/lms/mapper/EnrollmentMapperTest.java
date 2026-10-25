@@ -93,7 +93,7 @@ class EnrollmentMapperTest {
             assertThat(data.getCourseCompletionStatus().name()).isEqualTo(enrollment.getCourseCompletionStatus().name());
             assertThat(data.getEnrolledAt()).isEqualTo(enrollment.getEnrolledAt());
             assertThat(data.getCanEnrolledStudentViewCourseContent()).isTrue();
-            assertThat(data.getCourseAccessMessage()).isEqualTo("Course is open for enrollment.");
+            assertThat(data.getCourseAccessMessage().get()).isEqualTo("Course is open for enrollment.");
         }
 
         @Test
@@ -132,7 +132,7 @@ class EnrollmentMapperTest {
 
             assertThat(response.getMessage()).isEqualTo("Enrollment fetched successfully");
             assertThat(response.getData().getId()).isEqualTo(enrollment.getId());
-            assertThat(response.getData().getCourseAccessMessage()).isEqualTo("Course is open for enrollment.");
+            assertThat(response.getData().getCourseAccessMessage().get()).isEqualTo("Course is open for enrollment.");
         }
     }
 

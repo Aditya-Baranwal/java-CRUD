@@ -285,7 +285,7 @@ GET /progress?courseId=2&lessonStatus=FINISHED
 
 # Authorization Model
 
-| Resource    | ADMIN | INSTRUCTOR |       USER       |
+| Resource    | ADMIN | INSTRUCTOR |     STUDENT      |
 |-------------|:-----:|:----------:|:----------------:|
 | Courses     | CRUD  | CRUD (Own) |       Read       |
 | Modules     | CRUD  | CRUD (Own) |       Read       |

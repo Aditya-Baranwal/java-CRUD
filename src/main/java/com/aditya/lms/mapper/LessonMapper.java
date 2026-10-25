@@ -4,18 +4,7 @@ import com.aditya.lms.dto.LessonView;
 import com.aditya.lms.entity.Lesson;
 import com.aditya.lms.entity.Module;
 import com.aditya.lms.enums.ContentType;
-import com.lms.model.LessonCreateRequestDTO;
-import com.lms.model.LessonCreateResponseDTO;
-import com.lms.model.LessonDeleteResponseDTO;
-import com.lms.model.LessonGetResponseDTO;
-import com.lms.model.LessonListResponseDTO;
-import com.lms.model.LessonListResponseDataInnerDTO;
-import com.lms.model.LessonListResponseDataInnerOneOfDTO;
-import com.lms.model.LessonProgressResponseDTO;
-import com.lms.model.LessonResponseDTO;
-import com.lms.model.LessonUpdateRequestDTO;
-import com.lms.model.LessonUpdateResponseDTO;
-import com.lms.model.ModuleResponseLessonsInnerDTO;
+import com.lms.model.*;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Component;
 
@@ -112,7 +101,7 @@ public class LessonMapper {
         return new LessonResponseDTO()
                 .lessonId(lesson.getId())
                 .moduleId(lesson.getModule() == null ? null : lesson.getModule().getId())
-                .contentType(lesson.getContentType() == null ? null : LessonResponseDTO.ContentTypeEnum.valueOf(lesson.getContentType().name()))
+                .contentType(lesson.getContentType() == null ? null : ContentTypeDTO.valueOf(lesson.getContentType().name()))
                 .contentLink(lesson.getContentLink() == null ? null : URI.create(lesson.getContentLink()))
                 .sequence(lesson.getSequence())
                 .isActive(lesson.getIsActive())
@@ -124,12 +113,12 @@ public class LessonMapper {
         return new LessonProgressResponseDTO()
                 .lessonId(lesson.getId())
                 .moduleId(lesson.getModule() == null ? null : lesson.getModule().getId())
-                .contentType(lesson.getContentType() == null ? null : LessonProgressResponseDTO.ContentTypeEnum.valueOf(lesson.getContentType().name()))
+                .contentType(lesson.getContentType() == null ? null : ContentTypeDTO.valueOf(lesson.getContentType().name()))
                 .contentLink(lesson.getContentLink() == null ? null : URI.create(lesson.getContentLink()))
                 .sequence(lesson.getSequence())
                 .userId(lessonView.userId())
                 .progressId(lessonView.progressId())
-                .lessonStatus(lessonView.progressStatus() == null ? null : LessonProgressResponseDTO.LessonStatusEnum.valueOf(lessonView.progressStatus().name()))
+                .lessonStatus(lessonView.progressStatus() == null ? null : LessonStatusDTO.valueOf(lessonView.progressStatus().name()))
                 .isLessonCompleted(lessonView.isLessonCompleted())
                 .progressStartedAt(lessonView.progressStartedAt())
                 .progressCompletedAt(lessonView.progressCompletedAt())
@@ -138,10 +127,10 @@ public class LessonMapper {
     }
 
     private LessonListResponseDataInnerDTO toListItem(Lesson lesson) {
-        return new ModuleResponseLessonsInnerDTO()
+        return new LessonSummaryDTO()
                 .lessonId(lesson.getId())
                 .moduleId(lesson.getModule() == null ? null : lesson.getModule().getId())
-                .contentType(lesson.getContentType() == null ? null : ModuleResponseLessonsInnerDTO.ContentTypeEnum.valueOf(lesson.getContentType().name()))
+                .contentType(lesson.getContentType() == null ? null : ContentTypeDTO.valueOf(lesson.getContentType().name()))
                 .contentLink(lesson.getContentLink() == null ? null : URI.create(lesson.getContentLink()))
                 .sequence(lesson.getSequence())
                 .isActive(lesson.getIsActive())
@@ -150,17 +139,17 @@ public class LessonMapper {
 
     private LessonListResponseDataInnerDTO toProgressListItem(LessonView lessonView) {
         Lesson lesson = lessonView.lesson();
-        return new LessonListResponseDataInnerOneOfDTO()
+        return new LessonProgressSummaryDTO()
                 .lessonId(lesson.getId())
                 .moduleId(lesson.getModule() == null ? null : lesson.getModule().getId())
-                .contentType(lesson.getContentType() == null ? null : LessonListResponseDataInnerOneOfDTO.ContentTypeEnum.valueOf(lesson.getContentType().name()))
+                .contentType(lesson.getContentType() == null ? null : ContentTypeDTO.valueOf(lesson.getContentType().name()))
                 .contentLink(lesson.getContentLink() == null ? null : URI.create(lesson.getContentLink()))
                 .sequence(lesson.getSequence())
                 .isActive(lesson.getIsActive())
                 .createdAt(lesson.getCreatedAt())
                 .userId(lessonView.userId())
                 .progressId(lessonView.progressId())
-                .lessonStatus(lessonView.progressStatus() == null ? null : LessonListResponseDataInnerOneOfDTO.LessonStatusEnum.valueOf(lessonView.progressStatus().name()))
+                .lessonStatus(lessonView.progressStatus() == null ? null : LessonStatusDTO.valueOf(lessonView.progressStatus().name()))
                 .isLessonCompleted(lessonView.isLessonCompleted())
                 .progressStartedAt(lessonView.progressStartedAt())
                 .progressCompletedAt(lessonView.progressCompletedAt());

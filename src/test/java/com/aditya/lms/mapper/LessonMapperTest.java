@@ -5,18 +5,7 @@ import com.aditya.lms.entity.Lesson;
 import com.aditya.lms.enums.ContentType;
 import com.aditya.lms.enums.LessonStatus;
 import com.aditya.lms.testdata.LessonTestData;
-import com.lms.model.LessonCreateRequestDTO;
-import com.lms.model.LessonCreateResponseDTO;
-import com.lms.model.LessonDeleteResponseDTO;
-import com.lms.model.LessonGetResponseDTO;
-import com.lms.model.LessonListResponseDTO;
-import com.lms.model.LessonListResponseDataInnerDTO;
-import com.lms.model.LessonListResponseDataInnerOneOfDTO;
-import com.lms.model.LessonProgressResponseDTO;
-import com.lms.model.LessonResponseDTO;
-import com.lms.model.LessonUpdateRequestDTO;
-import com.lms.model.LessonUpdateResponseDTO;
-import com.lms.model.ModuleResponseLessonsInnerDTO;
+import com.lms.model.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -48,7 +37,7 @@ class LessonMapperTest {
         void shouldMapAllFieldsFromCreateRequest() {
             LessonCreateRequestDTO request = new LessonCreateRequestDTO()
                     .moduleId(1L)
-                    .contentType(LessonCreateRequestDTO.ContentTypeEnum.MP4)
+                    .contentType(ContentTypeDTO.MP4)
                     .contentLink(URI.create("https://example.com/lesson.mp4"))
                     .sequence(1);
 
@@ -64,7 +53,7 @@ class LessonMapperTest {
         void shouldDefaultIsActiveToTrue() {
             LessonCreateRequestDTO request = new LessonCreateRequestDTO()
                     .moduleId(1L)
-                    .contentType(LessonCreateRequestDTO.ContentTypeEnum.PDF)
+                    .contentType(ContentTypeDTO.PDF)
                     .contentLink(URI.create("https://example.com/lesson.pdf"))
                     .sequence(1);
 
@@ -108,7 +97,7 @@ class LessonMapperTest {
         void shouldUpdateContentTypeWhenProvided() {
             Lesson lesson = LessonTestData.draftLesson();
             LessonUpdateRequestDTO request = new LessonUpdateRequestDTO()
-                    .contentType(LessonUpdateRequestDTO.ContentTypeEnum.PDF);
+                    .contentType(ContentTypeDTO.PDF);
 
             lessonMapper.applyUpdates(lesson, request);
 
@@ -154,7 +143,7 @@ class LessonMapperTest {
             LessonResponseDTO data = response.getData();
             assertThat(data.getLessonId()).isEqualTo(lesson.getId());
             assertThat(data.getModuleId()).isEqualTo(lesson.getModule().getId());
-            assertThat(data.getContentType()).isEqualTo(LessonResponseDTO.ContentTypeEnum.MP4);
+            assertThat(data.getContentType()).isEqualTo(ContentTypeDTO.MP4);
             assertThat(data.getContentLink()).isEqualTo(URI.create(lesson.getContentLink()));
             assertThat(data.getSequence()).isEqualTo(lesson.getSequence());
             assertThat(data.getIsActive()).isEqualTo(lesson.getIsActive());
@@ -218,9 +207,9 @@ class LessonMapperTest {
             LessonProgressResponseDTO data = (LessonProgressResponseDTO) response.getData();
             assertThat(data.getLessonId()).isEqualTo(lesson.getId());
             assertThat(data.getUserId()).isEqualTo(201L);
-            assertThat(data.getProgressId()).isEqualTo(301L);
-            assertThat(data.getIsLessonCompleted()).isTrue();
-            assertThat(data.getLessonStatus()).isEqualTo(LessonProgressResponseDTO.LessonStatusEnum.FINISHED);
+            assertThat(data.getProgressId().get()).isEqualTo(301L);
+            assertThat(data.getIsLessonCompleted().get()).isTrue();
+            assertThat(data.getLessonStatus().get()).isEqualTo(LessonStatusDTO.FINISHED);
         }
     }
 
@@ -267,11 +256,11 @@ class LessonMapperTest {
             assertThat(response.getTotal()).isEqualTo(1);
             assertThat(response.getData()).hasSize(1);
             LessonListResponseDataInnerDTO item = response.getData().get(0);
-            assertThat(item).isInstanceOf(ModuleResponseLessonsInnerDTO.class);
-            ModuleResponseLessonsInnerDTO baseItem = (ModuleResponseLessonsInnerDTO) item;
+            assertThat(item).isInstanceOf(LessonListResponseDataInnerDTO.class);
+            LessonSummaryDTO baseItem = (LessonSummaryDTO) item;
             assertThat(baseItem.getLessonId()).isEqualTo(lesson.getId());
             assertThat(baseItem.getModuleId()).isEqualTo(lesson.getModule().getId());
-            assertThat(baseItem.getContentType()).isEqualTo(ModuleResponseLessonsInnerDTO.ContentTypeEnum.MP4);
+            assertThat(baseItem.getContentType()).isEqualTo(ContentTypeDTO.MP4);
             assertThat(baseItem.getSequence()).isEqualTo(lesson.getSequence());
             assertThat(baseItem.getIsActive()).isEqualTo(lesson.getIsActive());
         }
@@ -294,13 +283,13 @@ class LessonMapperTest {
 
             assertThat(response.getData()).hasSize(1);
             LessonListResponseDataInnerDTO item = response.getData().get(0);
-            assertThat(item).isInstanceOf(LessonListResponseDataInnerOneOfDTO.class);
-            LessonListResponseDataInnerOneOfDTO progressItem = (LessonListResponseDataInnerOneOfDTO) item;
+            assertThat(item).isInstanceOf(LessonProgressSummaryDTO.class);
+            LessonProgressSummaryDTO progressItem = (LessonProgressSummaryDTO) item;
             assertThat(progressItem.getLessonId()).isEqualTo(lesson.getId());
             assertThat(progressItem.getUserId()).isEqualTo(201L);
-            assertThat(progressItem.getProgressId()).isEqualTo(301L);
-            assertThat(progressItem.getIsLessonCompleted()).isFalse();
-            assertThat(progressItem.getLessonStatus()).isEqualTo(LessonListResponseDataInnerOneOfDTO.LessonStatusEnum.STARTED);
+            assertThat(progressItem.getProgressId().get()).isEqualTo(301L);
+            assertThat(progressItem.getIsLessonCompleted().get()).isFalse();
+            assertThat(progressItem.getLessonStatus().get()).isEqualTo(LessonStatusDTO.STARTED);
         }
 
         @Test
@@ -327,7 +316,7 @@ class LessonMapperTest {
 
             LessonListResponseDTO response = lessonMapper.toListResponse(page);
 
-            assertThat(((ModuleResponseLessonsInnerDTO) response.getData().get(0)).getModuleId()).isNull();
+            assertThat(((LessonSummaryDTO) response.getData().get(0)).getModuleId()).isNull();
         }
     }
 }

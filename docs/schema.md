@@ -169,21 +169,19 @@ Stores all users of the platform.
 
 Stores all courses available in the system.
 
-| Column         | Type          | Default        | Nullable | Constraint |
-|----------------|---------------|----------------|----------|------------|
-| id             | BIGINT        | AUTO_INCREMENT | No       | PK         |
-| title          | VARCHAR(100)  | -              | No       |            |
-| description    | VARCHAR(200)  | -              | No       |            |
-| instructor_id  | BIGINT        | -              | No       | FK         |
-| tags           | ARRAY         | '[]'           | No       |            |
-| can_enrollment | BOOLEAN       | FALSE          | No       |            |
-| course_status  | COURSE_STATUS | DRAFT          | No       |            |
-
-`can_enrollment` is only relevant when `course_status = PUBLISHED`; for all other lifecycle states it is treated as false/ignored.
-| created_at    | TIMESTAMP     | CURRENT_TIMESTAMP | No       |            |
-| created_by    | BIGINT        | NULL              | No       |            |
-| updated_at    | TIMESTAMP     | CURRENT_TIMESTAMP | No       |            |
-| updated_by    | BIGINT        | NULL              | No       |            |
+| Column         | Type          | Default           | Nullable | Constraint |
+|----------------|---------------|-------------------|----------|------------|
+| id             | BIGINT        | AUTO_INCREMENT    | No       | PK         |
+| title          | VARCHAR(100)  | -                 | No       |            |
+| description    | VARCHAR(200)  | -                 | No       |            |
+| instructor_id  | BIGINT        | -                 | No       | FK         |
+| tags           | ARRAY         | '[]'              | No       |            |
+| can_enrollment | BOOLEAN       | FALSE             | No       |            |
+| course_status  | COURSE_STATUS | DRAFT             | No       |            |
+| created_at     | TIMESTAMP     | CURRENT_TIMESTAMP | No       |            |
+| created_by     | BIGINT        | NULL              | No       |            |
+| updated_at     | TIMESTAMP     | CURRENT_TIMESTAMP | No       |            |
+| updated_by     | BIGINT        | NULL              | No       |            |
 
 ---
 
@@ -456,7 +454,7 @@ ON progress(lesson_status);
 |------------|------------------------|
 | ADMIN      | Platform administrator |
 | INSTRUCTOR | Course instructor      |
-| USER       | Student                |
+| STUDENT    | Student                |
 
 ---
 
@@ -506,15 +504,15 @@ ON progress(lesson_status);
 
 # Default Values
 
-| Column                   | Default           |
-|--------------------------|-------------------|
-| course.is_active         | TRUE              |
-| module.is_active         | TRUE              |
-| lesson.is_active         | TRUE              |
-| course.tags              | []                |
+| Column                              | Default           |
+|-------------------------------------|-------------------|
+| course.is_active                    | TRUE              |
+| module.is_active                    | TRUE              |
+| lesson.is_active                    | TRUE              |
+| course.tags                         | []                |
 | enrollment.course_completion_status | INCOMPLETE        |
-| progress.lesson_status   | UNSTARTED         |
-| created_at               | CURRENT_TIMESTAMP |
+| progress.lesson_status              | UNSTARTED         |
+| created_at                          | CURRENT_TIMESTAMP |
 
 ---
 

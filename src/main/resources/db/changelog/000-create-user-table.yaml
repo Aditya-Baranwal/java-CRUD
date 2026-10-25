@@ -5,7 +5,7 @@ databaseChangeLog:
       changes:
         - sql:
             dbms: postgresql
-            sql: CREATE TYPE user_role AS ENUM ('ADMIN', 'INSTRUCTOR', 'USER');
+            sql: CREATE TYPE user_role AS ENUM ('ADMIN', 'INSTRUCTOR', 'STUDENT');
         - createSequence:
             sequenceName: user_id_seq
             startValue: 1
